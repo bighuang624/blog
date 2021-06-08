@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="简单地复习一下数据库系统。重在思想，基本不会涉及到 SQL 语句，有需要可以在文末的参考资料中找到相应资料。 数据库简介基于文件系统的局限根源基于文件的系统存在的局限性（分离孤立、冗余、依赖性、文件格式不相容）可以归结为两个原因：  数据的定义被嵌入到应用程序中，而不是分开和独立地存储； 除了应用程序规定之外的那些数据访问和操作无法得到控制。  因此，引入数据库和数据库管理系统。 数据库与数据库管">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库系统复习笔记">
+<meta property="og:url" content="https://kyonhuang.top/blog/database-systems-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="简单地复习一下数据库系统。重在思想，基本不会涉及到 SQL 语句，有需要可以在文末的参考资料中找到相应资料。 数据库简介基于文件系统的局限根源基于文件的系统存在的局限性（分离孤立、冗余、依赖性、文件格式不相容）可以归结为两个原因：  数据的定义被嵌入到应用程序中，而不是分开和独立地存储； 除了应用程序规定之外的那些数据访问和操作无法得到控制。  因此，引入数据库和数据库管理系统。 数据库与数据库管">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-07-02T11:22:42.000Z">
+<meta property="article:modified_time" content="2018-07-02T11:24:40.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="学科复习笔记">
+<meta property="article:tag" content="数据库系统">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/database-systems-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;database-systems-notes&#x2F;&quot;,&quot;path&quot;:&quot;database-systems-notes&#x2F;&quot;,&quot;title&quot;:&quot;数据库系统复习笔记&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>数据库系统复习笔记 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">数据库简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%B1%80%E9%99%90%E6%A0%B9%E6%BA%90"><span class="nav-number">1.1.</span> <span class="nav-text">基于文件系统的局限根源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.2.</span> <span class="nav-text">数据库与数据库管理系统</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E7%8E%AF%E5%A2%83"><span class="nav-number">2.</span> <span class="nav-text">数据库环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ANSI-SPARC-%E4%B8%89%E5%B1%82%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.</span> <span class="nav-text">ANSI-SPARC 三层体系结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.2.</span> <span class="nav-text">数据模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">关系模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="nav-number">3.1.</span> <span class="nav-text">基本术语</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">3.1.1.</span> <span class="nav-text">关系数据结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">3.1.2.</span> <span class="nav-text">关系关键字</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E6%80%A7%E7%BA%A6%E6%9D%9F"><span class="nav-number">3.2.</span> <span class="nav-text">完整性约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE"><span class="nav-number">3.3.</span> <span class="nav-text">视图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">事务管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E8%8C%83%E5%8C%96"><span class="nav-number">5.</span> <span class="nav-text">规范化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E8%8C%83%E5%8C%96%E7%9A%84%E7%9B%AE%E7%9A%84"><span class="nav-number">5.1.</span> <span class="nav-text">规范化的目的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%86%97%E4%BD%99%E4%B8%8E%E6%9B%B4%E6%96%B0%E5%BC%82%E5%B8%B8"><span class="nav-number">5.2.</span> <span class="nav-text">数据冗余与更新异常</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-number">5.3.</span> <span class="nav-text">函数依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E8%8C%83%E5%8C%96%E8%BF%87%E7%A8%8B"><span class="nav-number">5.4.</span> <span class="nav-text">规范化过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/database-systems-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库系统复习笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2018-07-02 19:22:42 / 修改时间：19:24:40" itemprop="dateCreated datePublished" datetime="2018-07-02T19:22:42+08:00">2018-07-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E5%AD%A6%E7%A7%91%E8%A1%A5%E5%AE%8C%E8%AE%A1%E5%88%92/" itemprop="url" rel="index"><span itemprop="name">学科补完计划</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>简单地复习一下数据库系统。重在思想，基本不会涉及到 SQL 语句，有需要可以在文末的参考资料中找到相应资料。</p>
+<h2 id="数据库简介"><a href="#数据库简介" class="headerlink" title="数据库简介"></a>数据库简介</h2><h3 id="基于文件系统的局限根源"><a href="#基于文件系统的局限根源" class="headerlink" title="基于文件系统的局限根源"></a>基于文件系统的局限根源</h3><p><strong>基于文件的系统</strong>存在的局限性（分离孤立、冗余、依赖性、文件格式不相容）可以归结为两个原因：</p>
+<ul>
+<li>数据的定义被嵌入到应用程序中，而不是分开和独立地存储；</li>
+<li>除了应用程序规定之外的那些数据访问和操作无法得到控制。</li>
+</ul>
+<p>因此，引入数据库和数据库管理系统。</p>
+<h3 id="数据库与数据库管理系统"><a href="#数据库与数据库管理系统" class="headerlink" title="数据库与数据库管理系统"></a>数据库与数据库管理系统</h3><ul>
+<li><strong>数据库</strong>：为满足某个组织机构的信息要求而设计的一个逻辑相关数据及其描述的共享集。<ul>
+<li>数据库是“逻辑相关的”，当分析一个组织需要的信息时，总是试图找出实体、属性和联系；</li>
+<li><strong>实体</strong>是组织中一个独立的、将要在数据库中体现出来的对象（人、地点、东西、概念、事件）；</li>
+<li><strong>属性</strong>描述我们想要记录的对象的某一方面的特性；</li>
+<li><strong>联系</strong>描述实体之间的关联。</li>
+</ul>
+</li>
+<li><strong>数据库管理系统（DBMS）</strong>：一个支持用户对数据库进行定义、创建、维护及控制访问的软件系统。<ul>
+<li>允许用户定义数据库，通常是通过<strong>数据定义语言（DDL）</strong>；</li>
+<li>允许用户在数据库中对数据进行增删改查，通常通过<strong>数据操作语言（DML）</strong>，最常见的查询语言是<strong>结构化查询语言（SQL）</strong>。</li>
+<li>提供数据库的受控访问。</li>
+</ul>
+</li>
+</ul>
+<p>DBMS 的功能：</p>
+<ul>
+<li>数据存储、检索和更新；</li>
+<li>提供用户可访问的目录；</li>
+<li>提供事务支持；</li>
+<li>并发控制的服务；</li>
+<li>恢复服务、授权服务、完整性服务；</li>
+<li>提高数据独立性的服务；</li>
+<li>支持数据通信。</li>
+</ul>
+<p>DBMS 的优点：</p>
+<ul>
+<li>受控的数据冗余；</li>
+<li>数据一致性；</li>
+<li>相同数据量表示更多信息；</li>
+<li>数据共享；</li>
+<li>增强的数据完整性；</li>
+<li>增强的安全性；</li>
+<li>强制执行标准；</li>
+<li>经济合算的规模；</li>
+<li>平衡各种需求冲突；</li>
+<li>增强的数据可访问性和响应性；</li>
+<li>提高的生产率；</li>
+<li>通过数据的独立性增强可维护性；</li>
+<li>提高的并发性；</li>
+<li>增强的备份和恢复服务。</li>
+</ul>
+<p>DBMS 的缺点：</p>
+<ul>
+<li>复杂性高；</li>
+<li>规模大；</li>
+<li>DBMS 的费用高；</li>
+<li>需要附加的硬件费用；</li>
+<li>转化费用大；</li>
+<li>性能相对较低；</li>
+<li>故障带来的影响较大。</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="数据库环境"><a href="#数据库环境" class="headerlink" title="数据库环境"></a>数据库环境</h2><h3 id="ANSI-SPARC-三层体系结构"><a href="#ANSI-SPARC-三层体系结构" class="headerlink" title="ANSI-SPARC 三层体系结构"></a>ANSI-SPARC 三层体系结构</h3><p><strong>三层体系结构</strong>包括<strong>外部层</strong>、<strong>概念层</strong>和<strong>内部层</strong>：</p>
+<ul>
+<li><strong>外部层</strong>：数据库的用户视图。这一层描述与每一个用户相关的数据库部分。</li>
+<li><strong>概念层</strong>：数据库的整体视图。这一层描述了哪些数据被存储在数据库中，以及这些数据库之间的联系。</li>
+<li><strong>内部层</strong>：数据库在计算机上的物理表示。这一层描述数据是如何存储在数据库中的。</li>
+</ul>
+<p>内部层之下的是<strong>物理层</strong>，物理层可能在 DBMS 的指导下受操作系统的控制。</p>
+<p>三层体系结构的目的是将用户的数据库视图与数据库的物理描述分离开，以保证<strong>数据独立性</strong>。这意味着对较低层的修改不会对较高层造成影响。有两种类型的数据独立性：<strong>逻辑数据独立性</strong>和<strong>物理数据独立性</strong>：</p>
+<ul>
+<li><strong>逻辑数据独立性</strong>：指外部模式不受概念模式变化（例如添加或删除实体、属性或者联系）的影响；</li>
+<li><strong>物理数据独立性</strong>：指概念模式不受内部模式变化（例如使用不同的文件组织方式或者存储结构、使用不同的存储设备、修改索引或散列算法）的影响。</li>
+</ul>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p><strong>数据模型</strong>是一组集成的概念，用于描述和操纵组织机构内的数据、数据间联系以及对数据的约束。其包含下列三个组件：</p>
+<ul>
+<li><strong>结构部分</strong>，由一组创建数据库的规则组成。</li>
+<li><strong>操纵部分</strong>，定义允许对数据进行的操作的种类；</li>
+<li><strong>一组完整性约束</strong>，确保数据的准确性。</li>
+</ul>
+<p>数据模型的分类：</p>
+<ul>
+<li>基于对象的数据模型：用到实体、属性和联系等概念<ul>
+<li>实体-联系（ER）模型</li>
+<li>语义模型</li>
+<li>函数模型</li>
+<li>面向对象模型</li>
+</ul>
+</li>
+<li>基于记录的数据模型：数据库由不同类型的固定格式记录组成<ul>
+<li>关系数据模型</li>
+<li>网状数据模型</li>
+<li>层次数据模型</li>
+</ul>
+</li>
+<li>物理数据模型：描述数据如何存储在计算机中</li>
+</ul>
+<h2 id="关系模型"><a href="#关系模型" class="headerlink" title="关系模型"></a>关系模型</h2><h3 id="基本术语"><a href="#基本术语" class="headerlink" title="基本术语"></a>基本术语</h3><h4 id="关系数据结构"><a href="#关系数据结构" class="headerlink" title="关系数据结构"></a>关系数据结构</h4><ul>
+<li><strong>关系</strong>：由行和列组成的表；</li>
+<li><strong>属性</strong>：关系中命名的列；</li>
+<li><strong>域</strong>：一个或多个属性的取值集合；</li>
+<li><strong>元组</strong>：关系中的每一行；</li>
+<li><strong>维数</strong>：关系所包含的属性的个数；</li>
+<li><strong>基数</strong>：关系所包含的元组的个数；</li>
+<li><strong>关系模式</strong>：用一组属性和域名对定义的具名的关系。</li>
+</ul>
+<h4 id="关系关键字"><a href="#关系关键字" class="headerlink" title="关系关键字"></a>关系关键字</h4><ul>
+<li><strong>超关键字（superkey）</strong>：一个属性或属性集合，它能唯一地标识出关系中的每个元组；</li>
+<li><strong>候选关键字（candidate key）</strong>：最小的超关键字；</li>
+<li><strong>主关键字（primary key）</strong>：被选用于唯一标识关系中各元组的候选关键字。没有被选为主关键字的候选关键字称为<strong>可替换关键字（alternate key）</strong>；</li>
+<li><strong>外部关键字（foreign key）</strong>：当一个关系中的某个属性或属性集合与另一个关系（也可能就是自己）的候选关键字匹配时，就称这个属性或属性集合为外部关键字。</li>
+</ul>
+<h3 id="完整性约束"><a href="#完整性约束" class="headerlink" title="完整性约束"></a>完整性约束</h3><p><strong>域约束</strong>：限定关系中各个属性的取值集合。</p>
+<p><strong>实体完整性</strong>：在基本关系中，主关键字的属性不能为空；</p>
+<p><strong>引用完整性</strong>：如果在关系中存在某个外部关键字，则它的值与主关系中某个元组的候选关键字取值相等（或者全为空）。</p>
+<h3 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h3><p>在关系模型中，“<strong>视图</strong>”指<strong>虚关系</strong>或称<strong>导出关系</strong>，即无需单独存在，必要时可从一或多个基本关系中<strong>动态地</strong>将其导出。</p>
+<p>需要视图机制的原因有：</p>
+<ul>
+<li>通过对特定用户隐藏部分数据库信息，提供了一个强大而灵活的安全机制；</li>
+<li>允许用户根据自己的需求自定义访问数据的方法；</li>
+<li>可以简化对基本关系的复杂操作。</li>
+</ul>
+<p>不是所有的视图都可更新。</p>
+<h2 id="事务管理"><a href="#事务管理" class="headerlink" title="事务管理"></a>事务管理</h2><p><strong>事务</strong>指由一个或多个 SQL 语句组成的<strong>逻辑操作单位</strong>，可视为一组操作，通过<code>COMMIT</code>语句提交，通过<code>ROLLBACK</code>语句回退。其满足 ACID 特性：</p>
+<ul>
+<li><strong>原子性（Atomicity）</strong>：事务被视为不可分割的最小单元，要么全部执行，要么都不执行。</li>
+<li><strong>一致性（Consistency）</strong>：数据库在事务执行前后都保持一致性状态。在一致性状态下，所有事务对一个数据的读取结果都是相同的。</li>
+<li><strong>隔离性（Isolation）</strong>：事务的执行相互独立。未完成事务的中间结果对其它事务是不可见的。由并发控制子系统负责保证事务的隔离性。</li>
+<li><strong>持久性（Durability）</strong>：成功完成（提交）的事务的结果要永久地记录在数据库中，不能因以后的故障而丢失。可以通过数据库备份和数据恢复来保证事务的持久性。</li>
+</ul>
+<!--## 实体-联系建模（E-R）-->
+
+<!--12、13章-->
+
+<h2 id="规范化"><a href="#规范化" class="headerlink" title="规范化"></a>规范化</h2><h3 id="规范化的目的"><a href="#规范化的目的" class="headerlink" title="规范化的目的"></a>规范化的目的</h3><p><strong>规范化</strong>是一种能够生成一组既具有所期望的特性又能满足企业数据需求的关系的技术，也是一种<strong>依靠关键字和属性之间的函数依赖对关系进行验证</strong>的形式化技术。</p>
+<h3 id="数据冗余与更新异常"><a href="#数据冗余与更新异常" class="headerlink" title="数据冗余与更新异常"></a>数据冗余与更新异常</h3><p>存在数据冗余的关系可能产生<strong>更新异常</strong>问题，更新异常可分为<strong>插入异常</strong>、<strong>删除异常</strong>和<strong>修改异常</strong>。</p>
+<h3 id="函数依赖"><a href="#函数依赖" class="headerlink" title="函数依赖"></a>函数依赖</h3><p>规范化的一个重要的概念是<strong>函数依赖</strong>，函数依赖描述了属性之间的联系。例如，加入 A 和 B 是关系 R 的属性（或属性组），如果 A 的每个值都仅与 B 中的一个值对应，那么 B 就函数依赖于 A（记为 A -&gt; B）。函数依赖的<strong>决定方</strong>是位于箭头左端的属性或属性组。</p>
+<p><strong>完全函数依赖</strong>：假设 A 和 B 是某一关系的属性（组），若 B 函数依赖于 A，但不函数依赖于 A 的任一真子集，则称 B 完全函数依赖于 A。</p>
+<p><strong>传递依赖</strong>：假设 A、B、C 是某一关系的属性，若 A -&gt; B，B -&gt; C，则称 C 通过 B 传递依赖于 A（假设 A 并不函数依赖于 B 或 C）。</p>
+<p>在规范化时使用的函数依赖具有以下特性：依赖左右两边的属性（组）之间具有一对一的联系，且恒成立，并且右边完全函数依赖于左边。</p>
+<p>确定关系函数依赖集的<strong>主要目的</strong>是确定该关系必须满足的完整性约束集，从而确定候选关键字和主关键字。</p>
+<h3 id="规范化过程"><a href="#规范化过程" class="headerlink" title="规范化过程"></a>规范化过程</h3><p><strong>非范式（UNF）</strong>是一个包含了一个或多个重复组的表</p>
+<p><strong>第一范式（1NF）</strong>是指每一行和每一列相交的位置有且仅有一个值的关系。</p>
+<p><strong>第二范式（2NF）</strong>是指已经是第一范式且每个非关键字属性都完全函数依赖于主关键字的关系。</p>
+<p><strong>第三范式（3NF）</strong>是满足第一范式和第二范式的要求且所有非关键字属性都不传递依赖于主关键字的关系。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>主要参考机械工业出版社《数据库系统–设计、实现与管理（基础篇）》。</p>
+<p>其他参考资料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/CyC2018/Interview-Notebook/blob/master/notes/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86.md">Interview-Notebook/数据库系统原理.md at master · CyC2018/Interview-Notebook</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/CyC2018/Interview-Notebook/blob/master/notes/SQL.md">Interview-Notebook/SQL.md at master · CyC2018/Interview-Notebook</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/database-systems-notes/" title="数据库系统复习笔记">https://kyonhuang.top/blog/database-systems-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E5%AD%A6%E7%A7%91%E5%A4%8D%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag"># 学科复习笔记</a>
+              <a href="/blog/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/" rel="tag"># 数据库系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/sentiment-analysis-webapp-record1/" rel="prev" title="中文短文本情感分析 web 应用开发记录（一）">
+                  <i class="fa fa-chevron-left"></i> 中文短文本情感分析 web 应用开发记录（一）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/1801-07883-notes/" rel="next" title="【paper reading】Deep Learning for Sentiment Analysis：A Survey">
+                  【paper reading】Deep Learning for Sentiment Analysis：A Survey <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

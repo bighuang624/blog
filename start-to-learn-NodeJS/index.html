@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="上学期曾在 NodeJS 的门槛前匆匆一瞥而不得入，暑假终于有大块的时间一次入门。这篇笔记以 七天学会NodeJS 为主干，辅以廖雪峰 JavaScript 教程中相关内容以及其他渠道的一些知识整理而成。内容主要是脑图，一部分细碎知识点和代码以文字呈现。 在学习 NodeJS 过程中，感觉对软件工程基础课程的融会贯通有了更深的理解。作为 JavaScript 的服务器端环境，NodeJS 操作文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NodeJS 入门笔记">
+<meta property="og:url" content="https://kyonhuang.top/blog/start-to-learn-NodeJS/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="上学期曾在 NodeJS 的门槛前匆匆一瞥而不得入，暑假终于有大块的时间一次入门。这篇笔记以 七天学会NodeJS 为主干，辅以廖雪峰 JavaScript 教程中相关内容以及其他渠道的一些知识整理而成。内容主要是脑图，一部分细碎知识点和代码以文字呈现。 在学习 NodeJS 过程中，感觉对软件工程基础课程的融会贯通有了更深的理解。作为 JavaScript 的服务器端环境，NodeJS 操作文件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-81b14861f2bc2943.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-a1f50c7c0c750605.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-829fee6dc736dbd2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-a0e8821626a2e3cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-f46374c76abbbe98.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-439f836f1c5033bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-d48f8689170c4f6f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-57c2d4c89e36c4d3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="article:published_time" content="2017-07-30T14:29:41.000Z">
+<meta property="article:modified_time" content="2018-04-08T11:27:32.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="读书笔记">
+<meta property="article:tag" content="JavaScipt">
+<meta property="article:tag" content="NodeJS">
+<meta property="article:tag" content="脑图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2702529-81b14861f2bc2943.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/start-to-learn-NodeJS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;start-to-learn-NodeJS&#x2F;&quot;,&quot;path&quot;:&quot;start-to-learn-NodeJS&#x2F;&quot;,&quot;title&quot;:&quot;NodeJS 入门笔记&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>NodeJS 入门笔记 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#NodeJS-%E5%BA%94%E7%94%A8%E9%A2%86%E5%9F%9F%E5%8F%8A%E7%89%B9%E7%82%B9"><span class="nav-number">1.</span> <span class="nav-text">NodeJS 应用领域及特点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Node-%E4%B8%8E%E6%B5%8F%E8%A7%88%E5%99%A8%E7%9A%84%E5%BC%82%E5%90%8C"><span class="nav-number">1.1.</span> <span class="nav-text">Node 与浏览器的异同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Node-%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">1.2.</span> <span class="nav-text">Node 的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5-I-O"><span class="nav-number">1.3.</span> <span class="nav-text">异步 I&#x2F;O</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E4%B8%8E%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.1.</span> <span class="nav-text">事件与回调函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E7%BA%BF%E7%A8%8B"><span class="nav-number">1.3.2.</span> <span class="nav-text">单线程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%A8%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.3.3.</span> <span class="nav-text">跨平台</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Node-%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.4.</span> <span class="nav-text">Node 的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#I-O-%E5%AF%86%E9%9B%86%E5%9E%8B"><span class="nav-number">1.4.1.</span> <span class="nav-text">I&#x2F;O 密集型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E6%93%85%E9%95%BF-CPU-%E5%AF%86%E9%9B%86%E5%9E%8B%E4%B8%9A%E5%8A%A1%EF%BC%9F"><span class="nav-number">1.4.2.</span> <span class="nav-text">不擅长 CPU 密集型业务？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8E%E9%81%97%E7%95%99%E7%B3%BB%E7%BB%9F%E5%92%8C%E5%B9%B3%E5%85%B1%E5%A4%84"><span class="nav-number">1.4.3.</span> <span class="nav-text">与遗留系统和平共处</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8"><span class="nav-number">1.4.4.</span> <span class="nav-text">分布式应用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97"><span class="nav-number">2.</span> <span class="nav-text">模块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%A8%A1%E5%9D%97%E7%9A%84%E5%A5%BD%E5%A4%84"><span class="nav-number">2.1.</span> <span class="nav-text">使用模块的好处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CommonJS-%E8%A7%84%E8%8C%83"><span class="nav-number">2.2.</span> <span class="nav-text">CommonJS 规范</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E5%BC%95%E7%94%A8"><span class="nav-number">2.2.1.</span> <span class="nav-text">模块引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E5%AE%9A%E4%B9%89"><span class="nav-number">2.2.2.</span> <span class="nav-text">模块定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E6%A0%87%E8%AF%86"><span class="nav-number">2.2.3.</span> <span class="nav-text">模块标识</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.3.</span> <span class="nav-text">模块实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E4%BB%8E%E7%BC%93%E5%AD%98%E5%8A%A0%E8%BD%BD"><span class="nav-number">2.3.1.</span> <span class="nav-text">优先从缓存加载</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%AF%E5%BE%84%E5%88%86%E6%9E%90%E5%92%8C%E6%96%87%E4%BB%B6%E5%AE%9A%E4%BD%8D"><span class="nav-number">2.3.2.</span> <span class="nav-text">路径分析和文件定位</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E7%BC%96%E8%AF%91"><span class="nav-number">2.3.3.</span> <span class="nav-text">模块编译</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E5%90%8E%E7%AB%AF%E5%85%B1%E7%94%A8%E6%A8%A1%E5%9D%97"><span class="nav-number">2.4.</span> <span class="nav-text">前后端共用模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E6%A8%A1%E5%9D%97%E5%8E%9F%E7%90%86"><span class="nav-number">2.5.</span> <span class="nav-text">深入了解模块原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E7%9A%84%E7%BB%84%E7%BB%87%E5%92%8C%E9%83%A8%E7%BD%B2"><span class="nav-number">3.</span> <span class="nav-text">代码的组织和部署</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%85%E6%8F%8F%E8%BF%B0%E6%96%87%E4%BB%B6%E4%B8%AD%E7%9A%84%E9%83%A8%E5%88%86%E5%B1%9E%E6%80%A7"><span class="nav-number">3.1.</span> <span class="nav-text">包描述文件中的部分属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85"><span class="nav-number">3.2.</span> <span class="nav-text">全局模式安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A8%A1%E5%9D%97"><span class="nav-number">4.</span> <span class="nav-text">基本模块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#global"><span class="nav-number">4.1.</span> <span class="nav-text">global</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#process"><span class="nav-number">4.2.</span> <span class="nav-text">process</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A4%E6%96%AD-JavaScript-%E6%89%A7%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="nav-number">4.3.</span> <span class="nav-text">判断 JavaScript 执行环境</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C"><span class="nav-number">5.</span> <span class="nav-text">文件操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E7%B3%BB%E7%BB%9F%E4%B8%8B%E8%B7%AF%E5%BE%84%E7%9A%84%E6%A0%87%E5%87%86%E5%8C%96"><span class="nav-number">5.1.</span> <span class="nav-text">不同系统下路径的标准化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%8D%E5%8E%86%E7%9B%AE%E5%BD%95"><span class="nav-number">5.2.</span> <span class="nav-text">遍历目录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%93%8D%E4%BD%9C"><span class="nav-number">6.</span> <span class="nav-text">网络操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%91%E5%90%AC%E7%AB%AF%E5%8F%A3%E7%9A%84%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98"><span class="nav-number">6.1.</span> <span class="nav-text">监听端口的权限问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#URL-%E7%9A%84%E5%AE%8C%E6%95%B4%E7%BB%84%E6%88%90"><span class="nav-number">6.2.</span> <span class="nav-text">URL 的完整组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%93%8D%E4%BD%9C%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">6.3.</span> <span class="nav-text">网络操作常见问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%93%8D%E4%BD%9C"><span class="nav-number">7.</span> <span class="nav-text">进程操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%8D%E6%9D%83"><span class="nav-number">7.1.</span> <span class="nav-text">降权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E8%AE%AF"><span class="nav-number">7.2.</span> <span class="nav-text">进程间通讯</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B"><span class="nav-number">7.3.</span> <span class="nav-text">守护进程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E7%BC%96%E7%A8%8B"><span class="nav-number">8.</span> <span class="nav-text">异步编程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#domain-%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8"><span class="nav-number">8.1.</span> <span class="nav-text">domain 捕获异常</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%B7%E9%98%B1"><span class="nav-number">8.2.</span> <span class="nav-text">陷阱</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">9.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8B%E4%B8%80%E6%AD%A5%E5%AD%A6%E4%B9%A0"><span class="nav-number">10.1.</span> <span class="nav-text">下一步学习</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/start-to-learn-NodeJS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          NodeJS 入门笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-07-30 22:29:41" itemprop="dateCreated datePublished" datetime="2017-07-30T22:29:41+08:00">2017-07-30</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-04-08 19:27:32" itemprop="dateModified" datetime="2018-04-08T19:27:32+08:00">2018-04-08</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/NodeJS-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">NodeJS 学习笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>上学期曾在 NodeJS 的门槛前匆匆一瞥而不得入，暑假终于有大块的时间一次入门。这篇笔记以 <a target="_blank" rel="noopener" href="http://nqdeng.github.io/7-days-nodejs/">七天学会NodeJS</a> 为主干，辅以廖雪峰 JavaScript 教程中相关内容以及其他渠道的一些知识整理而成。内容主要是脑图，一部分细碎知识点和代码以文字呈现。</p>
+<p>在学习 NodeJS 过程中，感觉对软件工程基础课程的融会贯通有了更深的理解。作为 JavaScript 的服务器端环境，NodeJS 操作文件、操作进程等功能和上学期的 Unix 课程有着较高的相通性。可惜我 Unix 没有好好听过。网络操作的内容则和 HTTP 以及 Socket 协议的知识紧密联系，这些大概在大三下学期的计算机网络课程中。到时要督促自己按时到勤认真听课了。</p>
+<p>虽然总觉得大学授课的水平参差不齐，课程内容可能重要性也分三六九等，但是回头才发现全面的知识体系对今后学习的帮助，不管哪方面知识都是可以迁移的。说实话 whu iss 的专业课安排还是比较科学的（不过学长说计算机网络有点晚，应该放到大三上学期）。希望自己珍惜在学校的最后一年多的时间，不管是学业还是别的方面，不要留太多遗憾。</p>
+<p>更新记录：</p>
+<ul>
+<li>17.08.30 根据《深入浅出 Node.js》的笔记，对”NodeJS 应用领域及特点”部分进行文字补充。</li>
+<li>17.09.02 根据《深入浅出 Node.js》的笔记，对”模块”部分进行文字补充。</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="NodeJS-应用领域及特点"><a href="#NodeJS-应用领域及特点" class="headerlink" title="NodeJS 应用领域及特点"></a>NodeJS 应用领域及特点</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-81b14861f2bc2943.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Node.js+概念一览.png"></p>
+<p>设计高性能 Web 服务器的要点：<strong>事件驱动、非阻塞 I/O</strong>。</p>
+<p>Node 从 Ryan Dahl 一开始设想的 Web 服务器，发展成一个<strong>强制不共享任何资源的单线程、单进程系统</strong>，包含十分适宜网络的库，为构建大型分布式应用程序提供基础设施的<strong>网络应用平台</strong>。</p>
+<h3 id="Node-与浏览器的异同"><a href="#Node-与浏览器的异同" class="headerlink" title="Node 与浏览器的异同"></a>Node 与浏览器的异同</h3><p>Chrome 浏览器除了 V8 作为 JavaScript 引擎外，还有一个 WebKit 布局引擎。</p>
+<p>Node 的结构和 Chrome 十分相似，都是<strong>基于事件驱动的异步架构</strong>。浏览器通过事件驱动来服务界面上的交互，Node 通过事件驱动来服务 I/O。</p>
+<h3 id="Node-的特点"><a href="#Node-的特点" class="headerlink" title="Node 的特点"></a>Node 的特点</h3><h3 id="异步-I-O"><a href="#异步-I-O" class="headerlink" title="异步 I/O"></a>异步 I/O</h3><h4 id="事件与回调函数"><a href="#事件与回调函数" class="headerlink" title="事件与回调函数"></a>事件与回调函数</h4><p>事件的编程方式具有<strong>轻量级</strong>、<strong>松耦合</strong>、<strong>只关注事务点</strong>等优势，但是在多个异步任务的场景下，各事件之间各自独立，如何协作是一个问题。</p>
+<h4 id="单线程"><a href="#单线程" class="headerlink" title="单线程"></a>单线程</h4><p>保持了 JS 在浏览器中单线程的特点。在 Node 中，JS 与其余线程无法共享状态。</p>
+<p>好处：</p>
+<ol>
+<li>不用在意状态同步问题；</li>
+<li>没有死锁；</li>
+<li>没有线程上下文交换带来的性能开销；</li>
+</ol>
+<p>弱点：</p>
+<ol>
+<li>无法利用多核 CPU；</li>
+<li>错误会引起整个应用退出，应用的健壮性值得考验；</li>
+<li>大量计算占用 COU 导致无法继续调用异步 I/O。</li>
+</ol>
+<p>浏览器端，Web Workers 能够创建工作线程进行计算。为了不阻塞主线程，工作线程采用<strong>消息传递</strong>的方式来传递运行结果，使得工作线程不能访问主线程的 UI。</p>
+<p>Node 采用同样的思路解决单线程中大计算量的问题：<strong>child_process</strong>。通过将计算分发到各个子进程，可以将大量计算分解掉，然后再通过进程之间的事件消息传递结果。</p>
+<p>子进程的出现，意味着 Node 可以从容应对单线程在健壮性和无法利用多核 CPU 方面的问题。</p>
+<h4 id="跨平台"><a href="#跨平台" class="headerlink" title="跨平台"></a>跨平台</h4><p>操作系统与 Node 上层模块之间构建了一层平台层架构，即<strong>libuv</strong>。</p>
+<h3 id="Node-的应用场景"><a href="#Node-的应用场景" class="headerlink" title="Node 的应用场景"></a>Node 的应用场景</h3><h4 id="I-O-密集型"><a href="#I-O-密集型" class="headerlink" title="I/O 密集型"></a>I/O 密集型</h4><p>Node 面向网络且擅长并行 I/O，能够有效组织更多的硬件资源。</p>
+<p>I/O 密集的优势在于<strong>Node 利用事件循环的处理能力</strong>（而非为每一个服务启动一个线程），资源占用极少。</p>
+<h4 id="不擅长-CPU-密集型业务？"><a href="#不擅长-CPU-密集型业务？" class="headerlink" title="不擅长 CPU 密集型业务？"></a>不擅长 CPU 密集型业务？</h4><p>由于 JavaScript 单线程的原因，如果有长时间运行的计算（比如大循环），将导致 CPU 时间片不能释放，使得后续 I/O 无法发起。<strong>适当调整和分解大型运算任务</strong>能使运算适时释放，不阻塞 I/O 调用的发起。</p>
+<h4 id="与遗留系统和平共处"><a href="#与遗留系统和平共处" class="headerlink" title="与遗留系统和平共处"></a>与遗留系统和平共处</h4><p>可以将稳定的旧有系统作为后端接口与中间件，而让 Node 将该数据源作为数据接口，发挥异步并行的优势。</p>
+<h4 id="分布式应用"><a href="#分布式应用" class="headerlink" title="分布式应用"></a>分布式应用</h4><h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-a1f50c7c0c750605.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="模块.png"></p>
+<h3 id="使用模块的好处"><a href="#使用模块的好处" class="headerlink" title="使用模块的好处"></a>使用模块的好处</h3><ol>
+<li>大大提高代码的可维护性；</li>
+<li>可以随时引用；</li>
+<li>避免函数名和变量名冲突；</li>
+</ol>
+<h3 id="CommonJS-规范"><a href="#CommonJS-规范" class="headerlink" title="CommonJS 规范"></a>CommonJS 规范</h3><p>CommonJS 主要是在 <strong>Node 服务器端</strong>的规范。意义在于将类聚的方法与变量限定在私有的作用域中，使得用户完全不必考虑变量污染。</p>
+<p>CommonJS 对模块的定义主要分为模块引用、模块定义、模块标识三个部分：</p>
+<h4 id="模块引用"><a href="#模块引用" class="headerlink" title="模块引用"></a>模块引用</h4><p>一个模块要引用其他模块暴露的变量，用<code>var foo = require(&#39;module_name&#39;)</code>就拿到了引用模块的变量。</p>
+<h4 id="模块定义"><a href="#模块定义" class="headerlink" title="模块定义"></a>模块定义</h4><p>上下文提供了 <strong>exports 对象</strong>用于导出当前模块的方法或者变量，并且它是唯一的出口。</p>
+<p>在模块中，还存在一个 <strong>module 对象</strong>，代表<strong>模块自身</strong>，而 exports 是 module 的<strong>属性</strong>。</p>
+<p>一个模块要对外暴露变量（函数也是变量），可以用<code>module.exports = variable;</code>。</p>
+<h4 id="模块标识"><a href="#模块标识" class="headerlink" title="模块标识"></a>模块标识</h4><p>即传递给<code>require()</code>方法的参数。</p>
+<h3 id="模块实现"><a href="#模块实现" class="headerlink" title="模块实现"></a>模块实现</h3><p>在 Node 中引入模块，需要经历如下三个步骤：</p>
+<ol>
+<li>路径分析</li>
+<li>文件定位</li>
+<li>编译执行</li>
+</ol>
+<p>在 Node 中，模块分为 Node 提供的<strong>核心模块</strong>和用户编写的<strong>文件模块</strong>。</p>
+<p><strong>核心模块</strong>部分在 Node 源代码的编译过程中，编译进了<strong>二进制执行文件</strong>。在 Node 进程启动时，部分核心模块就直接加载进内存中。因此可以省略文件定位和编译执行两个步骤，且在路径分析中优先判断，<strong>加载速度最快</strong>。</p>
+<p><strong>文件模块</strong>在<strong>运动时动态加载</strong>，需要完整的路径分析、文件定位、编译执行过程，速度比核心模块慢。</p>
+<h4 id="优先从缓存加载"><a href="#优先从缓存加载" class="headerlink" title="优先从缓存加载"></a>优先从缓存加载</h4><p><strong>模块加载会有缓存</strong>，且其根据<strong>绝对路径识别</strong>。因此同样的模块名放在不同的路径之中多次 require 不会重新加载。</p>
+<p>Node 对引入过的模块都会以<strong>编译和执行后的对象</strong>的形式进行缓存。核心模块和文件模块都采用缓存优先进行二次加载，核心模块的缓存检查先于文件模块。</p>
+<h4 id="路径分析和文件定位"><a href="#路径分析和文件定位" class="headerlink" title="路径分析和文件定位"></a>路径分析和文件定位</h4><p><strong>模块路径</strong>是 Node 在定位文件模块的具体文件时制定的查找策略，具体表现为一个路径组成的数组。</p>
+<p>其生成规则为从当前文件目录下的 node_modules 目录开始，沿路径向上逐级递归，直到根目录下的 node_modules 目录。</p>
+<p>Node 在当前目录下查找 package.json，通过<code>JSON.parse()</code>解析出包描述对象，从中取出<code>main</code>属性制定的文件名进行定位。</p>
+<h4 id="模块编译"><a href="#模块编译" class="headerlink" title="模块编译"></a>模块编译</h4><ul>
+<li>.js 文件。通过 fs 模块同步读取文件后编译执行。</li>
+<li>.node 文件。这是用 C/C++ 编写的扩展文件，通过<code>dlopen()</code>方法加载最后编译生成的文件。</li>
+<li>.json 文件。通过 fs 模块同步读取文件后，用<code>JSON.parse()</code>解析返回结果。</li>
+<li>其余扩展名。它们都被当作 .js 文件载入。</li>
+</ul>
+<p>每一个编译成功的模块都会将其<strong>文件路径作为索引</strong>缓存在 <strong>Module._cache 对象</strong>上，以提高二次引入的性能。</p>
+<p><strong>如果要达成 require 引入一个类的效果，请赋值给 module.exports 对象。</strong></p>
+<h3 id="前后端共用模块"><a href="#前后端共用模块" class="headerlink" title="前后端共用模块"></a>前后端共用模块</h3><p>浏览器端的 JavaScript 需要经历从同一个服务器端分发到多个客户端执行，瓶颈在于<strong>带宽</strong>；而服务器端 JavaScript 则是相同的代码需要多次执行，瓶颈在于 <strong>CPU 和内存等资源</strong>。</p>
+<p>CommonJS 是<strong>同步加载</strong>的，在服务器端模块文件一般存放在本地，再加上有缓存，加载速度很快。而在浏览器端就可能导致“假死”，因此浏览器端采用另一种异步加载方式 - AMD（Asynchronous Module Definition，异步模块定义）规范。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">define(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> <span class="built_in">exports</span> = &#123;&#125;</span><br><span class="line">  <span class="built_in">exports</span>.sayHello = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    alert(<span class="string">&#x27;Hello from module: &#x27;</span> + <span class="built_in">module</span>.id)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">exports</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 AMD 的模块定义与 Node 模块相似，不同之处在于 <strong>AMD 模块需要用</strong><code>define</code><strong>来明确定义一个模块</strong>，而在 Node 实现中是隐式包装的；以及内容需要通过<strong>返回</strong>的方式实现导出。</p>
+<p>想要进一步了解，可参考 <a href="www.ruanyifeng.com/blog/2012/10/asynchronous_module_definition.html">Javascript模块化编程（二）：AMD规范 - 阮一峰的网络日志</a>。</p>
+<h3 id="深入了解模块原理"><a href="#深入了解模块原理" class="headerlink" title="深入了解模块原理"></a>深入了解模块原理</h3><p>Node.js 的“模块”功能利用了 JavaScript 函数式编程的特性，通过<strong>闭包</strong>实现。</p>
+<h2 id="代码的组织和部署"><a href="#代码的组织和部署" class="headerlink" title="代码的组织和部署"></a>代码的组织和部署</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-829fee6dc736dbd2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="代码的组织和部署.png"></p>
+<h3 id="包描述文件中的部分属性"><a href="#包描述文件中的部分属性" class="headerlink" title="包描述文件中的部分属性"></a>包描述文件中的部分属性</h3><ul>
+<li>maintainers。包维护者列表，npm 通过该属性进行权限认证。</li>
+<li>bin。将包作为命令行工具使用，需配置好 bin 字段，通过<code>npm install package_name -g</code>命令将脚本添加到执行路径中。之后可以在命令行中直接执行。例如：<code>&quot;bin&quot;: &#123; &quot;express&quot;: &quot;./bin/express&quot; &#125;</code></li>
+</ul>
+<h3 id="全局模式安装"><a href="#全局模式安装" class="headerlink" title="全局模式安装"></a>全局模式安装</h3><p><code>-g</code>将一个包安装为全局可用的可执行命令。通过全局模式安装的所有模块包都被安装进了一个统一的目录下，这个目录可以通过如下方式推算出来：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">path.resolve(process.execPath, <span class="string">&#x27;..&#x27;</span>, <span class="string">&#x27;..&#x27;</span>, <span class="string">&#x27;lib&#x27;</span>, <span class="string">&#x27;node_modules&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="基本模块"><a href="#基本模块" class="headerlink" title="基本模块"></a>基本模块</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-a0e8821626a2e3cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="基本模块.png"></p>
+<p>Node.js 内置的常用模块是为了实现基本的服务器功能，底层代码是用 C/C++ 在 Node.js 运行环境中实现。</p>
+<h3 id="global"><a href="#global" class="headerlink" title="global"></a>global</h3><p>Node.js 环境中唯一的全局变量。</p>
+<h3 id="process"><a href="#process" class="headerlink" title="process"></a>process</h3><p>代表当前 Node.js 进程。</p>
+<h3 id="判断-JavaScript-执行环境"><a href="#判断-JavaScript-执行环境" class="headerlink" title="判断 JavaScript 执行环境"></a>判断 JavaScript 执行环境</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">typeof</span>(<span class="built_in">window</span>) === <span class="string">&#x27;undefined&#x27;</span>)&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;node.js&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;browser&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-f46374c76abbbe98.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="文件操作.png"></p>
+<h3 id="不同系统下路径的标准化"><a href="#不同系统下路径的标准化" class="headerlink" title="不同系统下路径的标准化"></a>不同系统下路径的标准化</h3><p>标准化之后的路径里的斜杠在 Windows 系统下是<code>\</code>，而在 Linux 系统下是<code>/</code>。如果想保证任何系统下都使用<code>/</code>作为路径分隔符的话，需要用<code>.replace(/\\/g, &#39;/&#39;)</code>再替换一下标准路径。</p>
+<h3 id="遍历目录"><a href="#遍历目录" class="headerlink" title="遍历目录"></a>遍历目录</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 同步遍历获取某一文件夹下的所有文件，用 callback 处理</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">travel</span>(<span class="params">dir, callback</span>)</span>&#123;</span><br><span class="line">  fs.readdirSync(dir).forEach(<span class="function">(<span class="params">file</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> pathname = path.join(dir, file);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(fs.statSync(pathname).isDirectory())&#123;</span><br><span class="line">      travel(pathname, callback)；</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      callback(pathname);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 异步遍历</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">travel</span>(<span class="params">dir, callback, finish</span>)</span>&#123;</span><br><span class="line">  fs.readdir(dir, <span class="function">(<span class="params">err, files</span>) =&gt;</span> &#123;</span><br><span class="line">    (<span class="function"><span class="keyword">function</span> <span class="title">next</span>(<span class="params">i</span>)</span>&#123;</span><br><span class="line">      <span class="keyword">if</span>(i &lt; files.length) &#123;</span><br><span class="line">        <span class="keyword">var</span> pathname = path.join(dir, files[i]);</span><br><span class="line"></span><br><span class="line">        fs.stat(pathname, <span class="function">(<span class="params">err, stats</span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span>(stats.isDirectory())&#123;</span><br><span class="line">            travel(pathname, callback, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">              next(i + <span class="number">1</span>);</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            callback(pathname, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">              next(i + <span class="number">1</span>);</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        finish &amp;&amp; finish();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)(<span class="number">0</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="网络操作"><a href="#网络操作" class="headerlink" title="网络操作"></a>网络操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-439f836f1c5033bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="网络操作.png"></p>
+<h3 id="监听端口的权限问题"><a href="#监听端口的权限问题" class="headerlink" title="监听端口的权限问题"></a>监听端口的权限问题</h3><p>在 Linux 系统下，监听 1024 以下端口需要 root 权限。因此，如果想监听 80 或 443 端口的话，需要使用 sudo 命令启动程序。</p>
+<h3 id="URL-的完整组成"><a href="#URL-的完整组成" class="headerlink" title="URL 的完整组成"></a>URL 的完整组成</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">                           href</span><br><span class="line"> -----------------------------------------------------------------</span><br><span class="line">                            host              path</span><br><span class="line">                      --------------- ----------------------------</span><br><span class="line"> http: // user:pass @ host.com : 8080 /p/a/t/h ?query=string #hash</span><br><span class="line"> -----    ---------   --------   ---- -------- ------------- -----</span><br><span class="line">protocol     auth     hostname   port pathname     search     hash</span><br><span class="line">                                                ------------</span><br><span class="line">                                                   query</span><br></pre></td></tr></table></figure>
+
+<h3 id="网络操作常见问题"><a href="#网络操作常见问题" class="headerlink" title="网络操作常见问题"></a>网络操作常见问题</h3><ul>
+<li><p>问： 为什么通过<code>headers</code>对象访问到的 HTTP 请求头或响应头字段不是驼峰的？</p>
+<p>  答： 从规范上讲，HTTP 请求头和响应头字段都应该是驼峰的。但现实中不是每个 HTTP 服务端或客户端程序都严格遵循规范，所以 NodeJS 在处理从别的客户端或服务端收到的头字段时，都统一地转换为了小写字母格式，以便开发者能使用统一的方式来访问头字段，例如<code>headers[&#39;content-length&#39;]</code>。</p>
+</li>
+<li><p>问： 为什么<code>http</code>模块创建的 HTTP 服务器返回的响应是<code>chunked</code>传输方式的？</p>
+<p>  答： 因为默认情况下，使用<code>.writeHead</code>方法写入响应头后，允许使用<code>.write</code>方法写入任意长度的响应体数据，并使用<code>.end</code>方法结束一个响应。由于响应体数据长度不确定，因此 NodeJS 自动在响应头里添加了<code>Transfer-Encoding: chunked</code>字段，并采用<code>chunked</code>传输方式。但是当响应体数据长度确定时，可使用<code>.writeHead</code>方法在响应头里加上<code>Content-Length</code>字段，这样做之后 NodeJS 就不会自动添加<code>Transfer-Encoding</code>字段和使用<code>chunked</code>传输方式。</p>
+</li>
+<li><p>问： 为什么使用<code>http</code>模块发起 HTTP 客户端请求时，有时候会发生<code>socket hang up</code>错误？</p>
+<p>  答： 发起客户端 HTTP 请求前需要先创建一个客户端。<code>http</code>模块提供了一个全局客户端<code>http.globalAgent</code>，可以让我们使用<code>.request</code>或<code>.get</code>方法时不用手动创建客户端。但是全局客户端默认只允许5个并发 Socket 连接，当某一个时刻 HTTP 客户端请求创建过多，超过这个数字时，就会发生<code>socket hang up</code>错误。解决方法也很简单，通过<code>http.globalAgent.maxSockets</code>属性把这个数字改大些即可。另外，<code>https</code>模块遇到这个问题时也一样通过<code>https.globalAgent.maxSockets</code>属性来处理。</p>
+</li>
+</ul>
+<h2 id="进程操作"><a href="#进程操作" class="headerlink" title="进程操作"></a>进程操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-d48f8689170c4f6f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="进程管理.png"></p>
+<h3 id="降权"><a href="#降权" class="headerlink" title="降权"></a>降权</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 降权</span></span><br><span class="line">http.createServer(callback).listen(<span class="number">80</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> env = process.env,</span><br><span class="line">      uid = <span class="built_in">parseInt</span>(env[<span class="string">&#x27;SUDO_UID&#x27;</span>] || process.getuid(), <span class="number">10</span>);</span><br><span class="line">      gid = <span class="built_in">parseInt</span>(env[<span class="string">&#x27;SUDO_GID&#x27;</span>] || process.getgid(), <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">  process.setgid(gid);</span><br><span class="line">  process.setuid(uid);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>注意点：</p>
+<ol>
+<li><p>如果是通过<code>sudo</code>获取 root 权限的，运行程序的用户的 UID 和 GID 保存在环境变量<code>SUDO_UID</code>和<code>SUDO_GID</code>里边。如果是通过<code>chmod +s</code>方式获取 root 权限的，运行程序的用户的 UID 和 GID 可直接通过<code>process.getuid</code>和<code>process.getgid</code>方法获取。</p>
+</li>
+<li><p><code>process.setuid</code>和<code>process.setgid</code>方法只接受<code>number</code>类型的参数。</p>
+</li>
+<li><p>降权时必须先降 GID 再降 UID，否则顺序反过来的话就没权限更改程序的 GID 了。</p>
+</li>
+</ol>
+<h3 id="进程间通讯"><a href="#进程间通讯" class="headerlink" title="进程间通讯"></a>进程间通讯</h3><p>如果父子进程都是 NodeJS 进程，就可以通过 IPC（进程间通讯）双向传递数据。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* parent.js */</span></span><br><span class="line"><span class="comment">// 在 options.stdio 字段中通过 ipc 开启一条 IPC 通道</span></span><br><span class="line"><span class="keyword">var</span> child = child_process.spawn(<span class="string">&#x27;node&#x27;</span>, [<span class="string">&#x27;child.js&#x27;</span>], &#123;</span><br><span class="line">  <span class="attr">stdio</span>: [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="string">&#x27;ipc&#x27;</span>]</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">child.on(<span class="string">&#x27;message&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(msg);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 给子进程发送消息</span></span><br><span class="line">child.send(&#123; <span class="attr">hello</span>: <span class="string">&#x27;hello&#x27;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* child.js */</span></span><br><span class="line">process.on(<span class="string">&#x27;message&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  msg.hello = msg.hello.toUpperCase();</span><br><span class="line">  process.send(msg);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>数据在传递过程中，会先在发送端使用<code>JSON.stringify</code>方法序列化，再在接收端使用<code>JSON.parse</code>方法反序列化。</p>
+<h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 守护子进程</span></span><br><span class="line"><span class="comment">/* daemon.js */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">spawn</span>(<span class="params">mainModule</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> worker = child_process.spawn(<span class="string">&#x27;node&#x27;</span>, [mainModule]);</span><br><span class="line"></span><br><span class="line">  worker.on(<span class="string">&#x27;exit&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span>(code !== <span class="number">0</span>)&#123;</span><br><span class="line">      spawn(mainModule);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">spawn(<span class="string">&#x27;worker.js&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="异步编程"><a href="#异步编程" class="headerlink" title="异步编程"></a>异步编程</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-57c2d4c89e36c4d3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="异步编程.png"></p>
+<h3 id="domain-捕获异常"><a href="#domain-捕获异常" class="headerlink" title="domain 捕获异常"></a>domain 捕获异常</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">async</span>(<span class="params">request, callback</span>)</span>&#123;</span><br><span class="line">  <span class="comment">// Do something</span></span><br><span class="line">  asyncA(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// Do something</span></span><br><span class="line">    asyncB(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// Do something</span></span><br><span class="line">      asyncC(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// Do something</span></span><br><span class="line">        callback(data);</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">http.createServer(<span class="function">(<span class="params">request, response</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> d = domain.create();</span><br><span class="line"></span><br><span class="line">  d.on(<span class="string">&#x27;error&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    response.writeHead(<span class="number">500</span>);</span><br><span class="line">    response.end();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  d.run(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">async</span>(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      response.writeHead(<span class="number">200</span>);</span><br><span class="line">      response.end(data);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="陷阱"><a href="#陷阱" class="headerlink" title="陷阱"></a>陷阱</h3><p>使用<code>uncaughtException</code>或<code>domain</code>捕获异常，代码执行路径里涉及到了 C/C++ 部分的代码时，如果不能确定是否会导致内存泄漏等问题，最好在处理完异常后重启程序比较妥当。而使用<code>try</code>语句捕获异常时一般捕获到的都是 JS 本身的异常，不用担心上述问题。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>NodeJS 的学习其实主要分为三块：</p>
+<ol>
+<li>JavaScript 语言本身。要学会借助 <a target="_blank" rel="noopener" href="https://www.ecma-international.org/publications/standards/Standard.htm">ECMAScript 规范</a> 加深自己的理解。</li>
+<li>NodeJS 的 API。要熟悉官方 API 文档，主要是熟悉 NodeJS 提供的功能以及知道该查询文档的哪块地方。不推荐死记硬背，因为新版本会更改和弃用部分 API。</li>
+<li>生态圈中的各种三方库。要学习检索、过滤、去其糟粕取其精华，利用但不迷信。</li>
+</ol>
+<p>而在 NodeJS 开发时，首先要有一个全局的设计，再再实现的过程中对之间忽略掉的细节进行设计上的改进，为二次迭代做准备。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>除开文章开头提到的资料，结语部分参考了 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIyMjYyMzg3MA==&amp;mid=2247484289&amp;idx=1&amp;sn=9e7f6c0c5e6707c8b3d0a73b36bc00c1&amp;chksm=e82be290df5c6b86e2be66f2eea6ee88be1449c3b40d8ebf40932798f95e651fbaf49ca698d0&amp;mpshare=1&amp;scene=1&amp;srcid=0727qbaSu9gx8oduOdFPTUoU#">当我们学习 Node.js 时，我们在学习什么？</a>。</p>
+<h3 id="下一步学习"><a href="#下一步学习" class="headerlink" title="下一步学习"></a>下一步学习</h3><ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/alsotang/node-lessons">《Node.js 包教不包会》 by alsotang</a></li>
+<li>《深入浅出Node.js》</li>
+<li>自己撸个爬虫</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/start-to-learn-NodeJS/" title="NodeJS 入门笔记">https://kyonhuang.top/blog/start-to-learn-NodeJS/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag"># 读书笔记</a>
+              <a href="/blog/tags/JavaScipt/" rel="tag"># JavaScipt</a>
+              <a href="/blog/tags/NodeJS/" rel="tag"># NodeJS</a>
+              <a href="/blog/tags/%E8%84%91%E5%9B%BE/" rel="tag"># 脑图</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/start-to-know-AI/" rel="prev" title="初探人工智能">
+                  <i class="fa fa-chevron-left"></i> 初探人工智能
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/generator-and-async/" rel="next" title="ES6 的异步操作 - Generator 和 async">
+                  ES6 的异步操作 - Generator 和 async <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

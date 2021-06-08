@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="昨天花了一天时间，用 Vue 给自己撸了一份线上简历，并借助 Github Pages 实现了在线预览的效果。  项目地址：bighuang624&#x2F;FE-resume  在线预览地址：http:&#x2F;&#x2F;kyonhuang.top&#x2F;FE-resume&#x2F;  目前实现的是最简单的效果，可以说只用了 Vue，不涉及全家桶里其他产品。从 UI、文字、性能、测试等各种角度都有改进的空间。这个小项目应该是会长期维护">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用 Vue 撸一份线上简历有哪些坑">
+<meta property="og:url" content="https://kyonhuang.top/blog/make-a-resume/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="昨天花了一天时间，用 Vue 给自己撸了一份线上简历，并借助 Github Pages 实现了在线预览的效果。  项目地址：bighuang624&#x2F;FE-resume  在线预览地址：http:&#x2F;&#x2F;kyonhuang.top&#x2F;FE-resume&#x2F;  目前实现的是最简单的效果，可以说只用了 Vue，不涉及全家桶里其他产品。从 UI、文字、性能、测试等各种角度都有改进的空间。这个小项目应该是会长期维护">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-0e5c5d774fa3e00a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-52590cfcce2b12ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-e6de7fc323ef16e4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-4154f0ddd63f0953.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-ec745a361c794183.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="article:published_time" content="2017-08-21T04:52:16.000Z">
+<meta property="article:modified_time" content="2018-04-12T11:13:14.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="简历">
+<meta property="article:tag" content="Vue">
+<meta property="article:tag" content="github 预览">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/2702529-0e5c5d774fa3e00a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/make-a-resume/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;make-a-resume&#x2F;&quot;,&quot;path&quot;:&quot;make-a-resume&#x2F;&quot;,&quot;title&quot;:&quot;用 Vue 撸一份线上简历有哪些坑&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>用 Vue 撸一份线上简历有哪些坑 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8-Vue-%E4%B8%AD%E4%BD%BF%E7%94%A8-sass"><span class="nav-number">1.</span> <span class="nav-text">在 Vue 中使用 sass</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E8%B5%84%E6%BA%90%E6%97%A0%E6%B3%95%E5%8A%A0%E8%BD%BD"><span class="nav-number">2.</span> <span class="nav-text">项目资源无法加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iconfont-%E6%97%A0%E6%B3%95%E5%8A%A0%E8%BD%BD"><span class="nav-number">3.</span> <span class="nav-text">iconfont 无法加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-Github-Pages-%E5%9C%A8%E7%BA%BF%E9%A2%84%E8%A7%88"><span class="nav-number">4.</span> <span class="nav-text">实现 Github Pages 在线预览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">6.</span> <span class="nav-text">结语</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/make-a-resume/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          用 Vue 撸一份线上简历有哪些坑
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-08-21 12:52:16" itemprop="dateCreated datePublished" datetime="2017-08-21T12:52:16+08:00">2017-08-21</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-04-12 19:13:14" itemprop="dateModified" datetime="2018-04-12T19:13:14+08:00">2018-04-12</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E5%BC%80%E6%BA%90%E5%B0%8F%E9%A1%B9%E7%9B%AE/" itemprop="url" rel="index"><span itemprop="name">开源小项目</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>昨天花了一天时间，用 Vue 给自己撸了一份线上简历，并借助 Github Pages 实现了在线预览的效果。</p>
+<ul>
+<li>项目地址：<a target="_blank" rel="noopener" href="https://github.com/bighuang624/FE-resume">bighuang624/FE-resume
+</a></li>
+<li>在线预览地址：<a href="http://kyonhuang.top/FE-resume/">http://kyonhuang.top/FE-resume/</a></li>
+</ul>
+<p>目前实现的是最简单的效果，可以说只用了 Vue，不涉及全家桶里其他产品。从 UI、文字、性能、测试等各种角度都有改进的空间。这个小项目应该是会长期维护的。今天先总结一下，做到目前为止遇到的坑。</p>
+<span id="more"></span>
+
+<h2 id="在-Vue-中使用-sass"><a href="#在-Vue-中使用-sass" class="headerlink" title="在 Vue 中使用 sass"></a>在 Vue 中使用 sass</h2><p>这个步骤之前已经总结过，现在再在博客上记录一次，方便之后查找。</p>
+<p>在 Webpack 中，所有的预处理器需要匹配相应的 loader。因此要使用 sass 或 scss，首先下载依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install sass-loader node-sass --save-dev</span><br></pre></td></tr></table></figure>
+
+<p>然后在单文件组件中的<code>&lt;style&gt;</code>标签中加上<code>lang=&quot;sass&quot;</code>。<code>vue-loader</code>会根据<code>lang</code>属性推断出要使用的 loaders，并将内容交给相应的 loaders 处理：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">lang</span>=<span class="string">&quot;sass&quot;</span>&gt;</span><span class="css"></span></span><br><span class="line"><span class="css">  <span class="comment">/* write sass here */</span></span></span><br><span class="line"><span class="css"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>与名称相反，sass-loader 默认解析 scss 语法，因此如果想使用 sass 语法，还需要在 build/vue-loader.conf.js 配置 vue-loader 的选项：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-0e5c5d774fa3e00a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="build:vue-loader.conf.png"></p>
+<p>这样的修改不会影响 scss 的使用，记得修改<code>&lt;style&gt;</code>标签中为<code>lang=&quot;scss&quot;</code>即可。</p>
+<h2 id="项目资源无法加载"><a href="#项目资源无法加载" class="headerlink" title="项目资源无法加载"></a>项目资源无法加载</h2><p>直接<code>npm run build</code>得到的项目，默认引用资源文件的路径为<code>/static/js/app.js</code>。所以程序若不在根目录下，就会出现资源文件引用错误的情况。</p>
+<p>最简单的解决方案就是改动 webpack 的配置文件。将<code>/config</code>文件夹中的 index.js 文件中的<code>assetsPublicPath: &#39;/&#39;</code>改为<code>assetsPublicPath: &#39;./&#39;</code>即可，截图如下：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-52590cfcce2b12ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="config:index.png"></p>
+<p>如果你还使用了 vue-router，你需要在 router 的配置中加上一行<code>base: &#39;/[项目所在文件夹的名字]/&#39;</code>，如下所示：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-e6de7fc323ef16e4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="router.png"></p>
+<p>注意：如果启用了 vue-router 的 history 模式，你需要跟着 <a target="_blank" rel="noopener" href="https://router.vuejs.org/zh-cn/essentials/history-mode.html">vue-router 官方文档的后端配置例子</a> 对服务器进行一定的配置。</p>
+<p>这是因为在 history 模式下，router 只是通过 JS 操作 window.history 来改变浏览器地址栏里的路径，并没有发起 http 请求。但是直接在地址栏中输入形如<code>http://www.example.com/example/item/1</code>这样的地址时，就一定先要对服务器发起 http 请求。此目标在服务器上不存在，于是会返回 404。修改服务器的配置，以将所有的请求全部转发到<code>index.html</code>上。</p>
+<p>当然，这意味着单纯使用 Github Pages 的在线预览功能没办法进行这样的配置。你也可以关注知乎上的这个问题 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/64173754">怎样为Github pages Hack使用了vue-router history模式的vue应用？ - 知乎</a> 来看别人的解决方法。</p>
+<h2 id="iconfont-无法加载"><a href="#iconfont-无法加载" class="headerlink" title="iconfont 无法加载"></a>iconfont 无法加载</h2><p>字体图标无法正确加载。参考 <a target="_blank" rel="noopener" href="https://github.com/vuejs-templates/webpack/issues/166">https://github.com/vuejs-templates/webpack/issues/166</a> ，得到的解决方法是修改 build/utils.js 文件，增加一行<code>publicPath: &#39;../../&#39;</code>，如截图所示：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-4154f0ddd63f0953.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="build:utils.png"></p>
+<p>保存后，<code>npm run build</code>打包得到的项目中 iconfont 就可以正常显示了。</p>
+<h2 id="实现-Github-Pages-在线预览"><a href="#实现-Github-Pages-在线预览" class="headerlink" title="实现 Github Pages 在线预览"></a>实现 Github Pages 在线预览</h2><p>参考 <a target="_blank" rel="noopener" href="https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/">Configuring a publishing source for GitHub Pages - User Documentation</a>，实现 Github Pages 在线预览功能有好几种方法，可以设置从<code>master</code>分支、<code>gh-pages</code>分支或者<code>master</code>分支下的<code>/docs</code>文件夹中读取。我就选择了最简单的一种方法，把<code>npm run build</code>打包下来的<code>/dist</code>文件夹改名为<code>/docs</code>。</p>
+<p>之后，在 Github 项目主页的 Settings 下的 Github pages 下进行设置 Source 为<code>master branch /docs folder</code>即可。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-ec745a361c794183.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="githubpage.png"></p>
+<p>如果你之前使用过 Github Pages 并绑定了一个域名，那么这个项目的预览地址会像<code>http://kyonhuang.top/resume/</code>这样在这个域名下，看起来很爽。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://vue-loader.vuejs.org/zh-cn/configurations/pre-processors.html">预处理器 · vue-loader</a></li>
+<li><a target="_blank" rel="noopener" href="http://upyang.com/2017/07/25/Vue%E9%A1%B9%E7%9B%AE%E4%B8%8A%E4%BC%A0github%E5%B9%B6%E9%A2%84%E8%A7%88/">Vue项目打包上传到github预览</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/46630687/answer/157166318">vuejs怎么在服务器部署？ - 知乎</a></li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>撸这份简历，是一个总结，也是一个激励。</p>
+<p>真正撸完简历，才发现自己在技术层面上的项目经历少的可怜，而技术也不敢说有什么掌握。以后看到这份简历，会让我非常想写一些拿得出手的开源项目，然后对项目经历进行修改。</p>
+<p>读完《你不知道的JavaScript（中卷）》，就给 JS 的技能条涨 5 个百分点；用 Node 开发一个支持登录注册的后台，就给 Node 的技能条涨 5 个百分点；或者再点亮一个新的技能。</p>
+<p>随着我的不断学习，希望这份简历越来越吸引人。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/make-a-resume/" title="用 Vue 撸一份线上简历有哪些坑">https://kyonhuang.top/blog/make-a-resume/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E7%AE%80%E5%8E%86/" rel="tag"># 简历</a>
+              <a href="/blog/tags/Vue/" rel="tag"># Vue</a>
+              <a href="/blog/tags/github-%E9%A2%84%E8%A7%88/" rel="tag"># github 预览</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/start-front-end-test/" rel="prev" title="初探前端自动化测试--以 Vue 为例">
+                  <i class="fa fa-chevron-left"></i> 初探前端自动化测试--以 Vue 为例
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/start-CI/" rel="next" title="再探前端自动化－持续集成">
+                  再探前端自动化－持续集成 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

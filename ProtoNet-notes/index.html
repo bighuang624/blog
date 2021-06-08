@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="一直没有完整看过这篇论文。这两天在复现 Prototypical Networks 时发现自己对 metric-based few-shot learning 的认知上存在一些问题，于是决定把这篇经典论文拿出来好好读一遍。  一句话总结本文提出了原型网络（Prototypical Networks），通过将每个类别的样本求均值得到每个类的原型表示（prototypical representa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】Prototypical Networks for Few-shot Learning">
+<meta property="og:url" content="https://kyonhuang.top/blog/ProtoNet-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="一直没有完整看过这篇论文。这两天在复现 Prototypical Networks 时发现自己对 metric-based few-shot learning 的认知上存在一些问题，于是决定把这篇经典论文拿出来好好读一遍。  一句话总结本文提出了原型网络（Prototypical Networks），通过将每个类别的样本求均值得到每个类的原型表示（prototypical representa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ProtoNet-paper-title.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/2-Figure1-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/6-Table1-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/6-Table2-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/7-Table3-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/7-Figure3-1.png">
+<meta property="article:published_time" content="2019-11-26T12:02:18.000Z">
+<meta property="article:modified_time" content="2019-11-27T01:31:30.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="few-shot learning">
+<meta property="article:tag" content="小样本学习">
+<meta property="article:tag" content="metric learning">
+<meta property="article:tag" content="度量学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ProtoNet-paper-title.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/ProtoNet-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;ProtoNet-notes&#x2F;&quot;,&quot;path&quot;:&quot;ProtoNet-notes&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】Prototypical Networks for Few-shot Learning&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】Prototypical Networks for Few-shot Learning | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">一句话总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%BF%A1%E6%81%AF"><span class="nav-number">2.</span> <span class="nav-text">论文信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AE%B9%E7%AE%80%E8%AE%B0"><span class="nav-number">3.</span> <span class="nav-text">内容简记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">3.1.</span> <span class="nav-text">方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%90%86%E8%AE%BA%E5%88%86%E6%9E%90"><span class="nav-number">3.2.</span> <span class="nav-text">理论分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%9C%E4%B8%BA%E6%B7%B7%E5%90%88%E5%AF%86%E5%BA%A6%E4%BC%B0%E8%AE%A1"><span class="nav-number">3.2.1.</span> <span class="nav-text">作为混合密度估计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%9C%E4%B8%BA%E7%BA%BF%E6%80%A7%E6%A8%A1%E5%9E%8B%E8%BF%9B%E8%A1%8C%E8%A7%A3%E9%87%8A"><span class="nav-number">3.2.2.</span> <span class="nav-text">作为线性模型进行解释</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8E-Matching-Network-%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-number">3.2.3.</span> <span class="nav-text">与 Matching Network 的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.1.</span> <span class="nav-text">对比实验</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%BA%E7%AC%94%E8%AE%B0"><span class="nav-number">3.4.</span> <span class="nav-text">个人笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.4.1.</span> <span class="nav-text">实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%AE%BA%E6%96%87"><span class="nav-number">4.</span> <span class="nav-text">参考论文</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/ProtoNet-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】Prototypical Networks for Few-shot Learning
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-11-26 20:02:18" itemprop="dateCreated datePublished" datetime="2019-11-26T20:02:18+08:00">2019-11-26</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-11-27 09:31:30" itemprop="dateModified" datetime="2019-11-27T09:31:30+08:00">2019-11-27</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ProtoNet-paper-title.png"></p>
+<blockquote>
+<p>一直没有完整看过这篇论文。这两天在复现 Prototypical Networks 时发现自己对 metric-based few-shot learning 的认知上存在一些问题，于是决定把这篇经典论文拿出来好好读一遍。</p>
+</blockquote>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文提出了原型网络（Prototypical Networks），通过将每个类别的样本求均值得到每个类的原型表示（prototypical representation），简化了 n-shot 分类时 n &gt; 1 的情况，并可以将最近邻分类器成功应用在小样本分类问题上。基于度量学习的小样本学习方法因为这篇经典论文的出世从此自成一派。</p>
+<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
+<li>作者：Jake Snell, Kevin Swersky, Richard S. Zemel</li>
+<li>出处：NIPS 2017</li>
+<li>机构：Twitter; University of Toronto</li>
+<li>关键词：few-shot learning, metric learning</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1703.05175.pdf">论文链接</a></li>
+<li>开源代码：<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/jakesnell/prototypical-networks">jakesnell/prototypical-networks</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/orobix/Prototypical-Networks-for-Few-shot-Learning-PyTorch">orobix/Prototypical-Networks-for-Few-shot-Learning-PyTorch</a></li>
+</ul>
+</li>
+<li>其他资料：<ul>
+<li><a target="_blank" rel="noopener" href="https://www.semanticscholar.org/paper/Prototypical-Networks-for-Few-shot-Learning-Snell-Swersky/c269858a7bb34e8350f2442ccf37797856ae9bca">Semantic Scholar</a></li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/2-Figure1-1.png"></p>
+<p>考虑到小样本分类问题上数据量受到限制，分类器应该有一个非常简单的归纳偏执（根据 [1]，我认为是因为这样可以减小所需要的样本复杂性）。<strong>原型网络（Prototypical Networks）</strong>基于“存在一个嵌入空间，使得对于每一类存在一个原型表征，该类中的所有点都围绕着这个原型表征”的假设。在实现上，使用一个神经网络来实现输入到嵌入空间的非线性映射，每类的原型选择嵌入空间中该类的支持集的均值。而对于新的查询样本的分类通过简单地查找最近邻类别原型来实现。</p>
+<p>零样本学习问题中，新的（或者说训练阶段不可见的）类别不再包含少量的有标签数据，而是每一类会提供一些元数据（或者称为辅助信息），例如属性、描述等。在实现上，即是每一类有一个元数据向量。因此，对于零样本学习，Prototypical Network 学习将元数据嵌入到一个共享空间中来作为类别原型。也就是说，类别原型和查询原型不来自同一个域。</p>
+<h3 id="理论分析"><a href="#理论分析" class="headerlink" title="理论分析"></a>理论分析</h3><h4 id="作为混合密度估计"><a href="#作为混合密度估计" class="headerlink" title="作为混合密度估计"></a>作为混合密度估计</h4><p>Prototypical Network 的学习过程可以理解为混合概率估计。Bregman 散度是一类特别的距离度量，包含欧式距离和 Mahalanobis 距离。采用 Bregman 散度时，聚类中心即是整个簇最具代表性的点（即质心），使得该类的所有点到质心的总距离之和最小。因此，Prototypical Network 使用类均值作为原型表示，并采用欧氏距离度量。而对于 Matching Network [2] 采用的余弦距离，满足满足和簇的其他点之间总距离最小的质心是使信息损失最小化的点。</p>
+<h4 id="作为线性模型进行解释"><a href="#作为线性模型进行解释" class="headerlink" title="作为线性模型进行解释"></a>作为线性模型进行解释</h4><p>当使用欧氏距离时 $d\left(\mathbf{z}, \mathbf{z}^{\prime}\right)=\left|\mathbf{z}-\mathbf{z}^{\prime}\right|^{2}$，softmax 的内部可以相当于有特定参数的线性模型。具体来说，将欧式距离展开得到</p>
+<p>$$<br>-\left|f_{\phi}(\mathbf{x})-\mathbf{c}_{k}\right|^{2}=-f_{\phi}(\mathbf{x})^{\top} f_{\phi}(\mathbf{x})+2 \mathbf{c}_{k}^{\top} f_{\phi}(\mathbf{x})-\mathbf{c}_{k}^{\top} \mathbf{c}_{k}<br>$$</p>
+<p>其中，第一项对于类别 k 来说是常量，不影响 softmax 的概率结果；而后两项可以写为</p>
+<p>$$<br>2 \mathbf{c}_{k}^{\top} f_{\phi}(\mathbf{x})-\mathbf{c}_{k}^{\top} \mathbf{c}_{k}=\mathbf{w}_{k}^{\top} f_{\phi}(\mathbf{x})+b_{k}, \text { where } \mathbf{w}_{k}=2 \mathbf{c}_{k} \text { and } b_{k}=-\mathbf{c}_{k}^{\top} \mathbf{c}_{k}<br>$$</p>
+<p>因此变为一个线性模型。</p>
+<p>本文猜想，嵌入函数内部已经包含所需要的非线性转换，因此可以直接使用欧氏距离，使得方法更加简单有效。</p>
+<h4 id="与-Matching-Network-的比较"><a href="#与-Matching-Network-的比较" class="headerlink" title="与 Matching Network 的比较"></a>与 Matching Network 的比较</h4><p>Matching Network 在给定支持集的情况下生成一个加权最近邻分类器，而 Prototypical Network 使用欧氏距离生成一个线性分类器。当支持集中每个类只有一个样本时，二者等价。Matching Network 有相对复杂的结构，而 Prototypical Network 采用简单的设计达到相当甚至更好的效果。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>在小样本分类问题上，本文在 Omniglot 数据集上的结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/6-Table1-1.png"></p>
+<p>在 miniImageNet 数据集上的结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/6-Table2-1.png"></p>
+<p>在零样本分类问题上，本文在 CUB 数据集上的结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/7-Table3-1.png"></p>
+<p>另外有一些有趣的结论。下图的实验结果证明：</p>
+<ol>
+<li>当训练阶段在一个任务中使用更多的类别数时，测试进行 5-way 分类的结果更好；</li>
+<li>比起 Matching Network 采用的余弦距离，欧式距离在 Prototypical Network 上的效果更好。原因已在前文进行解释。</li>
+</ol>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/c269858a7bb34e8350f2442ccf37797856ae9bca/7-Figure3-1.png"></p>
+<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h4><p>简单聊一聊实现上的事情。我之前以为，在 metric-based few-shot learning 中，loss 是从 meta-train 的 training data 上得到的，因此。这是一个没实现过小样本学习方法，只凭借监督问题上的经验容易产生的误区。在小样本学习中，要抛弃掉 training data 和 test data 的概念，用支持集（support set）和查询集（query set）来代表会更好地理解。模型训练阶段的 loss 实际上是由 meta-train 的 query set 得到的，因此，实际上 Prototypical Network 在 meta-test 阶段也不存在微调了，直接用 query prototype 来进行最近邻分类得到准确率。</p>
+<p>有一个问题是，零样本学习任务中，本文提出可用固定原型embedding的长度为单位长度，对query embedding不限制。没有很看懂这个设置，这个反映到代码里是怎么实现的？但是源码中没有给出零样本学习部分的代码，有点难受。</p>
+<!-- 还有一个问题是，发现虽然小样本分类的论文绝大部分都在同样的几个数据集（以 Omniglot，miniImageNet，tiredImageNet，CUB 为主）上进行评估，但是目前还没有一套固定的预处理和训练优化器和超参数设置。因此，想要直接使用很多篇论文的实验结果进行比较（而不用自己实现的实验结果）有些困难。当然这也是正常情况了，就是需要自己找一套能够说服评审的设置了。-->
+
+
+<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
+<li>[1] Generalizing from a Few Examples: A Survey on Few-Shot Learning, arXiv:1904.05046v2.</li>
+<li>[2] Oriol Vinyals, Charles Blundell, Tim Lillicrap, Daan Wierstra, et al. Matching networks for one shot learning. In Advances in Neural Information Processing Systems, pages 3630–3638, 2016.</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/ProtoNet-notes/" title="【paper reading】Prototypical Networks for Few-shot Learning">https://kyonhuang.top/blog/ProtoNet-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/few-shot-learning/" rel="tag"># few-shot learning</a>
+              <a href="/blog/tags/%E5%B0%8F%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0/" rel="tag"># 小样本学习</a>
+              <a href="/blog/tags/metric-learning/" rel="tag"># metric learning</a>
+              <a href="/blog/tags/%E5%BA%A6%E9%87%8F%E5%AD%A6%E4%B9%A0/" rel="tag"># 度量学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/CloserLookFewShot-notes/" rel="prev" title="【paper reading】A Closer Look at Few-shot Classification">
+                  <i class="fa fa-chevron-left"></i> 【paper reading】A Closer Look at Few-shot Classification
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/my-summary-of-IJCAI20/" rel="next" title="IJCAI2020 教训总结">
+                  IJCAI2020 教训总结 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

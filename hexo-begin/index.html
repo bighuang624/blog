@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="博客基本算是搭好了。当然，还有很多地方可以改进，比如加上包括评论（主要是多说不知道为什么一申请就告诉我出错）在内的第三方服务，比如样式还可以再漂亮一些，而且也没有申请自己的域名（毕竟也没什么人看吧…大概）。但是一个博客，内容的质量应该是最重要的。从现在开始，先写点东西吧，比如，先谈谈搭建这个博客时遇到的一些问题以及解决的方案。注意，我是用 mac 搭建的，以下很多内容可能只适用于 OS X 系统。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用 hexo+github 搭建这个博客的一点经验">
+<meta property="og:url" content="https://kyonhuang.top/blog/hexo-begin/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="博客基本算是搭好了。当然，还有很多地方可以改进，比如加上包括评论（主要是多说不知道为什么一申请就告诉我出错）在内的第三方服务，比如样式还可以再漂亮一些，而且也没有申请自己的域名（毕竟也没什么人看吧…大概）。但是一个博客，内容的质量应该是最重要的。从现在开始，先写点东西吧，比如，先谈谈搭建这个博客时遇到的一些问题以及解决的方案。注意，我是用 mac 搭建的，以下很多内容可能只适用于 OS X 系统。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-12-04T11:33:57.000Z">
+<meta property="article:modified_time" content="2018-04-12T10:11:40.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="hexo">
+<meta property="article:tag" content="博客搭建">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/hexo-begin/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;hexo-begin&#x2F;&quot;,&quot;path&quot;:&quot;hexo-begin&#x2F;&quot;,&quot;title&quot;:&quot;用 hexo+github 搭建这个博客的一点经验&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>用 hexo+github 搭建这个博客的一点经验 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E6%90%AD%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">初始搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E6%9C%9F%E6%9B%B4%E6%96%B0"><span class="nav-number">2.</span> <span class="nav-text">后期更新</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/hexo-begin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          用 hexo+github 搭建这个博客的一点经验
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2016-12-04 19:33:57" itemprop="dateCreated datePublished" datetime="2016-12-04T19:33:57+08:00">2016-12-04</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-04-12 18:11:40" itemprop="dateModified" datetime="2018-04-12T18:11:40+08:00">2018-04-12</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E7%A8%8B%E5%BA%8F%E7%8C%BF%E5%96%9C%E6%AC%A2%E6%8A%98%E8%85%BE/" itemprop="url" rel="index"><span itemprop="name">程序猿喜欢折腾</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>博客基本算是搭好了。当然，还有很多地方可以改进，比如加上包括评论（主要是多说不知道为什么一申请就告诉我出错）在内的第三方服务，比如样式还可以再漂亮一些，而且也没有申请自己的域名（毕竟也没什么人看吧…大概）。但是一个博客，内容的质量应该是最重要的。从现在开始，先写点东西吧，比如，先谈谈搭建这个博客时遇到的一些问题以及解决的方案。注意，我是用 mac 搭建的，以下很多内容可能只适用于 OS X 系统。</p>
+<p>这个博客后期做的样式等修改也会在这篇博文中进行实时更新记录。</p>
+  <span id="more"></span>
+<h3 id="初始搭建"><a href="#初始搭建" class="headerlink" title="初始搭建"></a>初始搭建</h3><p>前期准备：安装 XCode、Node.js，注册 Github。除开Node.js外都是已有的，也没遇到什么问题。</p>
+<p>hexo 的安装推荐查看<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/index.html">hexo的官方文档</a>，说的很详细。看网上七七八八的教程反而可能遇到一些莫名其妙的问题。整个搭建过程中花费时间最多的就是在解决 DTrace 错误上：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[Error: Cannot find module &#x27;./build/Release/DTraceProviderBindings&#x27;] code: &#x27;MODULE_NOT_FOUND&#x27; </span><br></pre></td></tr></table></figure>
+
+<p>按照百度的解决方法折腾半天（是真的半天！）也不奏效，最后的解决方案还是按照文档从安装hexo开始重新走了一遍，再使用命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo --no-optional</span><br></pre></td></tr></table></figure>
+<p>  这才解决。果然官方文档才是坠吼的！</p>
+<p>  然后就是主题选择了。根据知乎上<a target="_blank" rel="noopener" href="http://www.zhihu.com/question/24422335">有哪些好看的 Hexo 主题？－知乎</a>问题的回答，果断选择github上star最多的NexT主题，<a target="_blank" rel="noopener" href="http://theme-next.iissnan.com/getting-started.html">官方文档</a>也同样详细易懂。Muse 实在太丑，开始时我选用的 Scheme 是 Mist。后来百度看到好多大佬选用 Pisces，感觉要比 Mist 好看一些，于是换了。其实就是改改配置文件，很简单。之后加入不蒜子统计，设置 RSS（其实我并不清楚这个是干什么的…就是橙色的图标蛮好看的），加上标签、分类、关于页面、搜索功能和侧边栏社交链接。这些在官方文档写的都很清楚。</p>
+<p>我还改了一些什么呢？第一，背景颜色。原来NexT的默认背景颜色是浅灰色，不仅沉闷，而且和其他博客的重复率太高。在网上搜到改动方法：hexo（hexo工程文件）-&gt; themes -&gt; next -&gt; source -&gt; css -&gt; _schemes -&gt; Pisces（Mist和Muse也行），找到路径下的index.styl文件，改动文件的最上方的那一行代码即可。这个方法应该也可以将背景换成图片，但是每次我用hexo server在本地看是正常的，传到github上就显示不了图片。还没找到解决方法，只好作罢。</p>
+<p>17.04.27更新：解决了，现在背景图片为《言叶之庭》中的截图，CSS 代码为</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">body</span> &#123; <span class="attribute">background</span>: <span class="built_in">url</span>(<span class="string">&quot;../../../images/back1.jpeg&quot;</span>); <span class="attribute">background-repeat</span>:no-repeat; <span class="attribute">background-attachment</span>:fixed; <span class="attribute">background-size</span>: <span class="number">100%</span> <span class="number">100%</span>;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二，我对底部 powered by 的 logo 栏进行了更改。其实按理说这个地方作为对 hexo 和 NexT 的开发者的感谢不应该修改的…还是更想个性化一点，抱歉抱歉。修改方法参见 <a target="_blank" rel="noopener" href="http://www.jianshu.com/p/4fbc57269f1b">Hexo-Next底部powered by的logo栏更改以及注意事项（附官方文档,文末有福利链）</a>。我把这里当作一个随时修改的心情栏了。（17.04.27：我改回来了）</p>
+<p>大概就这些了。希望搭建这个博客能够督促我写下更多编程学习中的经验之谈。但我也没有打算只把这个博客当作一个写技术性文章的地方，随笔、填词什么的也会放在这里。欢迎大家多多来看，相互交流 :)</p>
+<h3 id="后期更新"><a href="#后期更新" class="headerlink" title="后期更新"></a>后期更新</h3><p>  16.12.31更新：加上了鼠标点击出爱心的特效。详见 <a target="_blank" rel="noopener" href="http://longhaoteng.com/2016/08/01/hexo%E5%BC%95%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89js%E6%96%87%E4%BB%B6%E5%92%8Ccss%E6%A0%B7%E5%BC%8F/">hexo引用自定义js文件和css样式</a>。这个blog还有粒子特效的背景，说不定哪天也给自己加上。</p>
+<p>  17.02.20更新：申请了现在的域名，域名解析详见 <a target="_blank" rel="noopener" href="http://www.cnblogs.com/penglei-it/p/hexo_domain_name.html">Hexo站点之域名配置【2】</a>。</p>
+<p>  17.02.21更新：增加多说评论并修改样式，详见 <a target="_blank" rel="noopener" href="http://www.arao.me/2015/hexo-next-theme-optimize-duoshuo/">动动手指，给你的Hexo站点添加最近访客（多说篇）</a>。（17.04.08更新：多说归西）</p>
+<p>  17.02.26更新：NexT主题支持自行设定CDN以加速静态资源的加载，详见 <a target="_blank" rel="noopener" href="http://theme-next.iissnan.com/advanced-settings.html">进阶设定 - NexT 使用文档</a>。但是经过测试，感觉修改CDN后并没有实现预期的加速（也有可能是我没找到比较好的CDN）。所以现在暂时还是保持没有修改的状态。</p>
+  <!--17.03.14更新：增加复制文本自带版权信息，详见[版权狗退散 — 仿知乎复制文本自带版权声明](https://www.anotherhome.net/2298)。-->
+<p>  17.04.27更新：NexT 主题更新至 5.1.1 版本，更换背景图片（好看多了w）。</p>
+<p>  17.12.20更新：感觉字体不好看，修改了 /themes/next/source/css/_variables 文件。</p>
+<p>  18.04.12更新：Next 升级到 v6.1.0。加上评论区。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/hexo-begin/" title="用 hexo+github 搭建这个博客的一点经验">https://kyonhuang.top/blog/hexo-begin/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/blog/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" rel="tag"># 博客搭建</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/bye2016hello2017/" rel="next" title="Bye,2016 and Hello,2017">
+                  Bye,2016 and Hello,2017 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="一句话总结作为第一篇研究用于图像检索的图像与文本特征组合问题的论文，本文提出一种采用门控机制和残差连接的特征组合方式，确保修改后的特征处于目标图像特征处在相同空间中，并通过度量学习的方式达到 SOTA。 论文信息 作者：Nam S. Vo, Lu Jiang, Chen Sun, Kevin Murphy, Li-Jia Li, Li Fei-Fei, James Hays 出处：CVPR 20">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey">
+<meta property="og:url" content="https://kyonhuang.top/blog/TIRG-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="一句话总结作为第一篇研究用于图像检索的图像与文本特征组合问题的论文，本文提出一种采用门控机制和残差连接的特征组合方式，确保修改后的特征处于目标图像特征处在相同空间中，并通过度量学习的方式达到 SOTA。 论文信息 作者：Nam S. Vo, Lu Jiang, Chen Sun, Kevin Murphy, Li-Jia Li, Li Fei-Fei, James Hays 出处：CVPR 20">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TIRG-paper-title.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/1-Figure1-1.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/4-Figure2-1.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/5-Table1-1.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/6-Table3-1.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/7-Table4-1.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/8-Figure6-1.png">
+<meta property="og:image" content="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/7-Table5-1.png">
+<meta property="article:published_time" content="2019-09-06T08:20:32.000Z">
+<meta property="article:modified_time" content="2019-11-27T01:31:46.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="multimodal">
+<meta property="article:tag" content="metric learning">
+<meta property="article:tag" content="多模态">
+<meta property="article:tag" content="度量学习">
+<meta property="article:tag" content="image retrieval">
+<meta property="article:tag" content="feature composition">
+<meta property="article:tag" content="图像检索">
+<meta property="article:tag" content="特征组合">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TIRG-paper-title.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/TIRG-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;TIRG-notes&#x2F;&quot;,&quot;path&quot;:&quot;TIRG-notes&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">一句话总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%BF%A1%E6%81%AF"><span class="nav-number">2.</span> <span class="nav-text">论文信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AE%B9%E7%AE%80%E8%AE%B0"><span class="nav-number">3.</span> <span class="nav-text">内容简记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">3.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.1.</span> <span class="nav-text">训练方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.1.</span> <span class="nav-text">对比实验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8E%E7%BB%84%E5%90%88%E7%89%B9%E5%BE%81%E4%B8%AD%E9%87%8D%E5%BB%BA%E5%9B%BE%E5%83%8F"><span class="nav-number">3.3.2.</span> <span class="nav-text">从组合特征中重建图像</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.3.</span> <span class="nav-text">消融实验</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%BA%E7%AC%94%E8%AE%B0"><span class="nav-number">3.4.</span> <span class="nav-text">个人笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.4.1.</span> <span class="nav-text">实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%AE%BA%E6%96%87"><span class="nav-number">4.</span> <span class="nav-text">参考论文</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/TIRG-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-09-06 16:20:32" itemprop="dateCreated datePublished" datetime="2019-09-06T16:20:32+08:00">2019-09-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-11-27 09:31:46" itemprop="dateModified" datetime="2019-11-27T09:31:46+08:00">2019-11-27</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TIRG-paper-title.png"></p>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>作为第一篇研究用于图像检索的图像与文本特征组合问题的论文，本文提出一种采用门控机制和残差连接的特征组合方式，确保修改后的特征处于目标图像特征处在相同空间中，并通过度量学习的方式达到 SOTA。</p>
+<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
+<li>作者：Nam S. Vo, Lu Jiang, Chen Sun, Kevin Murphy, Li-Jia Li, Li Fei-Fei, James Hays</li>
+<li>出处：CVPR 2019</li>
+<li>机构：Google AI, Stanford</li>
+<li>关键词：Image retrieval, multimodal, metric learning, feature composition</li>
+<li><a target="_blank" rel="noopener" href="http://openaccess.thecvf.com/content_CVPR_2019/papers/Vo_Composing_Text_and_Image_for_Image_Retrieval_-_an_Empirical_CVPR_2019_paper.pdf">论文链接</a></li>
+<li>开源代码：<a target="_blank" rel="noopener" href="https://github.com/google/tirg">https://github.com/google/tirg</a></li>
+<li>其他资料：<ul>
+<li><a target="_blank" rel="noopener" href="https://www.semanticscholar.org/paper/Composing-Text-and-Image-for-Image-Retrieval-An-Vo-Jiang/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d">Semantic Scholar</a></li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/1-Figure1-1.png"></p>
+<p>本文展示在一种典型的图像检索场景——用户使用已经找到的图像作为参考，然后用文本表达其与查询意图的差异，来检索相关图像——下的解决方案。这种场景与基于属性的产品检索密切相关，但不同之处在于文本可以由多个词语组成，而不是单个属性。</p>
+<p>主要的研究问题在于当由两种不同的输入模态时，如何表示查询，即<strong>如何为查询学习有意义的跨模态特征组合以便找到目标图像</strong>。文本与图像间的特征组合方法，从简单的拼接、浅前馈网络，到先进的机制（如关系 [1] 或参数哈希 [2]）已经广泛应用于相关问题。在本文研究的问题中，文本应该修改查询图像的特征，但是希望修改后得到的特征向量和目标图像处在相同的空间。因此，本文提出<strong>“文本图像残差门控”（Text Image Residual Gating，TIRG）</strong>，通过<strong>门控机制和残差连接</strong>来让文本修改图片特征。该方法在三个数据集上达到 SOTA。</p>
+<p>已有的特征组合方法（即本文进行比较的 baselines）：</p>
+<ul>
+<li>拼接输入 MLP；</li>
+<li>Show and Tell [3]：用一个 LSTM 同时编码图像和文本，先输入图像特征，后输入文本单词。LSTM 的最后一个状态作为表征；</li>
+<li>Attribute as Operator [4]：将文本编码为转移矩阵，并应用到图像特征上得到组合特征；</li>
+<li>Parameter hashing [2]：已被编码的文本特征被散列为变换矩阵，用于替代 CNN 网络中的全连接层，以得到组合特征；</li>
+<li>Relationship [1]：首先使用 CNN 提取图像的 2d 特征图（feature map），然后创建一组关系特征，每个特征是 2d 特征图中的 2 个局部特征与文本特征的拼接。这组特征被传入一个 MLP 中并将输出平均化以得到组合特征；</li>
+<li>FiLM [5]：文本特征被用于预测调制特征（modulation features） $\gamma^{i}, \beta^{i} \in \mathbb{R}^{C}$，其中 $i$ 为层的索引（index），$C$ 为特征的数量。之后执行图像特征的仿射变换：$\phi_{x t}^{i}=\gamma^{i} \cdot \phi_{x}^{i}+\beta^{i}$。</li>
+</ul>
+<p>其中，本文提出的 TIRG 与 FiLM 的区别在于：</p>
+<ul>
+<li>TIRG 使用<strong>非线性变换</strong>（而非 FiLM 中的线性变换），具有更多可学习参数，使得能够对图像进行较为复杂的修改；</li>
+<li>TIRG <strong>只修改单层的 CNN</strong>。修改尽可能少的层有助于确保修改的特征处于目标图像的相同空间中。</li>
+</ul>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/4-Figure2-1.png"></p>
+<p><strong>TIRG</strong> 的公式为：</p>
+<p>$$<br>\phi_{x t}^{r g}=w_{g} f_{\mathrm{gate}}\left(\phi_{x}, \phi_{t}\right)+w_{r} f_{\mathrm{res}}\left(\phi_{x}, \phi_{t}\right)<br>$$</p>
+<p>其中，$\phi_{x}$ 是 CNN 得到的查询图像特征，$\phi_{t}$ 是 LSTM 得到的文本特征；$f_{\text {gate }}, f_{\text {res }} \in \mathbb{R}^{W \times H \times C}$；$w_{g}, w_{r}$ 是用于平衡的可学习权重。</p>
+<p><strong>门控机制</strong>的计算为：</p>
+<p>$$<br>f_{\text {gate }}\left(\phi_{x}, \phi_{t}\right)=\sigma\left(W_{g 2} * {RELU}\left(W_{g 1} *\left[\phi_{x}, \phi_{t}\right]\right) \odot \phi_{x}\right.<br>$$</p>
+<p>其中，$W_{g 1}$ 和 $W_{g 2}$ 都是 3x3 卷积核。$\phi_{t}$ 将沿着高度和宽度的尺寸广播（broadcast along the height and width dimension），使其形状与图像特征 $\phi_{x}$ 匹配。</p>
+<p><strong>残差连接</strong>的计算为：</p>
+<p>$$<br>f_{\text {res }}\left(\phi_{x}, \phi_{t}\right)=W_{r 2} * {RELU}\left(W_{r 1} *\left(\left[\phi_{x}, \phi_{t}\right]\right)\right)<br>$$</p>
+<p>TIRG 的直观理解是我们只想根据文本特征“修改”图像特征，而不是创建一个完全不同的特征空间。门控机制被设计成保留某些与文本修改无关的查询图像特征。</p>
+<h4 id="训练方法"><a href="#训练方法" class="headerlink" title="训练方法"></a>训练方法</h4><p>训练目标是使“修改后”的图像特征与目标图像特征尽可能接近，同时使与非目标图像特征尽可能远离。因此，采用每次采样一个正例和 B 个负例计算损失，并重复 M 次，公式为：</p>
+<p>$$<br>L=\frac{-1}{M B} \sum_{i=1}^{B} \sum_{m=1}^{M} \log \left\{\frac{\exp \left\{\kappa\left(\psi_{i}, \phi_{i}^{+}\right)\right\}}{\sum_{\phi_{j} \in \mathcal{N}_{i}^{m}} \exp \left\{\kappa\left(\psi_{i}, \phi_{j}\right)\right\}}\right\}<br>$$</p>
+<p>其中 $\kappa$ 是相似度计算函数，在实现中采用点积或负欧式距离（为负时越小的距离能够获得更高的分数）。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>在三个数据集上进行实验：Fashion200k [6]，MIT-States [7]，本文提出的 CSS 数据集。三个数据集的区别在于，前两个数据集图像中物体不变，属性之一发生变化；而 CSS 数据集的变化更加复杂，可以增加、减少处于某个位置的物体，也可以改变物体的属性；前两个数据集的图像内容较为丰富，而 CSS 数据集的图像是生成的规律几何体摆放，且有 2D 和 3D 两种图像。</p>
+<p>主要评价指标为 recall at rank k (R@K)，即正确的图像（即标签）在前 K 个检索出的图像中的百分比。MIT-States 同时汇报分类结果。本文提出的 TIRG 均达到 SOTA。</p>
+<p>在 Fashion200k 和 MIT-States 数据集上的检索结果如下：</p>
+<p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/5-Table1-1.png"></p>
+<p>在 MIT-States 数据集上的分类结果如下：</p>
+<p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/6-Table3-1.png"></p>
+<p>在 CSS 数据集上的检索结果如下：</p>
+<p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/7-Table4-1.png"></p>
+<h4 id="从组合特征中重建图像"><a href="#从组合特征中重建图像" class="headerlink" title="从组合特征中重建图像"></a>从组合特征中重建图像</h4><p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/8-Figure6-1.png"></p>
+<p>为了更深入地了解组合特征的本质，本文训练了一个转置卷积网络（transposed convolutional network），学习从查询图像的特征中重建图像，然后将其应用于组合特征。对比直接拼接、FiLM 和本文的 TIRG 三种方法得到的组合特征的重建图像。从 TIRG 特征表示生成的图像看起来更好，并且更接近目标图像。</p>
+<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="https://ai2-s2-public.s3.amazonaws.com/figures/2017-08-08/fd5129e8ebfaa5dcce3d4ce2839b90c6cd3ca39d/7-Table5-1.png"></p>
+<ol>
+<li>去除残差连接和门控机制都会使模型表现显著变差；</li>
+<li>TIRG 的特征修改可发生在最后一个卷积层或最后一个全连接层。实验表明，对于 Fashion200k 和 MIT-States 数据集在最后一个全连接层进行特征修改，以及对于 CSS 数据集在最后一个卷积层进行特征修改，效果更好。作者认为这是因为在 CSS 数据集上的修改更加空间局部化，而在其他两个数据集上的修改更加全局化；</li>
+<li>设置训练时的每次采样的样本数量为 2（即损失变为 soft triplet loss）或 B（即实验中原本的设置）。当采样大小为 2 时，会发现对于 Fashion200k 这样较大的数据集，网络会欠拟合；而当采样大小为 B 时，网络对 Fashion200k 数据集拟合更好并得到更好的结果，但是对于其他两个数据集训练变得不稳定。</li>
+</ol>
+<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h4><p><strong>实现预训练的 CNN 和 LSTM</strong></p>
+<p>CNN：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torchvision</span><br><span class="line">img_model = torchvision.models.resnet18(pretrained=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p>LSTM：</p>
+<p>源码自己实现了一个应用于文本的 LSTM，详见 <a target="_blank" rel="noopener" href="https://github.com/google/tirg/blob/master/text_model.py">text_model.py</a>。</p>
+<!-- 暂时还没搞懂是怎么将 one-hot 向量转为词嵌入的，是 
+torch.nn.Embedding：https://pytorch.org/docs/stable/nn.html?highlight=torch%20nn%20embedding#torch.nn.Embedding 吗？ -->
+
+<p><strong>实现可学习权重 w_g，w_r</strong></p>
+<!-- 用 torch.nn.Linear 不太好实现 -->
+
+<p>通过<code>torch.nn.Parameter</code>将张量添加到参数列表中：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">self.a = torch.nn.Parameter(torch.tensor([<span class="number">1.0</span>, <span class="number">10.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>]))</span><br><span class="line"></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"></span><br><span class="line">f = F.sigmoid(f1) * img_features * self.a[<span class="number">0</span>] + f2 * self.a[<span class="number">1</span>]</span><br><span class="line"><span class="comment"># 但是没有理解为什么只使用两个值，初始化时要用长度为 4 的向量</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>将文本特征沿着高度和宽度的尺寸广播后与图像特征拼接</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">y = text_features</span><br><span class="line">y = y.reshape((y.shape[<span class="number">0</span>], y.shape[<span class="number">1</span>], <span class="number">1</span>, <span class="number">1</span>)).repeat(<span class="number">1</span>, <span class="number">1</span>, x.shape[<span class="number">2</span>], x.shape[<span class="number">3</span>])</span><br><span class="line"><span class="comment"># x 为图像特征</span></span><br><span class="line">z = torch.cat((x, y), dim=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现在最后一个卷积层修改特征</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TIRGLastConv</span>(<span class="params">ImgEncoderTextEncoderBase</span>):</span></span><br><span class="line">  <span class="string">&quot;&quot;&quot;The TIGR model with spatial modification over the last conv layer.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  The method is described in</span></span><br><span class="line"><span class="string">  Nam Vo, Lu Jiang, Chen Sun, Kevin Murphy, Li-Jia Li, Li Fei-Fei, James Hays.</span></span><br><span class="line"><span class="string">  &quot;Composing Text and Image for Image Retrieval - An Empirical Odyssey&quot;</span></span><br><span class="line"><span class="string">  CVPR 2019. arXiv:1812.07119</span></span><br><span class="line"><span class="string">  &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, texts, embed_dim</span>):</span></span><br><span class="line">    <span class="built_in">super</span>(TIRGLastConv, self).__init__(texts, embed_dim)</span><br><span class="line"></span><br><span class="line">    self.a = torch.nn.Parameter(torch.tensor([<span class="number">1.0</span>, <span class="number">10.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>]))</span><br><span class="line">    self.mod2d = torch.nn.Sequential(</span><br><span class="line">        torch.nn.BatchNorm2d(<span class="number">512</span> + embed_dim),</span><br><span class="line">        torch.nn.Conv2d(<span class="number">512</span> + embed_dim, <span class="number">512</span> + embed_dim, [<span class="number">3</span>, <span class="number">3</span>], padding=<span class="number">1</span>),</span><br><span class="line">        torch.nn.ReLU(),</span><br><span class="line">        torch.nn.Conv2d(<span class="number">512</span> + embed_dim, <span class="number">512</span>, [<span class="number">3</span>, <span class="number">3</span>], padding=<span class="number">1</span>),</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    self.mod2d_gate = torch.nn.Sequential(</span><br><span class="line">        torch.nn.BatchNorm2d(<span class="number">512</span> + embed_dim),</span><br><span class="line">        torch.nn.Conv2d(<span class="number">512</span> + embed_dim, <span class="number">512</span> + embed_dim, [<span class="number">3</span>, <span class="number">3</span>], padding=<span class="number">1</span>),</span><br><span class="line">        torch.nn.ReLU(),</span><br><span class="line">        torch.nn.Conv2d(<span class="number">512</span> + embed_dim, <span class="number">512</span>, [<span class="number">3</span>, <span class="number">3</span>], padding=<span class="number">1</span>),</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">compose_img_text</span>(<span class="params">self, imgs, texts</span>):</span></span><br><span class="line">    text_features = self.extract_text_feature(texts)</span><br><span class="line"></span><br><span class="line">    x = imgs</span><br><span class="line">    x = self.img_model.conv1(x)</span><br><span class="line">    x = self.img_model.bn1(x)</span><br><span class="line">    x = self.img_model.relu(x)</span><br><span class="line">    x = self.img_model.maxpool(x)</span><br><span class="line"></span><br><span class="line">    x = self.img_model.layer1(x)</span><br><span class="line">    x = self.img_model.layer2(x)</span><br><span class="line">    x = self.img_model.layer3(x)</span><br><span class="line">    x = self.img_model.layer4(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># mod</span></span><br><span class="line">    y = text_features</span><br><span class="line">    y = y.reshape((y.shape[<span class="number">0</span>], y.shape[<span class="number">1</span>], <span class="number">1</span>, <span class="number">1</span>)).repeat(</span><br><span class="line">        <span class="number">1</span>, <span class="number">1</span>, x.shape[<span class="number">2</span>], x.shape[<span class="number">3</span>])</span><br><span class="line">    z = torch.cat((x, y), dim=<span class="number">1</span>)</span><br><span class="line">    t = self.mod2d(z)</span><br><span class="line">    tgate = self.mod2d_gate(z)</span><br><span class="line">    x = self.a[<span class="number">0</span>] * F.sigmoid(tgate) * x + self.a[<span class="number">1</span>] * t</span><br><span class="line"></span><br><span class="line">    x = self.img_model.avgpool(x)</span><br><span class="line">    x = x.view(x.size(<span class="number">0</span>), -<span class="number">1</span>)</span><br><span class="line">    x = self.img_model.fc(x)</span><br><span class="line">    <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
+<li>[1] A simple neural network module for relational reasoning, NIPS 2017.</li>
+<li>[2] Image question answering using convolutional neural network with dynamic parameter prediction, CVPR 2016.</li>
+<li>[3] Show and tell: A neural image caption generator, CVPR 2015.</li>
+<li>[4] Attributes as operators, 2018.</li>
+<li>[5] Film: Visual reasoning with a general conditioning layer, 2018.</li>
+<li>[6] Automatic spatially-aware fashion concept discovery, ICCV 2017.</li>
+<li>[7] Discovering states and transformations in image collections, CVPR 2015.</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/TIRG-notes/" title="【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey">https://kyonhuang.top/blog/TIRG-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/multimodal/" rel="tag"># multimodal</a>
+              <a href="/blog/tags/metric-learning/" rel="tag"># metric learning</a>
+              <a href="/blog/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/" rel="tag"># 多模态</a>
+              <a href="/blog/tags/%E5%BA%A6%E9%87%8F%E5%AD%A6%E4%B9%A0/" rel="tag"># 度量学习</a>
+              <a href="/blog/tags/image-retrieval/" rel="tag"># image retrieval</a>
+              <a href="/blog/tags/feature-composition/" rel="tag"># feature composition</a>
+              <a href="/blog/tags/%E5%9B%BE%E5%83%8F%E6%A3%80%E7%B4%A2/" rel="tag"># 图像检索</a>
+              <a href="/blog/tags/%E7%89%B9%E5%BE%81%E7%BB%84%E5%90%88/" rel="tag"># 特征组合</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/before-being-a-PhD-candidate/" rel="prev" title="写在博士生开始前">
+                  <i class="fa fa-chevron-left"></i> 写在博士生开始前
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/AM3-notes/" rel="next" title="【paper reading】Adaptive Cross-Modal Few-Shot Learning">
+                  【paper reading】Adaptive Cross-Modal Few-Shot Learning <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

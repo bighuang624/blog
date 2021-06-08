@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="作为一款主流前端开发编辑器软件，Sublime Text具有代码高亮、语法提示、自动完成，轻量级，易上手，并且支持插件扩展机制，可以说功能十分强大。 我用Sublime Text已经有一段时间了，但是只是浮于表面，没有进一步探索。作为一名准备在Web方面继续深研的软工学生，我决定对Sublime Text的使用技巧进行学习，并写下这篇笔记。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sublime Text 使用技巧笔记">
+<meta property="og:url" content="https://kyonhuang.top/blog/sublime-text-learning/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="作为一款主流前端开发编辑器软件，Sublime Text具有代码高亮、语法提示、自动完成，轻量级，易上手，并且支持插件扩展机制，可以说功能十分强大。 我用Sublime Text已经有一段时间了，但是只是浮于表面，没有进一步探索。作为一名准备在Web方面继续深研的软工学生，我决定对Sublime Text的使用技巧进行学习，并写下这篇笔记。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/blog/master/images/sublime.jpg">
+<meta property="article:published_time" content="2017-02-13T08:41:37.000Z">
+<meta property="article:modified_time" content="2019-10-07T12:28:30.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="Sublime Text">
+<meta property="article:tag" content="编辑器">
+<meta property="article:tag" content="IDE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/blog/master/images/sublime.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/sublime-text-learning/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;sublime-text-learning&#x2F;&quot;,&quot;path&quot;:&quot;sublime-text-learning&#x2F;&quot;,&quot;title&quot;:&quot;Sublime Text 使用技巧笔记&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Sublime Text 使用技巧笔记 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%AB%E6%8D%B7%E9%94%AE-OS-X"><span class="nav-number">1.</span> <span class="nav-text">快捷键(OS X)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E5%88%B6"><span class="nav-number">3.</span> <span class="nav-text">自定制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E5%8C%85"><span class="nav-number">4.</span> <span class="nav-text">扩展包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E6%9F%A5%E6%89%BE%E6%96%87%E4%BB%B6%E6%88%96%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number">5.</span> <span class="nav-text">快速查找文件或字符串</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/sublime-text-learning/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Sublime Text 使用技巧笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-02-13 16:41:37" itemprop="dateCreated datePublished" datetime="2017-02-13T16:41:37+08:00">2017-02-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-10-07 20:28:30" itemprop="dateModified" datetime="2019-10-07T20:28:30+08:00">2019-10-07</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E7%A8%8B%E5%BA%8F%E7%8C%BF%E7%9A%84%E5%A5%BD%E4%BC%99%E4%BC%B4/" itemprop="url" rel="index"><span itemprop="name">程序猿的好伙伴</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>作为一款主流前端开发编辑器软件，Sublime Text具有代码高亮、语法提示、自动完成，轻量级，易上手，并且支持插件扩展机制，可以说功能十分强大。</p>
+<p>我用Sublime Text已经有一段时间了，但是只是浮于表面，没有进一步探索。作为一名准备在Web方面继续深研的软工学生，我决定对Sublime Text的使用技巧进行学习，并写下这篇笔记。</p>
+<span id="more"></span>
+
+<h2 id="快捷键-OS-X"><a href="#快捷键-OS-X" class="headerlink" title="快捷键(OS X)"></a>快捷键(OS X)</h2><ul>
+<li>Command + 光标 多点编辑</li>
+<li>Command + p 快速打开文件</li>
+<li>Command + Shift + p 打开命令行面板</li>
+<li>Command + + / - 字体放大/缩小</li>
+<li>Command + K + B 面板显示/隐藏</li>
+<li>Command + ] / [ 缩进/退回一个级别</li>
+<li>Command + L 选择当前行</li>
+<li>Command (+ Shift) + Enter (在上一行)下一行开辟新行</li>
+<li>Option + 鼠标左键 块选择(自动进入多点编辑)</li>
+<li>Alt(Command) + 左右键 单词(行)粒度的跳跃</li>
+<li>Alt(Command) + Shift + 左右键 单词(行)选择(可以叠加使用多次)</li>
+<li>Command + A 全选</li>
+</ul>
+<h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><p>编辑器右下角可以更改语法，也可以在命令行面板输入语法名进行选择。</p>
+<p>命令行面板输入”Key Bindings - Default”可以看到所有的快捷键设置。</p>
+<img src="https://raw.githubusercontent.com/bighuang624/blog/master/images/sublime.jpg" />
+
+<p>“Key Bindings - User”中自己可以设置快捷键，遵循JSON语法：</p>
+<pre><code>[
+  &#123; &quot;keys&quot;: [&quot;shift+tab&quot;],&quot;command&quot;: &quot;reindent&quot;,&quot;args&quot;: &#123;&quot;single_line&quot;:false&#125;&#125;
+]
+</code></pre>
+<p>“Reindent Lines”调整缩进（已经被我设置快捷键Shift + Tab）。</p>
+<p>如何得到命令名和参数：</p>
+<ol>
+<li>Ctrl + ` 打开控制台，输入”sublime.log_commands(True)”；</li>
+<li>再在命令行面板中输入操作；</li>
+<li>在工作台即可看到命令名和参数；</li>
+</ol>
+<h2 id="自定制"><a href="#自定制" class="headerlink" title="自定制"></a>自定制</h2><p>用户的设置保存在<code>/~/Library/Application Support/Sublime Text 3/Packages/User</code>中，写到这里的数据是不会因自动升级而被覆盖的。</p>
+<p>推荐将这个文件夹中的内容同步到Github上。这样，在更换系统或电脑时，将文件夹clone下来进行替换，可以迅速按照自己的要求配置好。</p>
+<p>15.05.17 更新：</p>
+<p>把 sublime 中的 Tab 换成两个空格的缩进。方法详见<a target="_blank" rel="noopener" href="http://blog.csdn.net/aerchi/article/details/50395288"> sublime text3里 修改TAB键为缩进为四个空格 </a>。</p>
+<h2 id="扩展包"><a href="#扩展包" class="headerlink" title="扩展包"></a>扩展包</h2><p>到 <a target="_blank" rel="noopener" href="https://packagecontrol.io/installation">https://packagecontrol.io/installation</a> 可以看到 sublime3 中的安装方式，Control + ` 打开控制台，运行代码就可以安装上了。</p>
+<p>Command + Shift + p 打开命令行面板，敲<code>Install Package</code>来搜索并安装想要的包。<code>Remove Package</code>卸载插件。</p>
+<p><code>Packages/User/</code> 下面的文件 <code>Package Control.sublime-settings</code> 里面列出已经安装的包。</p>
+<p>我安装的包有（不定期更新）：</p>
+<p>Git：这个包可以帮助我们在编辑器里完成git相关操作。在命令行面板中输入”Git Add Current File”、”Git Commit”、”Git Push”来完成相应操作。</p>
+<p>emmet：Web前端开发必装包，敲 tab 键代码补齐。具体触发词参见 <a target="_blank" rel="noopener" href="http://docs.emmet.io/cheat-sheet/">http://docs.emmet.io/cheat-sheet/</a>。如果我想用标签来包裹一些内容，我就先把内容选中，然后 Ctrl-w 。这个命令也可以在命令面板上呼叫 Wrap with Abbreviation 。要是忘了快捷键了，就求助命令面板。弹出的输入框中输入后回车就可以看到效果了，语法上跟前面 tab 补齐的时候没有区别。如果要删除一层标签，用 Command + , (Remove Tag)。</p>
+<h2 id="快速查找文件或字符串"><a href="#快速查找文件或字符串" class="headerlink" title="快速查找文件或字符串"></a>快速查找文件或字符串</h2><p>Command + P 快捷键打开的功能叫做goto anything，见menu-&gt;Goto。支持模糊匹配，同时支持下面几种操作形式，让定位更准确：</p>
+<pre><code>filename:lineno    //定位至具体行号
+filename@css-selector    //定位至具体CSS选择器
+filename@function    //定位至具体函数
+</code></pre>
+<p>还可以直接在新打开的文件中定位字符串。</p>
+<pre><code>filename#searchtext       
+</code></pre>
+<p>Command + (Alt) + F **当前文件内查找(替换)**。Enter 查找下一处，Shift-Enter 查找上一处。敲 esc 就可以停在那里进行编辑。</p>
+<p>把光标停留在要找的单词上面，然后 Command + D 连续敲多次，就可以找出所有当前文件中的这个单词，而且是直接在多点编辑模式下，可以直接进行替换。</p>
+<p>如果要<strong>在一个文件夹内全局查找</strong>，鼠标右击文件夹，Find in Folder 就可以了。打开下一个匹配项用 F4，上一处 Shift+F4。</p>
+<p>Ctrl + - 跳回老位置（jump_back），Ctrl + Shift + - 反向操作跳（jump_forword）</p>
+<hr>
+<p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="http://c.haoduoshipin.com/happysublime/">HappySublime</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.jeffjade.com/2015/12/15/2015-04-17-toss-sublime-text/">如何优雅地使用Sublime Text</a></p>
+<p>牛人总结的Sublime Text的心得经验 <a target="_blank" rel="noopener" href="https://github.com/jikeytang/sublime-text">jikeytang/sublime-text · GitHub</a>        </p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/sublime-text-learning/" title="Sublime Text 使用技巧笔记">https://kyonhuang.top/blog/sublime-text-learning/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+              <a href="/blog/tags/Sublime-Text/" rel="tag"># Sublime Text</a>
+              <a href="/blog/tags/%E7%BC%96%E8%BE%91%E5%99%A8/" rel="tag"># 编辑器</a>
+              <a href="/blog/tags/IDE/" rel="tag"># IDE</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/biliInfoCrawler/" rel="prev" title="基于Java的BiliBili视频信息爬虫">
+                  <i class="fa fa-chevron-left"></i> 基于Java的BiliBili视频信息爬虫
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/some-FE-concepts/" rel="next" title="对几个前端相关概念的理解——OO CSS、语义化、CSS hack">
+                  对几个前端相关概念的理解——OO CSS、语义化、CSS hack <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

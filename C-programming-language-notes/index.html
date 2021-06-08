@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="我所在的专业没有开设 C 语言的课程，而大一虽然有开设 C++，但一是两门语言还是有一些区别，二是也过去了一年，很多东西都差不多忘干净了。这学期的系统级程序设计课程（即著名的“csapp”）和 C 语言密不可分，因此我借来了《C 程序设计语言》来补一补相关知识，并记了一些笔记。最终这门课拿了满绩，还是对得起自己的付出。 我认为《C 程序设计语言》是一本很好的 C 语言入门书籍，简洁清晰。这里的笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《C 程序设计语言》读书笔记">
+<meta property="og:url" content="https://kyonhuang.top/blog/C-programming-language-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="我所在的专业没有开设 C 语言的课程，而大一虽然有开设 C++，但一是两门语言还是有一些区别，二是也过去了一年，很多东西都差不多忘干净了。这学期的系统级程序设计课程（即著名的“csapp”）和 C 语言密不可分，因此我借来了《C 程序设计语言》来补一补相关知识，并记了一些笔记。最终这门课拿了满绩，还是对得起自己的付出。 我认为《C 程序设计语言》是一本很好的 C 语言入门书籍，简洁清晰。这里的笔记">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-02T11:25:32.000Z">
+<meta property="article:modified_time" content="2018-02-08T01:45:32.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="读书笔记">
+<meta property="article:tag" content="C 语言">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/C-programming-language-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;C-programming-language-notes&#x2F;&quot;,&quot;path&quot;:&quot;C-programming-language-notes&#x2F;&quot;,&quot;title&quot;:&quot;《C 程序设计语言》读书笔记&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>《C 程序设计语言》读书笔记 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%8F%E4%B8%8E%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">序与引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-1-%E7%AB%A0-%E5%AF%BC%E8%A8%80"><span class="nav-number">2.</span> <span class="nav-text">第 1 章  导言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%A6%E5%8F%B7%E5%B8%B8%E9%87%8F"><span class="nav-number">2.1.</span> <span class="nav-text">符号常量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%EF%BC%8D%E4%BC%A0%E5%80%BC%E8%B0%83%E7%94%A8"><span class="nav-number">2.2.</span> <span class="nav-text">参数－传值调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84"><span class="nav-number">2.3.</span> <span class="nav-text">字符数组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%96%E9%83%A8%E5%8F%98%E9%87%8F%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F"><span class="nav-number">2.4.</span> <span class="nav-text">外部变量与作用域</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-2-%E7%AB%A0-%E7%B1%BB%E5%9E%8B%E3%80%81%E8%BF%90%E7%AE%97%E7%AC%A6%E5%92%8C%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">第 2 章  类型、运算符和表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%8F%8A%E9%95%BF%E5%BA%A6"><span class="nav-number">3.1.</span> <span class="nav-text">数据类型及长度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E9%87%8F"><span class="nav-number">3.2.</span> <span class="nav-text">常量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A3%B0%E6%98%8E"><span class="nav-number">3.3.</span> <span class="nav-text">声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%9C%AF%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">3.4.</span> <span class="nav-text">算术运算符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E8%BF%90%E7%AE%97%E7%AC%A6%E4%B8%8E%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">3.5.</span> <span class="nav-text">关系运算符与逻辑运算符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-number">3.6.</span> <span class="nav-text">类型转换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E5%9E%8B%E8%BD%AC%E6%8D%A2%E4%B8%BA%E6%95%B4%E5%9E%8B"><span class="nav-number">3.6.1.</span> <span class="nav-text">字符型转换为整型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BD%AC%E6%8D%A2%E8%A7%84%E5%88%99"><span class="nav-number">3.6.2.</span> <span class="nav-text">转换规则</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%89%E4%BD%8D%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">3.7.</span> <span class="nav-text">按位运算符</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-4-%E7%AB%A0-%E5%87%BD%E6%95%B0%E4%B8%8E%E7%A8%8B%E5%BA%8F%E7%BB%93%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">第 4 章  函数与程序结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%9C%E7%94%A8%E5%9F%9F%E8%A7%84%E5%88%99"><span class="nav-number">4.1.</span> <span class="nav-text">作用域规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%8F%98%E9%87%8F"><span class="nav-number">4.2.</span> <span class="nav-text">静态变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E5%8F%98%E9%87%8F"><span class="nav-number">4.3.</span> <span class="nav-text">寄存器变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%9D%97%E7%BB%93%E6%9E%84"><span class="nav-number">4.4.</span> <span class="nav-text">程序块结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">4.5.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C-%E9%A2%84%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-number">4.6.</span> <span class="nav-text">C 预处理器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="nav-number">4.6.1.</span> <span class="nav-text">文件包含</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%8F%E6%9B%BF%E6%8D%A2"><span class="nav-number">4.6.2.</span> <span class="nav-text">宏替换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9D%A1%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="nav-number">4.6.3.</span> <span class="nav-text">条件包含</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-5-%E7%AB%A0-%E5%87%BD%E6%95%B0%E4%B8%8E%E7%A8%8B%E5%BA%8F%E7%BB%93%E6%9E%84"><span class="nav-number">5.</span> <span class="nav-text">第 5 章  函数与程序结构*</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E4%B8%8E%E5%9C%B0%E5%9D%80"><span class="nav-number">5.1.</span> <span class="nav-text">指针与地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E5%92%8C%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0"><span class="nav-number">5.2.</span> <span class="nav-text">指针和函数参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84"><span class="nav-number">5.3.</span> <span class="nav-text">指针和数组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%B0%E5%9D%80%E7%AE%97%E6%9C%AF%E8%BF%90%E7%AE%97"><span class="nav-number">5.4.</span> <span class="nav-text">地址算术运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E6%8C%87%E9%92%88%E4%B8%8E%E5%87%BD%E6%95%B0"><span class="nav-number">5.5.</span> <span class="nav-text">字符指针与函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E6%95%B0%E7%BB%84%E4%BB%A5%E5%8F%8A%E6%8C%87%E5%90%91%E6%8C%87%E9%92%88%E7%9A%84%E6%8C%87%E9%92%88"><span class="nav-number">5.6.</span> <span class="nav-text">指针数组以及指向指针的指针</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%BB%B4%E6%95%B0%E7%BB%84"><span class="nav-number">5.7.</span> <span class="nav-text">多维数组*</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E4%B8%8E%E5%A4%9A%E7%BB%B4%E6%95%B0%E7%BB%84"><span class="nav-number">5.8.</span> <span class="nav-text">指针与多维数组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0"><span class="nav-number">5.9.</span> <span class="nav-text">命令行参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E5%90%91%E5%87%BD%E6%95%B0%E7%9A%84%E6%8C%87%E9%92%88"><span class="nav-number">5.10.</span> <span class="nav-text">指向函数的指针</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%A3%B0%E6%98%8E"><span class="nav-number">5.11.</span> <span class="nav-text">复杂声明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%84"><span class="nav-number">6.</span> <span class="nav-text">结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86"><span class="nav-number">6.1.</span> <span class="nav-text">基本知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E5%92%8C%E5%87%BD%E6%95%B0"><span class="nav-number">6.2.</span> <span class="nav-text">结构和函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89%EF%BC%88typedef%EF%BC%89"><span class="nav-number">6.3.</span> <span class="nav-text">类型定义（typedef）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%94%E5%90%88"><span class="nav-number">7.</span> <span class="nav-text">联合</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/C-programming-language-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《C 程序设计语言》读书笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-02-02 19:25:32" itemprop="dateCreated datePublished" datetime="2018-02-02T19:25:32+08:00">2018-02-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-02-08 09:45:32" itemprop="dateModified" datetime="2018-02-08T09:45:32+08:00">2018-02-08</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>我所在的专业没有开设 C 语言的课程，而大一虽然有开设 C++，但一是两门语言还是有一些区别，二是也过去了一年，很多东西都差不多忘干净了。这学期的系统级程序设计课程（即著名的“csapp”）和 C 语言密不可分，因此我借来了《C 程序设计语言》来补一补相关知识，并记了一些笔记。最终这门课拿了满绩，还是对得起自己的付出。</p>
+<p>我认为《C 程序设计语言》是一本很好的 C 语言入门书籍，简洁清晰。这里的笔记也都是 C 语言最基础的语法。越往深里学，越会感觉 C 语言和计算机系统的相辅相成，博大精深，也越烧脑。但是现在都必须要按需所学了，还是希望有机会能够继续深入挖掘 C 语言的精粹。</p>
+<span id="more"></span>
+
+<h2 id="序与引言"><a href="#序与引言" class="headerlink" title="序与引言"></a>序与引言</h2><p>C 语言的 ANSI 标准的目的是制定“一个无歧义性的且<strong>与具体机器无关</strong>的 C 语言定义”。比起之前的标准，ANSI 标准要求对变量进行正确的声明和显式的强制类型转换，并为 C 语言定义了一个函数库。</p>
+<p>指针提供了与具体机器无关的地址算术运算。</p>
+<p>编译的<strong>预处理阶段</strong>将对程序文本进行<strong>宏替换</strong>、<strong>包含其他源文件</strong>以及进行<strong>条件编译</strong>。</p>
+<p>C 语言不提供直接处理诸如字符串、集合、列表或数组等符合对象的操作。所有高层的机制必须由显式调用的函数提供。</p>
+<h2 id="第-1-章-导言"><a href="#第-1-章-导言" class="headerlink" title="第 1 章  导言"></a>第 1 章  导言</h2><h3 id="符号常量"><a href="#符号常量" class="headerlink" title="符号常量"></a>符号常量</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> 名字 替换文本</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如：</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  LOWER  0</span></span><br></pre></td></tr></table></figure>
+
+<p><code>#define</code>指令行的末尾没有分号。</p>
+<h3 id="参数－传值调用"><a href="#参数－传值调用" class="headerlink" title="参数－传值调用"></a>参数－传值调用</h3><p>在 C 语言中，所有函数参数都是“<strong>通过值</strong>”传递的。也就是说，传递给被调用函数的参数值存放在临时变量中。被调用函数不能直接修改主调函数中变量的值，而只能修改其私有的临时副本的值。</p>
+<p>必要时，也可以让函数能够修改主调函数中的变量。这种情况下，调用者需要向被调用函数提供设置值的变量的<strong>地址</strong>（从技术角度看，地址就是指向变量的<strong>指针</strong>），而被调用函数则需要将对应的参数声明为指针类型，并通过它间接访问变量。</p>
+<p>当<strong>把数组名作为参数时</strong>，传递给函数的值是<strong>数组起始元素的位置或地址</strong>——它并不复制数组元素本身。在被调用函数中，可以通过数组下标访问或<em>修改</em>数组元素的值。</p>
+<h3 id="字符数组"><a href="#字符数组" class="headerlink" title="字符数组"></a>字符数组</h3><p>当在 C 语言程序中出现类似<code>&quot;hello\n&quot;</code>的字符串常量时，它将以字符数组的形式存储，数组的各元素分别存储字符串的各个字符，并<strong>以<code>\0</code>标志字符串的结束</strong>。因此，存储字符串的物理存储单元数比括在双引号中的字符数多一个。</p>
+<h3 id="外部变量与作用域"><a href="#外部变量与作用域" class="headerlink" title="外部变量与作用域"></a>外部变量与作用域</h3><p>函数在使用外部变量之前，必须要知道外部变量的名字。如果在外部变量的作用范围内就无所谓，<strong>而如果在另外一个文件中使用，则需要在函数中使用 extern 类型的声明</strong>。</p>
+<p>人们通常把变量和函数的 extern 声明放在一个单独的文件中（习惯上称之为头文件），并在每个源文件的开头使用<code>#include</code>语句将所要用的头文件包含进来。</p>
+<p>为了与老版本的 C 语言程序兼容，ANSI C 语言把空参数表看成老版本 C 语言的声明方式，并且对参数表不再进行任何检查。<strong>在 ANSI C 中，如果要声明空参数表，则必须使用关键字 void 进行显式声明</strong>。</p>
+<p>请注意分以下两个概念：</p>
+<ul>
+<li>定义（define）：创建变量或分配存储单元；</li>
+<li>声明（declaration）：说明变量的性质，但并不分配存储单元。</li>
+</ul>
+<h2 id="第-2-章-类型、运算符和表达式"><a href="#第-2-章-类型、运算符和表达式" class="headerlink" title="第 2 章  类型、运算符和表达式"></a>第 2 章  类型、运算符和表达式</h2><h3 id="数据类型及长度"><a href="#数据类型及长度" class="headerlink" title="数据类型及长度"></a>数据类型及长度</h3><p>short 类型通常为 16 位，long 类型通常为 32 位，int 类型可以为 16 位或 32 位。各编译器可以根据硬件特性自主选择合适的类型长度。</p>
+<p>类型限定符 signed 与 unsigned 可用于限定 char 类型或任何整型。unsigned 类型的数总是正值或 0，而 signed 类型的数可为负值。例如对于 8 位的 char 对象，则 unsigned char 类型变量的取值范围为 0 ~ 255，而 signed char 类型变量的取值范围 -128 ~ 127（在采用对二的补码的机器上）。不带限定符的 char 类型对象是否带符号取决于具体机器，但可打印字符总是正值。</p>
+<h3 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h3><p>无符号整数常量以字母 u 或 U 结尾。后缀 ul 或 UL 表明是 unsigned long 类型。</p>
+<p>没有后缀的浮点数常量为 double 类型。后缀 f 或 F 表示 float 类型，而后缀 l 或 L 则表示 long double 类型。</p>
+<p>字符常量<code>\0</code>表示值为 0 的字符，也就是空字符（null）。</p>
+<h3 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h3><p>对数组而言，const 限定符指定数组所有元素的值都不能被修改。const 限定符也可配合数组参数使用，以表明函数不能修改数组元素的值。</p>
+<h3 id="算术运算符"><a href="#算术运算符" class="headerlink" title="算术运算符"></a>算术运算符</h3><p>取模运算符 % 不能应用于 float 或 double 类型。</p>
+<h3 id="关系运算符与逻辑运算符"><a href="#关系运算符与逻辑运算符" class="headerlink" title="关系运算符与逻辑运算符"></a>关系运算符与逻辑运算符</h3><p>关系运算符<code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code>的优先级比算术运算符低。</p>
+<p>不等于运算符<code>!=</code>的优先级比赋值运算符<code>=</code>的优先级要高。</p>
+<h3 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h3><h4 id="字符型转换为整型"><a href="#字符型转换为整型" class="headerlink" title="字符型转换为整型"></a>字符型转换为整型</h4><p>C 语言没有指定 char 类型的变量是无符号变量（unsigned）还是带符号变量（signed）。当把一个 char 类型的值转换为 int 类型的值时，对于不同的机器，其结果有可能为负整数，这反映了不同机器结构之间的区别。</p>
+<p>在某些机器中，如果 char 类型值的最左一位为 1，则转换为负整数（进行“符号扩展”）。而在另一些机器中，会在 char 类型值的左边添加 0，这样导致的转换结果值总是正值。</p>
+<p>为了保证程序的可移植性，如果要在 char 类型的变量中存储非字符数据，最好指定 signed 或 unsigned 限定符。</p>
+<h4 id="转换规则"><a href="#转换规则" class="headerlink" title="转换规则"></a>转换规则</h4><p>详见附录 A.6</p>
+<p>表达式中 float 类型的操作数不会自动转换为 double 类型，这种设计考虑到节省空间和机器执行时间的需要。</p>
+<p>在把参数传递给函数时也可能进行类型转换。在没有函数原型的情况下，char 与 short 类型都将被转换为 int 类型，float 类型也将被转换为 double 类型。因此，即使调用函数的参数为 char 或 float 类型，我们也把函数参数声明为 int 或 double 类型。</p>
+<h3 id="按位运算符"><a href="#按位运算符" class="headerlink" title="按位运算符"></a>按位运算符</h3><p>C 语言提供了 6 个只能作用于整型操作数（带符号或无符号的 char、short、int 与 long 类型）的操作运算符。</p>
+<table>
+<thead>
+<tr>
+<th align="center">符号</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>&amp;</code></td>
+<td align="center">按位与（AND）</td>
+</tr>
+<tr>
+<td align="center"><code>｜</code></td>
+<td align="center">按位或（OR）</td>
+</tr>
+<tr>
+<td align="center"><code>^</code></td>
+<td align="center">按位异或（XOR）</td>
+</tr>
+<tr>
+<td align="center"><code>&lt;&lt;</code></td>
+<td align="center">左移</td>
+</tr>
+<tr>
+<td align="center"><code>&gt;&gt;</code></td>
+<td align="center">右移</td>
+</tr>
+<tr>
+<td align="center"><code>~</code></td>
+<td align="center">按位求反（一元运算符）</td>
+</tr>
+</tbody></table>
+<p>按位与运算符<code>&amp;</code>常用于屏蔽某些二进制位，例如<code>n = n &amp; 0177</code>将 n 中除 7 个低二进制位外的其他各位均置为 0（注意 0177 是八进制，转换为二进制位 1111111）。</p>
+<p>按位或运算符<code>|</code>常用于将某些二进制位置为 1，例如<code>x = x | SET_ON;</code>将 x 中对应于 SET_ON 中为 1 的那些二进制位置为 1。 </p>
+<p>在对 unsigned 类型的无符号值进行右移位时，左边空出的部分用 0 填补；当对 signed 类型的带符号值进行右移时，某些机器将对左边空出的部分用符号位填补（即“算术移位”，正负不变），而另一些机器则对左边空出的部分用 0 填补（即“逻辑移位”，取绝对值）。</p>
+<p>一元运算符<code>~</code>用于求整数的二进制反码，例如<code>x = x &amp; ~077</code>将把 x 的最后六位设置为 0（注意 077 是八进制，转换为二进制位 111111）。</p>
+<h2 id="第-4-章-函数与程序结构"><a href="#第-4-章-函数与程序结构" class="headerlink" title="第 4 章  函数与程序结构"></a>第 4 章  函数与程序结构</h2><h3 id="作用域规则"><a href="#作用域规则" class="headerlink" title="作用域规则"></a>作用域规则</h3><p>由于 C 语言不允许在一个函数中定义其他函数，因此函数本身是“外部的”。外部变量或函数的作用域从声明它的地方开始，到其所在的（待编译的）文件的末尾结束。</p>
+<p>如果要在外部变量的定义之前使用该变量，或者外部变量的定义与变量的使用不在同一个源文件中，则必须在相应的变量声明中强制性使用关键字 extern。</p>
+<p>外部变量的定义中必须指定数组的长度，但 extern 声明则不一定要指定数组的长度。</p>
+<h3 id="静态变量"><a href="#静态变量" class="headerlink" title="静态变量"></a>静态变量</h3><p>用 static 声明限定外部变量与函数，可以<strong>将其后声明的对象的作用域限定为被编译源文件的剩余部分</strong>。</p>
+<p>static 也可用于声明内部变量。static 类型的内部变量与自动变量不同的是，不管其所在函数是否被调用，它一直存在，而不像自动变量那样，随着所在函数的被调用和退出而存在和消失。换句话说，<strong>static 类型的内部变量是一种只能在某个特定函数中使用但一直占据存储空间的变量</strong>。</p>
+<h3 id="寄存器变量"><a href="#寄存器变量" class="headerlink" title="寄存器变量"></a>寄存器变量</h3><p>register 声明只适用于自动变量以及函数的形式参数，它告诉编译器，它所声明的变量在程序中使用频率较高，可以放在寄存器中。然而，编译器可以忽略过量的或不支持的寄存器变量声明，所以每个函数中实际只有很少的变量可以保存在寄存器中，且只允许某些类型的变量。无论寄存器变量实际是不是存放在寄存器中，它的地址都不能访问。</p>
+<h3 id="程序块结构"><a href="#程序块结构" class="headerlink" title="程序块结构"></a>程序块结构</h3><p><strong>C 语言有块作用域</strong>。在<code>&#123;</code>和<code>&#125;</code>构成的程序块中，局部变量（块开头声明的变量）可以隐藏程序块外同名的变量。自动变量（包括形式参数）也可以隐藏同名的外部变量与函数。</p>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>在不进行显式初始化的情况下，<strong>外部变量和静态变量</strong>都将被初始化为 0，而<strong>自动变量和寄存器变量</strong>的初值则没有定义（即初值为无用的信息）。</p>
+<p>对于<strong>外部变量与静态变量</strong>来说，初始化表达式必须是<strong>常量表达式</strong>，且只初始化一次。</p>
+<p>对于<strong>自动变量和寄存器变量</strong>来说，初始化表达式可以不是<strong>常量表达式</strong>；表达式中可以包含任意在此表达式之前已经定义的值，包括函数调用。</p>
+<h3 id="C-预处理器"><a href="#C-预处理器" class="headerlink" title="C 预处理器"></a>C 预处理器</h3><p>从概念上讲，预处理器是编译过程中单独执行的第一个步骤。</p>
+<h4 id="文件包含"><a href="#文件包含" class="headerlink" title="文件包含"></a>文件包含</h4><p><code>#include &quot;文件名&quot;</code>或<code>#include &lt;文件名&gt;</code>的行都被替换为由<em>文件名</em>指定的文件的内容。<code>#include &quot;文件名&quot;</code>在源文件所在位置查找该文件；没有找到或<code>#include &lt;文件名&gt;</code>则根据相应规则查找该文件。</p>
+<h4 id="宏替换"><a href="#宏替换" class="headerlink" title="宏替换"></a>宏替换</h4><p>想将一个较长的宏定义分成若干行，需要在持续的行末尾加上一个反斜杠符<code>\</code>。</p>
+<p>宏定义也可以带参数，例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> max(A, B)  ((A) &gt; (B) ? (A) : (B))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用语句</span></span><br><span class="line">x = max(p+q, r+s);</span><br><span class="line"><span class="comment">// 将被替换为</span></span><br><span class="line"><span class="comment">// x = ((p+q) &gt; (r+s) ? (p+q) : (r+s));</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，要适当使用圆括号以保证计算次序的正确性。</p>
+<p>可以通过<code>#undef</code>指令取消名字的宏定义。</p>
+<p>如果在替换文本中，参数名以<code>#</code>作为前缀则结果将被扩展为由实际参数替换该参数的带引号的字符串。例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> dprint(expr) printf(#expr <span class="meta-string">&quot; = %g\n&quot;</span>, expr)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用语句</span></span><br><span class="line">dprint(x/y);</span><br><span class="line"><span class="comment">// 该宏将被扩展为</span></span><br><span class="line"><span class="comment">// dprint(&quot;x/y&quot; &quot; = %g\n&quot;, x/y)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>预处理器运算符<code>##</code>为宏扩展提供了一种连接实际参数的手段。如果替换文本中的参数与<code>##</code>相邻，则该参数将被实际参数替换，<code>##</code>与前后的空白符将被删除，并对替换后的结果重新扫描。例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> paste(front, back) front ## back</span></span><br></pre></td></tr></table></figure>
+
+<p>因此，宏调用<code>paste(name, 1)</code>的结果将建立记号<code>name1</code>。</p>
+<h4 id="条件包含"><a href="#条件包含" class="headerlink" title="条件包含"></a>条件包含</h4><p><code>#if</code>语句对其中的常量整型表达式（其中不能包含<code>sizeof</code>、类型转换运算符或<code>enum</code>常量）进行求值，若该表达式的值不等于 0，则包含其后的各行，直到遇到<code>#endif</code>、<code>#elif</code>或<code>#else</code>语句为止。</p>
+<p>在<code>#if</code>语句中可以使用表达式<code>defined(名字)</code>，当名字已经定义时其值为 1，否则为 0。</p>
+<p>C 语言专门定义了两个预处理语句<code>#ifdef</code>与<code>#ifndef</code>，它们用来测试某个名字是否已经定义。</p>
+<h2 id="第-5-章-函数与程序结构"><a href="#第-5-章-函数与程序结构" class="headerlink" title="第 5 章  函数与程序结构*"></a>第 5 章  函数与程序结构*</h2><p><strong>指针</strong>是一种<strong>保存变量地址</strong>的变量。</p>
+<p>ANSI C 使用类型<code>void*</code>（指向<code>void</code>的指针）代替<code>char*</code>作为通用指针的类型。</p>
+<h3 id="指针与地址"><a href="#指针与地址" class="headerlink" title="指针与地址"></a>指针与地址</h3><p>指针是能够存放一个地址的一组存储单元（通常是两个或四个字节）。</p>
+<p>一元运算符<code>&amp;</code>可用于<strong>取一个对象的地址</strong>。因此，下列语句：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p = &amp;c;</span><br></pre></td></tr></table></figure>
+
+<p>将把 c 的地址赋值给变量 p，我们称 p 为“指向” c 的指针。地址运算符<code>&amp;</code>只能应用于<strong>内存</strong>中的对象，即变量和数组元素。它不能作用于表达式、常量或 register 类型的变量。</p>
+<p>一元运算符<code>*</code>是<strong>间接寻址</strong>或<strong>间接引用</strong>运算符。<strong>当它作用于指针时，将访问指针所指向的对象</strong>。如果指针 ip 指向整型变量 x，那么在 x 可以出现的任何上下文中都可以使用<code>*ip</code>代替：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> x = <span class="number">1</span>, y = <span class="number">2</span>, z[<span class="number">10</span>];</span><br><span class="line"><span class="keyword">int</span> *ip;    <span class="comment">/* ip 是指向 int 类型的指针 */</span></span><br><span class="line"></span><br><span class="line">ip = &amp;x;    <span class="comment">/* ip 现在指向 x */</span></span><br><span class="line">y = *ip;    <span class="comment">/* y 的值现在为 1 */</span></span><br><span class="line">*ip = <span class="number">0</span>;    <span class="comment">/* x 的值现在为 0 */</span></span><br><span class="line">ip = &amp;z[<span class="number">0</span>];    <span class="comment">/* ip 现在指向 z[0] */</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：类似<code>*</code>和<code>++</code>这样的一元运算符遵循<strong>从右至左</strong>的结合顺序。例如，语句<code>(*ip)++</code>中的圆括号是必需的，否则该表达式将对 ip 进行加一运算，而不是对 ip 指向的对象进行加一运算。</p>
+<h3 id="指针和函数参数"><a href="#指针和函数参数" class="headerlink" title="指针和函数参数"></a>指针和函数参数</h3><p>C 语言是以<strong>传值</strong>的方式将参数值传递给被调用函数，因此被调用函数不能直接修改主调函数中变量的值。但指针参数使得被调用函数能够访问和修改主调函数中对象的值。</p>
+<p>由于一元运算符<code>&amp;</code>用来取变量的地址，这样<code>&amp;a</code>就是一个指向变量 a 的指针。</p>
+<h3 id="指针和数组"><a href="#指针和数组" class="headerlink" title="指针和数组"></a>指针和数组</h3><p><strong>数组名所代表的就是该数组最开始的一个元素的地址</strong>，所以，赋值语句<code>pa = &amp;a[0]</code>也可以写成<code>pa = a</code>。<code>*(pa+1)</code>引用的是数组元素<code>a[1]</code>的内容。<code>&amp;a[i]</code>和<code>a+i</code>的含义也是相同的。</p>
+<p>但是，数组名和指针之间有一个不同之处。<strong>指针是一个变量，而数组名不是</strong>。因此，类似于<code>a = pa</code>和<code>a++</code>形式的语句是非法的。</p>
+<p>如果将数组名传递给函数，函数可以根据情况判定是按照数组处理还是按照指针处理。</p>
+<h3 id="地址算术运算"><a href="#地址算术运算" class="headerlink" title="地址算术运算"></a>地址算术运算</h3><p>C 语言保证，0 永远不是有效的数据地址。因此，若需要返回指针的函数返回 0，则表示发生了异常事件。</p>
+<p>指针与整数之间不能相互转换，但 0 是唯一的例外：常量 0 可以赋值给指针，指针也可以和常量 0 进行比较。程序中经常用符号 NULL 代替常量 0，这样便于更清晰地说明常量 0 是指针的一个特殊值。</p>
+<p>如果指针 p 和 q 指向同一个数组的成员，那么它们之间就可以进行关系比较运算。同时，这两个指针的减法运算也有意义：若 p &lt; q，那么 q-p+1 就是位于 p 和 q 指向的元素之间的元素的数目。 </p>
+<p><strong>有效的指针运算</strong>包括：</p>
+<ul>
+<li><strong>相同类型</strong>指针之间的赋值运算（两个指针之一是<code>void*</code>类型的情况除外）；</li>
+<li>指针同整数之间的加法或减法运算；</li>
+<li>指向<strong>相同数组</strong>中元素的两个指针间的减法或比较运算；</li>
+<li>将指针赋值为 0 或指针与 0 之间的比较运算。</li>
+</ul>
+<h3 id="字符指针与函数"><a href="#字符指针与函数" class="headerlink" title="字符指针与函数"></a>字符指针与函数</h3><p>字符串常量是一个字符数组。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;hello, world\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当类似于这样的一个字符串出现在程序中时，实际上是通过<strong>字符指针</strong>访问该字符串的。在上述语句中，<code>printf</code>接受的是<strong>一个指向字符数组第一个字符的指针</strong>。也就是说，字符串常量可通过一个指向其第一个元素的指针访问。</p>
+<p>语句<code>pmessage = &quot;now is the time&quot;;</code>将把一个指向该字符数组的指针赋值给<code>pmessage</code>。<strong>该过程并没有进行字符串的复制，而只是涉及到指针的操作。</strong>C 语言没有提供将整个字符串作为一个整体进行处理的运算符。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> amessage[] = <span class="string">&quot;now is the time&quot;</span>;    <span class="comment">/* 定义一个数组 */</span></span><br><span class="line"><span class="keyword">char</span> *pmessage = <span class="string">&quot;now is the time&quot;</span>;     <span class="comment">/* 定义一个指针 */</span></span><br></pre></td></tr></table></figure>
+<p>上述声明中，数组中单个字符可以进行修改，但<code>amessage</code>始终指向同一个存储位置；另一方面，<code>pmessage</code>是一个指针，之后可以被修改以指向其他地址，但如果试图修改字符串的内容，结果是没有定义的。</p>
+<h3 id="指针数组以及指向指针的指针"><a href="#指针数组以及指向指针的指针" class="headerlink" title="指针数组以及指向指针的指针"></a>指针数组以及指向指针的指针</h3><p>由于<strong>指针本身也是变量</strong>，所以它们也可以像其他变量一样存储在数组中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *lineptr[MAXLINES]</span><br></pre></td></tr></table></figure>
+
+<p>表示<code>lineptr</code>是一个<strong>指针数组</strong>。详细地说，它是一个具有 MAXLINES 个元素的一维数组，其中数组的每个元素是一个指向字符类型对象的指针。也就是说，<code>lineptr[i]</code>是一个字符指针，而<code>*lineptr[i]</code>是该指针指向的第 i 个文本行的首字母。</p>
+<p>每执行一次自增运算，都使得<code>*lineptr</code>指向下一行。</p>
+<h3 id="多维数组"><a href="#多维数组" class="headerlink" title="多维数组*"></a>多维数组*</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">daytab[i][j]    <span class="comment">/* [行][列] */</span></span><br></pre></td></tr></table></figure>
+
+<p>如果将二维数组作为参数传递给函数，那么在函数的参数声明中必须<strong>指明数组的列数</strong>。数组的行数没有太大关系，因为函数调用时传递的是一个指针，它指向由行向量构成的一维数组。因此：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f(<span class="keyword">int</span> daytab[<span class="number">2</span>][<span class="number">13</span>]) &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+<p>也可以写成：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f(<span class="keyword">int</span> daytab[][<span class="number">13</span>]) &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+<p>还可以写成：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f(<span class="keyword">int</span> (*daytab)[<span class="number">13</span>]) &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种声明形式表明参数是一个指针，它指向具有 13 个整型元素的一维数组（包裹在外的第二维数组的首地址）。因为<strong>方括号<code>[]</code>的优先级高于<code>*</code>的优先级</strong>，所以上述声明中必须使用圆括号。如果去掉括号，则声明变为</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *daytab[<span class="number">13</span>]</span><br></pre></td></tr></table></figure>
+
+<p>相当于声明了一个数组，该数组有 13 个元素，其中每个元素都是一个指向整型对象的指针。</p>
+<p>一般来说，除数组的第一维（下标）可以不指定大小外，其余各维都必须明确指定大小。</p>
+<h3 id="指针与多维数组"><a href="#指针与多维数组" class="headerlink" title="指针与多维数组"></a>指针与多维数组</h3><p>假如有下面两个定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a[<span class="number">10</span>][<span class="number">20</span>];</span><br><span class="line"><span class="keyword">int</span> *b[<span class="number">10</span>];</span><br></pre></td></tr></table></figure>
+
+<p>从语法角度讲，<code>a[3][4]</code>和<code>b[3][4]</code>都是对一个 int 对象的合法应用。但 a 是一个真正的二维数组，它分配了 200 个 int 类型长度的存储空间；</p>
+<p>而对于 b 来说，该定义仅仅分配了 10 个指针，并且没有对它们初始化。假定 b 的每个元素都指向一个具有 20 个元素的数组，那么编译器就要为它分配 200 个 int 类型长度的存储空间以及 10 个指针的存储空间。</p>
+<p>指针数组的一个重要优点在于，数组的每一行长度可以不同。</p>
+<h3 id="命令行参数"><a href="#命令行参数" class="headerlink" title="命令行参数"></a>命令行参数</h3><p>根据 C 语言的约定，<code>argv[0]</code>的值是启动该程序的程序名，因此<code>argc</code>的值至少为 1。ANSI 标准要求<code>argv[argc]</code>的值必须为一空指针。</p>
+<h3 id="指向函数的指针"><a href="#指向函数的指针" class="headerlink" title="指向函数的指针"></a>指向函数的指针</h3><p>在 C 语言中，函数本身不是变量，但<strong>可以定义指向函数的指针</strong>。</p>
+<p>和数组名一样，当一个变量为函数的地址时，前面不需要加上取地址符<code>&amp;</code>；</p>
+<p>由于任何类型的指针都可以转换为<code>void *</code>类型，并且在将它转换为原来的类型时不会丢失信息，所以，调用函数时可以将参数强制转换为<code>void*</code>类型。比较函数的参数也要执行这种类型的转换。这种转换通常不会影响到数据的实际表示，但要确保编译器不会报错。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> (*comp)(<span class="keyword">void</span> *, <span class="keyword">void</span> *)</span><br></pre></td></tr></table></figure>
+
+<p>表明<code>comp</code>是一个<strong>指向函数的指针</strong>，该函数具有两个<code>void*</code>类型的参数，其返回值类型为<code>int</code>。<code>*comp</code>代表一个函数。</p>
+<h3 id="复杂声明"><a href="#复杂声明" class="headerlink" title="复杂声明"></a>复杂声明</h3><p>C 语言的复杂声明容易让人混淆，因为 C 语言的声明不能从左至右阅读，并且使用了太多的圆括号。例如下面两个声明：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* f: 是一个函数，它返回一个指向 int 类型的指针 */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> *<span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* pf: 是一个指向函数的指针，该函数返回一个 int 类型的对象 */</span></span><br><span class="line"><span class="keyword">int</span> (*pf)();</span><br></pre></td></tr></table></figure>
+<p>他们之间的含义差别说明：<code>*</code>是一个前缀运算符，其优先级低于<code>()</code>。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p>ANSI 标准在结构方面最主要的变化是定义了结构的赋值操作–结构可以拷贝、赋值、传递给函数，函数也可以返回结构类型的返回值。</p>
+<h3 id="基本知识"><a href="#基本知识" class="headerlink" title="基本知识"></a>基本知识</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">point</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">int</span> y;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>关键字 struct 引入结构声明。结构声明由包含在花括号内的一系列声明组成。关键字 struct 后面的名字是可选的，称为<strong>结构标记</strong>。结构标记用于为结构命名，在定义后，结构标记就代表花括号内的声明，可以用它作为该声明的简写形式。</p>
+<p>结构中定义的变量称为<strong>成员</strong>。<strong>结构成员、结构标记和普通变量（即非成员）可以采用相同的名字</strong>，因为通过上下文分析总可以对它们进行区分，因此不会冲突。另外，不同结构中的成员可以使用相同的名字。</p>
+<p>struct 声明定义了一种数据类型。在标志结构成员表结束的右花括号之后可以跟一个变量表，这与其他基本类型的变量声明是相同的。例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> &#123;</span> ... &#125; x, y, z;</span><br></pre></td></tr></table></figure>
+
+<p>如果结构声明的后面<strong>不带变量表</strong>，则<strong>不需要为它分配存储空间</strong>，它仅仅描述了一个结构的模版或轮廓。但是，如果结构声明中带有标记，那么在以后定义结构实例时便可使用该标记定义，例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">point</span> <span class="title">pt</span>;</span></span><br></pre></td></tr></table></figure>
+
+<p>结构的<strong>初始化</strong>可以在定义的后面使用初值表进行，初值表中同每个成员对应的初值必须是常量表达式，例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">point</span> <span class="title">maxpt</span> =</span> &#123; <span class="number">320</span>, <span class="number">200</span> &#125;;</span><br></pre></td></tr></table></figure>
+
+<p>自动结构也可以通过赋值初始化，还可以通过调用返回相应类型结构的函数进行初始化。</p>
+<h3 id="结构和函数"><a href="#结构和函数" class="headerlink" title="结构和函数"></a>结构和函数</h3><p>如果传递给函数的结构很大，使用<strong>指针</strong>方式的效率通常比复制整个结构的效率要高。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">point</span> <span class="title">origin</span>, *<span class="title">pp</span>;</span></span><br><span class="line"></span><br><span class="line">pp = &amp;origin;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;origin is (%d,%d)\n&quot;</span>, (*pp).x, (*pp).y);</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>(*pp).x</code>中的圆括号是必须的，因为结构成员运算符<code>.</code>的优先级高于<code>*</code>的优先级。</p>
+<p>鉴于结构指针的使用频率非常高，为了使用方便，C 语言对于使用指向结构的指针 p 引用相应结构成员提供另一种简写方式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p-&gt;结构成员</span><br></pre></td></tr></table></figure>
+
+<h3 id="类型定义（typedef）"><a href="#类型定义（typedef）" class="headerlink" title="类型定义（typedef）"></a>类型定义（typedef）</h3><p>typedef 声明并没有创建一个新类型，只是为某个已存在的类型增加了一个新的名称而已。实际上，typedef 类似于 #define 语句，但由于 typedef 是由编译器解释的，因此它的文本替换功能要超过预处理器的能力。</p>
+<p>除了使表达方式更简洁之外，使用 typedef 还有两个重要原因：</p>
+<ol>
+<li>使程序参数化，以提高程序的可移植性；</li>
+<li>为程序提供更好的说明。</li>
+</ol>
+<h2 id="联合"><a href="#联合" class="headerlink" title="联合"></a>联合</h2><p><strong>联合</strong>是可以（在不同时刻）保存不同类型和长度的对象的变量，编译器负责跟踪对象的长度和对齐要求。联合提供了一种方式，以在单块存储区中管理不同类型的数据，而不需要在程序中嵌入任何同机器有关的信息。</p>
+<p>联合的目的：一个变量可以合法地保存多种数据类型中任何一种类型的对象。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">u_tag</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> ival;</span><br><span class="line">    <span class="keyword">float</span> fval;</span><br><span class="line">    <span class="keyword">char</span> *sval;</span><br><span class="line">&#125; u;</span><br></pre></td></tr></table></figure>
+
+<p>变量 u 必须足够大，以保存这 3 种类型中最大的一种，具体长度同具体的实现有关。</p>
+<p>实际上，联合就是一个结构，它的所有成员相对于基地址的偏移量都为 0，此结构空间要大到足够容纳最“宽”的成员，并且，其对齐方式要适合于联合中所有类型的成员。对联合允许的操作与对结构允许的操作相同。</p>
+<p>联合只能用其第一个成员类型的值进行初始化。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/C-programming-language-notes/" title="《C 程序设计语言》读书笔记">https://kyonhuang.top/blog/C-programming-language-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag"># 读书笔记</a>
+              <a href="/blog/tags/C-%E8%AF%AD%E8%A8%80/" rel="tag"># C 语言</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/Andrew-Ng-Deep-Learning-notes/" rel="prev" title="吴恩达《深度学习》系列课程个人笔记">
+                  <i class="fa fa-chevron-left"></i> 吴恩达《深度学习》系列课程个人笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/kaggle-titanic-1/" rel="next" title="Kaggle Titanic 生存预测--特征工程">
+                  Kaggle Titanic 生存预测--特征工程 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

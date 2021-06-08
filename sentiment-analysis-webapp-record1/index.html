@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="“中文短文本情感分析 web 应用”是我带领的小组在《软件工程》这门课的大作业选题。按照这门课大作业的传统风格，就是做一个比较寻常的网站&#x2F;APP，不过我这次提议另辟蹊径，一是我个人对情感分析这个方面比较感兴趣，想要借此机会进行了解和实践；二是组内成员都志在继续深造，做一个带有科研意味的项目或许能为简历添色。 先简单介绍一下我们的项目。该 web 应用可分析用户输入的中文短文本中蕴含的情感，并输出数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="中文短文本情感分析 web 应用开发记录（一）">
+<meta property="og:url" content="https://kyonhuang.top/blog/sentiment-analysis-webapp-record1/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="“中文短文本情感分析 web 应用”是我带领的小组在《软件工程》这门课的大作业选题。按照这门课大作业的传统风格，就是做一个比较寻常的网站&#x2F;APP，不过我这次提议另辟蹊径，一是我个人对情感分析这个方面比较感兴趣，想要借此机会进行了解和实践；二是组内成员都志在继续深造，做一个带有科研意味的项目或许能为简历添色。 先简单介绍一下我们的项目。该 web 应用可分析用户输入的中文短文本中蕴含的情感，并输出数">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/douban-comment.png">
+<meta property="article:published_time" content="2018-06-21T14:22:05.000Z">
+<meta property="article:modified_time" content="2018-07-17T07:53:54.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="自然语言处理">
+<meta property="article:tag" content="文本分类">
+<meta property="article:tag" content="情感分析">
+<meta property="article:tag" content="情感计算">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/douban-comment.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/sentiment-analysis-webapp-record1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;sentiment-analysis-webapp-record1&#x2F;&quot;,&quot;path&quot;:&quot;sentiment-analysis-webapp-record1&#x2F;&quot;,&quot;title&quot;:&quot;中文短文本情感分析 web 应用开发记录（一）&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>中文短文本情感分析 web 应用开发记录（一） | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%83%85%E6%84%9F%E5%88%86%E6%9E%90%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是情感分析？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%AD%E6%96%87%E6%83%85%E6%84%9F%E5%88%86%E6%9E%90%E7%9A%84%E9%9A%BE%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">中文情感分析的难点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E5%B0%9D%E8%AF%95"><span class="nav-number">3.</span> <span class="nav-text">初步尝试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-number">3.1.</span> <span class="nav-text">数据集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E9%83%A8%E5%88%86%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="nav-number">3.2.</span> <span class="nav-text">算法部分实现过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E8%AF%8D"><span class="nav-number">3.2.1.</span> <span class="nav-text">分词</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%91%E9%87%8F%E5%8C%96"><span class="nav-number">3.2.2.</span> <span class="nav-text">向量化</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%8D%E8%A2%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">词袋模型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#TF-IDF"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">TF-IDF</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%8D%E5%B5%8C%E5%85%A5"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">词嵌入</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%81%9C%E7%94%A8%E8%AF%8D"><span class="nav-number">3.2.3.</span> <span class="nav-text">停用词</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E7%B1%BB%E5%99%A8"><span class="nav-number">3.2.4.</span> <span class="nav-text">分类器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%A1%E9%81%93%E5%92%8C%E6%A8%A1%E5%9E%8B%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">3.2.5.</span> <span class="nav-text">管道和模型持久化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E5%B1%95%E7%A4%BA"><span class="nav-number">4.</span> <span class="nav-text">效果展示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%92%8C%E6%94%B9%E8%BF%9B%E6%8E%AA%E6%96%BD"><span class="nav-number">5.</span> <span class="nav-text">问题和改进措施</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B7%E6%9C%AC%E7%B1%BB%E5%88%AB%E4%B8%8D%E5%9D%87%E8%A1%A1"><span class="nav-number">5.1.</span> <span class="nav-text">样本类别不均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0"><span class="nav-number">5.2.</span> <span class="nav-text">模型评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9"><span class="nav-number">5.3.</span> <span class="nav-text">模型选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9"><span class="nav-number">5.4.</span> <span class="nav-text">特征选择</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">6.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">7.</span> <span class="nav-text">参考资料</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E6%96%87%E7%8C%AE"><span class="nav-number">7.1.</span> <span class="nav-text">引用文献</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E4%B9%A6%E7%B1%8D"><span class="nav-number">7.2.</span> <span class="nav-text">参考书籍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E8%B5%84%E6%96%99"><span class="nav-number">7.3.</span> <span class="nav-text">网络资料</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/sentiment-analysis-webapp-record1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          中文短文本情感分析 web 应用开发记录（一）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-06-21 22:22:05" itemprop="dateCreated datePublished" datetime="2018-06-21T22:22:05+08:00">2018-06-21</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-07-17 15:53:54" itemprop="dateModified" datetime="2018-07-17T15:53:54+08:00">2018-07-17</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E5%BC%80%E6%BA%90%E5%B0%8F%E9%A1%B9%E7%9B%AE/" itemprop="url" rel="index"><span itemprop="name">开源小项目</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>“中文短文本情感分析 web 应用”是我带领的小组在《软件工程》这门课的大作业选题。按照这门课大作业的传统风格，就是做一个比较寻常的网站/APP，不过我这次提议另辟蹊径，一是我个人对情感分析这个方面比较感兴趣，想要借此机会进行了解和实践；二是组内成员都志在继续深造，做一个带有科研意味的项目或许能为简历添色。</p>
+<p>先简单介绍一下我们的项目。该 web 应用可分析用户输入的中文短文本中蕴含的情感，并输出数值化结果。前端使用 Vue.js 开发，后台使用 Flask 开发。算法部分目前包含自主实现的词袋模型和引入的 SnowNLP。项目地址如下（目前服务器关了，想要尝试效果可以将项目 clone 到本地，照着 README 运行）：</p>
+<ul>
+<li><a href="http://kyonhuang.top/sentiment-analysis-webapp/">在线使用地址</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/bighuang624/sentiment-analysis-webapp">项目地址</a></li>
+</ul>
+<p>截止这篇博文写作时，这个项目算是成型，也在 Github 上获得了 7 个 star。但是也遇到了一些问题，当然最大的问题就是分析效果不好。效果不好的原因包括很多，后文会一一介绍，当然其中一个是我们目前的算法部分还没有涉及到深度学习，不过我正在争取在近期用 LSTM 等实现效果较好的模型。</p>
+<p>这篇博文首先会简单介绍情感分析的概念、技术和难点。之后针对我们的项目，详细介绍我们使用的算法、迄今为止遇到的问题和一些改进措施。</p>
+<span id="more"></span>
+
+<h2 id="什么是情感分析？"><a href="#什么是情感分析？" class="headerlink" title="什么是情感分析？"></a>什么是情感分析？</h2><p><strong>情感分析（Sentiment analysis）</strong>或意见挖掘（Opinion mining）是对人群对于产品、服务、组织、个体、问题、事件、话题等实体的意见、情感、情绪、评价、态度的计算研究。鉴于网络社交媒体的风行，我们拥有了海量的情绪化数据。情感分析已经成为自然语言处理中最有吸引力的研究领域之一，它与管理科学、社会科学领域有交集。情感分析在现实中的典型应用包括舆情分析、民意调查、产品意见调查、预测股票市场行情等等。</p>
+<p>最典型的情感分析会分析一段文本对某个对象的情感是正面的还是负面。更细致的处理包括情感的分类（快乐、愤怒、恐惧、悲哀等）和情感的程度。意见挖掘可能还需要从文本中挖掘出对象的属性，再分析对应属性的情感。</p>
+<p>早期的情感分析技术包括监督方法（支持向量机、最大熵、朴素贝叶斯等监督机器学习方法）和非监督方法（包括利用情感词汇、语法分析和句法模式的各种方法），而深度学习走红后，其应用到情感分析的出色效果催生大量基于深度学习的情感分析研究[1]。</p>
+<h2 id="中文情感分析的难点"><a href="#中文情感分析的难点" class="headerlink" title="中文情感分析的难点"></a>中文情感分析的难点</h2><p>以下是我在查阅资料后总结的一些中文情感分析的难点：</p>
+<ol>
+<li>很多情感的表达是隐晦的，没有特别明显的代表性词语。例如“蓝屏”这个词一般不会出现在情感词典之中，但这个词明显表达了不满的情绪。因此需要另外根据具体领域构建针对性的情感词典。</li>
+<li>同一个词在不同语境或领域里有不同的意思，可能表达不同的情感态度，例如“我家洗衣机声音很大”这些很可能是差评，而“我家音响声音很大”很可能就是好评。反讽的表达同理。</li>
+<li>网络流行语等新词也会影响情感分析，比如“给力”、“不明觉厉”、“累觉不爱”等，这些词利用传统的分词一般都会被切开，而且会影响词性标注，如果想避免只能加入人工干预，修改分词的粒度和词性标注的结果。</li>
+<li>以上三条在做英语情感分析时也会遇到。但是中文独有的问题是缺少高质量的有标注数据集。相比起来，英文情感分析有公认的数据集 <a target="_blank" rel="noopener" href="http://ai.stanford.edu/~amaas/data/sentiment/">IMDB</a>。此外，可能还需要一些高质量的情感词典，英文有 SentiWordNet，但是中文的词典资源质量不高，不细致，另外缺乏主客观词典。当然，因为有监督的机器学习方法的风行，现在情感分析也不一定非要情感词典。</li>
+</ol>
+<p>因为我们的项目主要还是拿文本分类的方法进行处理，所以以上问题不是都遇到了，仅停留在了解层面，如有谬误欢迎指出。</p>
+<h2 id="初步尝试"><a href="#初步尝试" class="headerlink" title="初步尝试"></a>初步尝试</h2><h3 id="数据集"><a href="#数据集" class="headerlink" title="数据集"></a>数据集</h3><p>首先谈谈数据。根据前文所述，中文的有标注数据集很难找。我前两周和做过类似工作的学长交流时，他的做法是自行标注。而我们选择的做法是自己用 Python 编写爬虫爬取各类含评论的网站，将评论正文作为数据，评论的星级作为标签：</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/douban-comment.png"></p>
+<p>我们最终爬取了豆瓣的 146856 条电影评论和蜂窝网的 174055 条酒店评论作为我们的数据集。你可以在 <a target="_blank" rel="noopener" href="https://github.com/bighuang624/sentiment-analysis-webapp/tree/master/training">sentiment-analysis-webapp/training/</a> 找到这两份数据以及训练模型的代码。</p>
+<p>我们希望最终给出的结果也能反应情感的程度，而不是单纯的正负二元分类。因此，我们没有对标签做后续处理。</p>
+<h3 id="算法部分实现过程"><a href="#算法部分实现过程" class="headerlink" title="算法部分实现过程"></a>算法部分实现过程</h3><h4 id="分词"><a href="#分词" class="headerlink" title="分词"></a>分词</h4><p>既然是使用监督机器学习算法，那么自然需要特征。计算机是看不懂自然语言的，<strong>从文本中提取特征</strong>最终的结果一般是将文本转换为<strong>向量</strong>，而这一步不管是使用什么算法，都需要首先对文本进行分词。</p>
+<p>成熟的中文分词工具还是比较多的，包括 <a target="_blank" rel="noopener" href="https://github.com/FudanNLP/fnlp">FudanNLP</a>、结巴分词、THULAC、Stanford CoreNLP。其中 Stanford CoreNLP 是重量级工具，需要自备数据集、数据字典等，不太方便；另外三个工具经过简单的比较后，我们最终选用了结巴分词，因为确实很容易使用，分词效果也很好。</p>
+<p>分词的相关代码：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jieba</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">chinese_word_cut</span>(<span class="params">mytext</span>):</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot; &quot;</span>.join(jieba.cut(mytext))</span><br><span class="line">    </span><br><span class="line">X[<span class="string">&#x27;cutted_comment&#x27;</span>]=X.comment.apply(chinese_word_cut)</span><br></pre></td></tr></table></figure>
+
+<h4 id="向量化"><a href="#向量化" class="headerlink" title="向量化"></a>向量化</h4><p>我们的算法都是使用 scikit-learn 实现的，其中从文本中提取特征的方法在<code>sklearn.feature_extraction.text</code>包中。</p>
+<p>比较典型的自然语言向量化方法有词袋模型（带或不带 TF-IDF）、词嵌入等等，在这里可以简单的介绍一下。</p>
+<h5 id="词袋模型"><a href="#词袋模型" class="headerlink" title="词袋模型"></a>词袋模型</h5><p><strong>词袋模型（bag of words）</strong>是信息检索领域常用的文档表示方法。其前提是不考虑词语的出现顺序，也不考虑词语和前后词语之间的连接。<strong>文档中每个单词的出现都是独立的，不依赖于其它单词是否出现</strong>。这样，每个句子被编码成一个 $R^{|V| \times 1}$向量，其中 $|V|$是语料库中所有单词的数量。所有单词组成一个词汇表，每个句子向量的第 $i$ 位即是词汇表中第 $i$ 个词在句子中出现的次数。</p>
+<p>词袋模型可以以单个词语做单位，也可以以 n 个连续的单词做单位（被称为 n-gram）。词袋模型的优点是原理简单，容易实现；其缺点是文本中单词顺序和上下文所蕴含的信息被完全丢弃。</p>
+<p>词袋模型的相关代码如下：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.feature_extraction.text <span class="keyword">import</span> CountVectorizer</span><br><span class="line"></span><br><span class="line">max_df=<span class="number">0.8</span> <span class="comment">#在超过这一比例的文档中出现的关键词过于平凡，去除掉</span></span><br><span class="line">min_df=<span class="number">3</span> <span class="comment">#在低于这一数量的文档中出现的关键词过于独特，去除掉</span></span><br><span class="line"></span><br><span class="line">vect = CountVectorizer(max_df=max_df, min_df=min_df, token_pattern=<span class="string">u&#x27;(?u)\\b[^\\d\\W]\\w+\\b&#x27;</span>)</span><br><span class="line">term_matrix = pd.DataFrame(vect.fit_transform(X_train.cutted_comment).toarray(), columns=vect.get_feature_names())</span><br></pre></td></tr></table></figure>
+
+<h5 id="TF-IDF"><a href="#TF-IDF" class="headerlink" title="TF-IDF"></a>TF-IDF</h5><p>TF-IDF 是在词袋模型的基础上<strong>度量词语重要性</strong>的指标。其基于基本假设：<strong>对区别文档最有意义的词语应该是那些在文档中出现频率高，而在整个文档集合的其他文档中出现频率少的词语，所以如果特征空间坐标系取TF词频作为测度，就可以体现同类文本的特点</strong>。</p>
+<p>根据以上思想，我们通过 TF-IDF 这个指标来寻找重要的词语。TF（Term Frequency）指<strong>词项频率</strong>，用于计算该词描述文档内容的能力；IDF（Inverse Document Frequency）指<strong>逆文档频率</strong>，用于计算该词区分文档的能力。TF-IDF 通过以下方法计算：假定文档集中有 $N$ 篇文档，$f_{ij}$ 为词项 $i$ 在文档 $j$ 中出现的频率（即次数），则词项 $i$ 在文档 $j$ 中的词项频率 $TF_{ij}$ 定义为</p>
+<p>$$TF_{ij} = \frac{f_{ij}}{max_kf_{kj}}$$</p>
+<p>这里有一个归一化的操作，通过除以同一文档中出现最多的词项（可能不考虑停用词的频率）的频率来计算。</p>
+<p>假定词项 $i$ 在文档集的 $n_i$ 篇文档中出现，那么词项 $i$ 的 IDF 定义如下：</p>
+<p>$$IDF_i = log_2{\frac{N}{n_i}}$$</p>
+<p>于是词项 $i$ 在文档中的得分被定义为 $TF_{ij} \times IDF_i$。相关代码如下（其实就是将<code>sklearn.feature_extraction.text</code>提供的<code>CountVectorizer</code>换为<code>TfidfVectorizer</code>）：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.feature_extraction.text <span class="keyword">import</span> TfidfVectorizer</span><br><span class="line"></span><br><span class="line">max_df=<span class="number">0.8</span> <span class="comment">#在超过这一比例的文档中出现的关键词过于平凡，去除掉</span></span><br><span class="line">min_df=<span class="number">3</span> <span class="comment">#在低于这一数量的文档中出现的关键词过于独特，去除掉</span></span><br><span class="line"></span><br><span class="line">vect = TfidfVectorizer(max_df=max_df, min_df=min_df, token_pattern=<span class="string">u&#x27;(?u)\\b[^\\d\\W]\\w+\\b&#x27;</span>)</span><br><span class="line">term_matrix = pd.DataFrame(vect.fit_transform(X_train.cutted_comment).toarray(), columns=vect.get_feature_names())</span><br></pre></td></tr></table></figure>
+
+<p>TF-IDF 在通用情况下效果一般不错，但是也存在一些问题：（1）单纯地认为文本频数小的单词就越重要，文本频数大的单词就越无用；（2）没有体现出单词的位置信息（例如在 Web 文档中处于网页不同位置或标签中的词应该有不同的权重）。</p>
+<h5 id="词嵌入"><a href="#词嵌入" class="headerlink" title="词嵌入"></a>词嵌入</h5><p><strong>词嵌入（Word Embedding）</strong>是指把一个维数为所有词的数量的高维空间（one-hot 形式表示的词）“嵌入”到一个维数低得多的连续向量空间中，每个单词或词组被映射为实数域上的向量。因为我们暂时还没用到相关技术，所以不对学习词嵌入的方法进行介绍了（可能会在下一篇博文谈论）。想要了解更多可以看<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/#/Sequence_Models/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E4%B8%8E%E8%AF%8D%E5%B5%8C%E5%85%A5">自然语言处理与词嵌入 - 吴恩达《深度学习》系列课程笔记</a>。</p>
+<h4 id="停用词"><a href="#停用词" class="headerlink" title="停用词"></a>停用词</h4><p>谈一下停用词的问题。无论是处理中文还是英文，都需要处理停用词。<strong>停用词指那些用于辅助表达但本身不携带任何含义的词</strong>，比如英文中的定冠词“the”。这些词经常在文本中大量出现，如果将其和那些包含信息更丰富的词汇放在一起统计，就容易对我们把握文本的特征形成干扰。所以在文本分类中，一般要首先在文本数据中去掉这些停用词。</p>
+<p>scikit-learn 中自带了英文停用词。如果想做中文停用词的处理，可以用一些机构开源的停用词表。哈工大、四川大学、百度都有类似的词表，可以在<a target="_blank" rel="noopener" href="https://github.com/chdd/weibo/tree/master/stopwords">这里</a>找到。</p>
+<p>不过一个值得讨论的问题是，我们做的是情感分析工作，而非单纯的文本分类。实际上，很多语气词和标点等都是停用词，但是却对句子的情感表达有着很大的影响。因此，一般在做情感分析工作时，倾向于不去处理停用词。我们会在后文的效果展示中讨论是否去除停用词对我们实际的模型效果的影响。</p>
+<p>还是放一下处理停用词的相关代码：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_custom_stopwords</span>(<span class="params">stop_words_file</span>):</span></span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(stop_words_file) <span class="keyword">as</span> f:</span><br><span class="line">        stopwords = f.read()</span><br><span class="line">    stopwords_list = stopwords.split(<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">    custom_stopwords_list = [i <span class="keyword">for</span> i <span class="keyword">in</span> stopwords_list]</span><br><span class="line">    <span class="keyword">return</span> custom_stopwords_list</span><br><span class="line">    </span><br><span class="line">stop_words_file = <span class="string">&quot;stopwords.dat&quot;</span> <span class="comment"># 停用词表文件名</span></span><br><span class="line">stopwords = get_custom_stopwords(stop_words_file)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注意这里增加了一个选项</span></span><br><span class="line">vect = CountVectorizer(max_df = max_df, </span><br><span class="line">                       min_df = min_df, </span><br><span class="line">                       token_pattern=<span class="string">u&#x27;(?u)\\b[^\\d\\W]\\w+\\b&#x27;</span>, </span><br><span class="line">                       stop_words=<span class="built_in">frozenset</span>(stopwords))</span><br></pre></td></tr></table></figure>
+
+<h4 id="分类器"><a href="#分类器" class="headerlink" title="分类器"></a>分类器</h4><p>我们初期使用的分类算法是<a href="http://kyonhuang.top/Machine-learning-in-action-notes/#/%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF">朴素贝叶斯</a>，相关代码如下：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.naive_bayes <span class="keyword">import</span> MultinomialNB</span><br><span class="line">nb = MultinomialNB()</span><br><span class="line">nb.fit(X_train.cutted_comment, y_train)</span><br></pre></td></tr></table></figure>
+
+<h4 id="管道和模型持久化"><a href="#管道和模型持久化" class="headerlink" title="管道和模型持久化"></a>管道和模型持久化</h4><p>scikit-learn 提供<strong>管道</strong>功能，可以将处理流程中的工作顺序连接，隐藏其中的功能，从外部一次调用，就能完成顺序定义的全部工作。这样做可以简化调用过程，减少出错几率。</p>
+<p>同时，scikit-learn 也支持<strong>模型持久化</strong>，即将训练好的模型保存到硬盘，待后台程序启动时可以直接加载到内存。这样，就不必每次启动后台程序时都要花费大量时间和资源进行训练了。相关代码如下：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.pipeline <span class="keyword">import</span> make_pipeline</span><br><span class="line"><span class="keyword">from</span> sklearn.externals <span class="keyword">import</span> joblib</span><br><span class="line">pipe = make_pipeline(vect, nb)</span><br><span class="line">pipe.fit(X_train.cutted_comment, y_train)</span><br><span class="line">y_pred=pipe.predict(X_test.cutted_comment)</span><br><span class="line">joblib.dump(pipe, <span class="string">&quot;hotel_comment.pkl&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><p>为了量化模型效果，需要模型实际预测输出和样本真是输出之间的差异（即<strong>误差</strong>）。因为过拟合的存在，训练误差不适合作为模型选择标准，因此需要从数据集中划分出与训练集互斥的测试集，以测试误差作为泛化误差的近似。</p>
+<p>这里，我们选用<strong>交叉验证法（cross-validation）</strong>，这是一种十分常用的模型评估方法。<strong>k 折交叉验证（k-fold CV）</strong>指划分 k 个互斥子集，每次用 k-1 个子集作训练集，余下一个子集作测试集，进行 k 次训练与测试并取均值。其优点是结果准确，Kaggle 的参赛者大多会提交 CV 分最高的模型，而非在官方提供的测试集上得分最高的模型；缺点是计算量比较大。</p>
+<p>常用的 k 值包括 5、10、20。这里我们统一用 5 折交叉验证来分析各种搭配得到的模型效果。其中所使用的停用词为<a target="_blank" rel="noopener" href="https://github.com/dongxiexidian/Chinese/blob/master/stopwords.dat">这份</a>。</p>
+<p>对于豆瓣数据集，各种模型的评分如下：</p>
+<ul>
+<li>CountVectorizer + 不去除停用词：0.505020743656528</li>
+<li>CountVectorizer + 去除停用词：0.4937080095876466</li>
+<li>TfidfVectorizer + 不去除停用词：0.49594151903667905</li>
+</ul>
+<p>而对于酒店数据集，各种模型的评分如下：</p>
+<ul>
+<li>CountVectorizer + 不去除停用词：0.5133750057452774</li>
+<li>CountVectorizer + 去除停用词：0.5060018311093455</li>
+<li>TfidfVectorizer + 不去除停用词：0.5297950445100629</li>
+</ul>
+<p>可以看到，去除停用词的效果普遍比不去除停用词要差。而词袋模型和 TF-IDF 的效果比较结果则与数据集有关，这也说明需要针对具体问题选择合适的学习算法。</p>
+<h2 id="问题和改进措施"><a href="#问题和改进措施" class="headerlink" title="问题和改进措施"></a>问题和改进措施</h2><p>从之前 CV 的分数，可以判断我们模型的正确率大概在 50% 左右，相比起在 5 种给分中随机预测的 20% 看似要好很多，但实际表现为不管输入的是正面还是负面情感句子、程度如何，基本上都给 5 分，偶尔会给 4 分。</p>
+<h3 id="样本类别不均衡"><a href="#样本类别不均衡" class="headerlink" title="样本类别不均衡"></a>样本类别不均衡</h3><p>从模型经常给出高分预测的表现，我们很容易做出样本中<strong>正负类别样本不均衡</strong>的判断。实际上，我们的酒店评论数据集中，有 148939 条标签值大于 3，而只有 6895 条标签值小于 3，比例达到 21.6 : 1。豆瓣数据集情况略好，但正负面评论数比例也达到了 5.69 : 1。数据集中样本类别不均衡导致训练出的模型偏向于给出正面预测，以减小损失函数。</p>
+<p>处理样本不均衡的方式包括以下几种：</p>
+<ul>
+<li><p><strong>尝试其他评价指标</strong>：当样本类别不均衡时，准确度这个指标不但没有说服力，反而会对分类器的好坏产生误导。这时，<strong>精确率（Precision）</strong>、<strong>召回率（Recall）</strong>以及 <strong>F1 得分（F1 Score，精确率与召回率的调和平均）</strong>作为评价指标会更加有效。</p>
+</li>
+<li><p><strong>对数据集进行过采样和欠采样</strong>：</p>
+<ul>
+<li><strong>过采样（over-sampling）</strong>指采样个数大于该类样本个数，适用于小类的数据样本。具体表现为添加部分样本的副本；</li>
+<li><strong>欠采样（under-sampling）</strong>指采样个数小于该类样本个数，适用于大类的数据样本。具体表现为删除部分样本。</li>
+</ul>
+</li>
+<li><p><strong>数据增强</strong>：数据增强是 CV 中经常使用的方式，联系到 NLP 领域，可以将文本进行句子顺序打乱、句内词序打乱、同义词替换等操作来增加相应类别的样本量。</p>
+</li>
+</ul>
+<h3 id="模型评估"><a href="#模型评估" class="headerlink" title="模型评估"></a>模型评估</h3><p>使用 scikit-learn 提供的方法，我们来计算一下在原始酒店数据集上用 TfidfVectorizer + 不去除停用词训练出来的模型的精确率、召回率和 F1 得分：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> metrics</span><br><span class="line">metrics.accuracy_score(y_test, y_pred)</span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">0.5307027623293653</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">metrics.confusion_matrix(y_test, y_pred)</span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">array([[    0,     0,   151,   237,    27],</span></span><br><span class="line"><span class="string">       [    0,     0,   227,  1017,   106],</span></span><br><span class="line"><span class="string">       [    0,     0,   530,  3603,   507],</span></span><br><span class="line"><span class="string">       [    0,     1,   327, 12089,  6894],</span></span><br><span class="line"><span class="string">       [    0,     0,    58,  7266, 10474]])</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">metrics.precision_score(y_test, y_pred, average=<span class="string">&#x27;macro&#x27;</span>)</span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">0.29816554278872476</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">metrics.recall_score(y_test, y_pred, average=<span class="string">&#x27;micro&#x27;</span>)</span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">0.5307027623293653</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">metrics.f1_score(y_test, y_pred, average=<span class="string">&#x27;weighted&#x27;</span>)  </span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">0.5048778200537771</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到精确率相对来说比较低。</p>
+<!--1. 说明什么？
+2. 进一步处理数据-->
+
+<h3 id="模型选择"><a href="#模型选择" class="headerlink" title="模型选择"></a>模型选择</h3><p>解决了样本类别不均衡以及模型评估的问题，我们很容易想到，我们一开始采用的朴素贝叶斯是否是在这个问题上表现最好的机器学习模型？SVM、随机森林或者 Kaggle 前任大杀器 XGBoost 会不会有更出色的结果？</p>
+<p>To be continued…</p>
+<h3 id="特征选择"><a href="#特征选择" class="headerlink" title="特征选择"></a>特征选择</h3><p>文本分类中常见的特征选择方法除开 TF-IDF 外，还包括信息增益、互信息、期望交叉熵、CHI 统计等[2]。根据清华大学刘知远老师在博士阶段的研究，TF-IDF 具有较强的普适性，能够满足绝大部分的中文场景下的需求。不过也有其他研究工作表明使用信息增益的性能表现也很优秀。由于我们之后会使用深度学习模型在做端到端的学习，并且特征选择不是目前的瓶颈，因此这里不进行深入研究。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>通过这个项目，我感觉我确实很喜欢情感分析这个研究方向。我也因此承担了绝大部分的算法研究开发工作，查阅了很多文献和网络资料，由此对情感分析研究现状乃至自然语言处理的一些基础知识有了比较深入的了解，可谓受益匪浅。</p>
+<p>比较可惜的是，我们在课程作业结题时实现的版本还不尽人意，而且因为事务忙碌和自身安排原因，深度学习模型计划了很久都没有动手实现。写这篇博文一是对现有工作做一个总结，同时有些算法写的比较详细，巩固一下所学知识；二就是督促自己尽早实现基于深度学习的模型，届时也会出该系列的第二篇博文。也欢迎看到这里的读者在 Github 和这里继续关注我们的工作。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="引用文献"><a href="#引用文献" class="headerlink" title="引用文献"></a>引用文献</h3><ul>
+<li>[1] <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1801.07883">Deep Learning for Sentiment Analysis : A Survey</a>. Lei Zhang, Shuai Wang, Bing Liu.</li>
+<li>[2] 徐泓洋, 杨国为. <a target="_blank" rel="noopener" href="http://www.wanfangdata.com.cn/details/detail.do?_type=perio&id=gykzjsj201711038">中文文本特征选择方法研究综述</a>[J]. 工业控制计算机, 2017, 30(11):80-81.</li>
+</ul>
+<h3 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h3><ul>
+<li>《互联网大规模数据挖掘与分布式处理》 1.3.1</li>
+</ul>
+<h3 id="网络资料"><a href="#网络资料" class="headerlink" title="网络资料"></a>网络资料</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/20700012">中文情感分析 (Sentiment Analysis) 的难点在哪？现在做得比较好的有哪几家？ - 知乎</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/34482959">如何用Python和机器学习训练中文文本情感分类模型？</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/simona081/article/details/80275506">处理文本分类中样本不均衡的问题 - CSDN博客</a></li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/sentiment-analysis-webapp-record1/" title="中文短文本情感分析 web 应用开发记录（一）">https://kyonhuang.top/blog/sentiment-analysis-webapp-record1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+              <a href="/blog/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" rel="tag"># 自然语言处理</a>
+              <a href="/blog/tags/%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/" rel="tag"># 文本分类</a>
+              <a href="/blog/tags/%E6%83%85%E6%84%9F%E5%88%86%E6%9E%90/" rel="tag"># 情感分析</a>
+              <a href="/blog/tags/%E6%83%85%E6%84%9F%E8%AE%A1%E7%AE%97/" rel="tag"># 情感计算</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/OOP-notes/" rel="prev" title="面向对象程序设计复习笔记">
+                  <i class="fa fa-chevron-left"></i> 面向对象程序设计复习笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/database-systems-notes/" rel="next" title="数据库系统复习笔记">
+                  数据库系统复习笔记 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="原文链接：Recurrent Neural Network for Text Classification with Multi-Task Learning 作者：Pengfei Liu, Xipeng Qiu, Xuanjing Huang 单位：复旦大学 自然语言处理与深度学习组 文章来源：IJCAI 2016 简介：本文针对文本多分类任务，提出了基于 RNN 的三种不同的共享信息机制，在四个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning">
+<meta property="og:url" content="https://kyonhuang.top/blog/1605-05101-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="原文链接：Recurrent Neural Network for Text Classification with Multi-Task Learning 作者：Pengfei Liu, Xipeng Qiu, Xuanjing Huang 单位：复旦大学 自然语言处理与深度学习组 文章来源：IJCAI 2016 简介：本文针对文本多分类任务，提出了基于 RNN 的三种不同的共享信息机制，在四个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/Andrew-Ng-Deep-Learning-notes/master/docs/Structuring_Machine_Learning_Projects/Shared-Representation.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/three-architectures.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/datasets.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-i.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-ii.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-iii.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/compare-to-state-of-the-art.png">
+<meta property="article:published_time" content="2018-05-10T14:02:13.000Z">
+<meta property="article:modified_time" content="2019-09-06T08:34:48.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="自然语言处理">
+<meta property="article:tag" content="多任务学习">
+<meta property="article:tag" content="文本分类">
+<meta property="article:tag" content="RNN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/Andrew-Ng-Deep-Learning-notes/master/docs/Structuring_Machine_Learning_Projects/Shared-Representation.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/1605-05101-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;1605-05101-notes&#x2F;&quot;,&quot;path&quot;:&quot;1605-05101-notes&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E6%A6%82%E5%86%B5"><span class="nav-number">1.</span> <span class="nav-text">研究概况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">研究背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E4%BA%BA%E5%B7%A5%E4%BD%9C%E5%92%8C%E4%B8%8D%E8%B6%B3"><span class="nav-number">1.2.</span> <span class="nav-text">前人工作和不足</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E6%96%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.3.</span> <span class="nav-text">本文工作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E7%BB%86%E8%8A%82"><span class="nav-number">2.</span> <span class="nav-text">具体细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83"><span class="nav-number">2.2.</span> <span class="nav-text">训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-number">2.3.</span> <span class="nav-text">数据集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B6%85%E5%8F%82%E6%95%B0%E4%B8%8E%E8%AE%AD%E7%BB%83"><span class="nav-number">2.4.</span> <span class="nav-text">超参数与训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E6%AF%94%E8%BE%83"><span class="nav-number">2.5.</span> <span class="nav-text">结果比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E-state-of-the-art-%E7%9B%B8%E6%AF%94%E8%BE%83"><span class="nav-number">2.6.</span> <span class="nav-text">与 state-of-the-art 相比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%86%E8%A7%A3%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.7.</span> <span class="nav-text">了解模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E5%88%86%E6%9E%90"><span class="nav-number">2.8.</span> <span class="nav-text">错误分析</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/1605-05101-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-05-10 22:02:13" itemprop="dateCreated datePublished" datetime="2018-05-10T22:02:13+08:00">2018-05-10</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-09-06 16:34:48" itemprop="dateModified" datetime="2019-09-06T16:34:48+08:00">2019-09-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>原文链接：<a target="_blank" rel="noopener" href="http://www.ijcai.org/Proceedings/16/Papers/408.pdf">Recurrent Neural Network for Text Classification with Multi-Task Learning</a></p>
+<p>作者：Pengfei Liu, Xipeng Qiu, Xuanjing Huang</p>
+<p>单位：复旦大学 自然语言处理与深度学习组</p>
+<p>文章来源：IJCAI 2016</p>
+<p>简介：本文针对文本多分类任务，提出了基于 RNN 的三种不同的共享信息机制，在四个基准的文本分类任务中取得了较好的结果。</p>
+<h2 id="研究概况"><a href="#研究概况" class="headerlink" title="研究概况"></a>研究概况</h2><h3 id="研究背景"><a href="#研究背景" class="headerlink" title="研究背景"></a>研究背景</h3><p>假设多个任务之间具有相关性，**<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/#/Structuring_Machine_Learning_Projects/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5%EF%BC%882%EF%BC%89?id=%e5%a4%9a%e4%bb%bb%e5%8a%a1%e5%ad%a6%e4%b9%a0">多任务学习</a>**利用任务之间的相关性相互促进，通过并行学习任务来提高分类效果。这些模型的基本的多任务架构将共享一些较低的层以确定共同的特性。在共享层之后，每个特定任务单独使用一个输出层。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/Andrew-Ng-Deep-Learning-notes/master/docs/Structuring_Machine_Learning_Projects/Shared-Representation.png" alt="Shared-Representation"></p>
+<h3 id="前人工作和不足"><a href="#前人工作和不足" class="headerlink" title="前人工作和不足"></a>前人工作和不足</h3><p>基于神经网络的多任务学习已被用于解决 NLP 的各类任务。例如：</p>
+<ul>
+<li>使用一个对于输入单词的共享表示：用途是解决词性标注、语义角色标注等传统 NLP 任务。缺点是只有一张查找表是共享的、其他查找表和层是任务特定的，并且需要用基于窗口的方法处理长度不定的文本序列；</li>
+<li>多任务 DNN 来学习表示：用途是解决查询分类和网络搜索排名任务。缺点是模型输入为词袋表示，损失了词序信息。</li>
+</ul>
+<p>不同于以上两种方法，本文的模型基于 RNN，对于建模变长文本序列更友好。</p>
+<h3 id="本文工作"><a href="#本文工作" class="headerlink" title="本文工作"></a>本文工作</h3><p>基于 RNN，提出了三种不同的共享信息机制，可以将信息共享到特定任务层的共享层。整个网络都是在所有这些任务上共同训练的。模型在四个基准的文本分类任务上展示了很好的效果，超过了大多数的 state-of-the-art。</p>
+<!--### 意义和创新点-->
+
+<span id="more"></span>
+
+<h2 id="具体细节"><a href="#具体细节" class="headerlink" title="具体细节"></a>具体细节</h2><h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/three-architectures.png"></p>
+<ul>
+<li>模型一（Uniform-layer Architecture）：对于每个分类任务，在每个输入 character 的 embedding vector 后拼上一个随机生成的可训练向量，表示该特定任务，所有任务共享 LSTM 层，最后一个 时刻的 hidden state 则作为输入传入 softmax；</li>
+<li>模型二（Coupled-layer Architecture）：每个任务具有自己独立的 LSTM 层，但是每一时刻所有任务的 hidden state 则会和下一时刻的 character 一起作为输入，最后一个时刻的 hidden state 进行分类；</li>
+<li>模型三（Shared-layer Architecture）：除了一个共享的 Bi-LSTM 层用于获取共享信息，每个任务有自己独立的 LSTM 层，LSTM 的输入包括每一时刻的 character 和 Bi-LSTM 的 hidden state。</li>
+</ul>
+<!--大概可以加公式？-->
+
+<h3 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h3><p>对于模型一和模型三，具有一个共享层。在联合学习阶段之后可以进行<strong>微调（Fine Tuning）</strong>来进一步优化每个任务的性能。</p>
+<p>对于模型三，共享层可以由无监督的预训练阶段初始化，用四个任务数据集进行语言模型的训练。</p>
+<p>训练方法：</p>
+<ol>
+<li>随机选择一项任务；</li>
+<li>从该任务中随机选择一个训练样本；</li>
+<li>根据基于梯度的优化（paper 中使用 Adagrad update rule）来更新参数；</li>
+<li>重复 1-3 步。</li>
+</ol>
+<h3 id="数据集"><a href="#数据集" class="headerlink" title="数据集"></a>数据集</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/datasets.png"></p>
+<ul>
+<li>SST-1：5 个情绪类别的电影影评，来自斯坦福情感数据库</li>
+<li>SST-2：二分类电影影评，来自斯坦福数据库</li>
+<li>SUBJ：主观性数据集，任务目的是将句子分为主观和客观</li>
+<li>IMDB：二分类的电影影评，大多数评价为长句子</li>
+</ul>
+<h3 id="超参数与训练"><a href="#超参数与训练" class="headerlink" title="超参数与训练"></a>超参数与训练</h3><p>使用 word2vec 在维基语料获得词向量，字典规模约 500,000。词嵌入在训练过程中被微调以提高性能；其他参数在 [-0.1, 0.1] 的范围随机采样，超参数将选择在验证集上性能最好的一组。对于没有验证集的数据集使用 10 折交叉验证。</p>
+<p>特定任务和共享层的嵌入大小为 64。对于模型一，每个单词有两个嵌入，大小都为 64。LSTM 的隐藏层大小为 50。初始学习率为 0.1。参数的正则化权值为 10^-5。</p>
+<h3 id="结果比较"><a href="#结果比较" class="headerlink" title="结果比较"></a>结果比较</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-i.png"></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-ii.png"></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-iii.png"></p>
+<h3 id="与-state-of-the-art-相比较"><a href="#与-state-of-the-art-相比较" class="headerlink" title="与 state-of-the-art 相比较"></a>与 state-of-the-art 相比较</h3><p>将模型三和下列模型进行比较：</p>
+<!--* NBOW：对词向量求和，并应用一个非线性项，之后一个 softmax 分类层；
+* MV-RNN：
+* RNTN：
+* DCNN：
+* PV：
+* Tree-LSTM：-->
+
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/compare-to-state-of-the-art.png"></p>
+<p>paper 中的多任务模型和其他基于 RNN 的模型（例如 Tree-LSTM）是兼容的，可以合并以扩展。</p>
+<h3 id="了解模型"><a href="#了解模型" class="headerlink" title="了解模型"></a>了解模型</h3><p>从 SST-2 的测试集中采样，看在单个 LSTM 和含共享层的 LSTM 中，句子中每个单词对预测的情绪分数的影响。具体方式是观察全局门（global gates）的激活值，这个值控制一个 LSTM 分享层到一个特定任务层的信号流，使我们能够了解神经元的行为。</p>
+<p>例如，“marry”一词使得激活值升高，说明特定任务层从共享层得到很多信息，从而使预测更准确。</p>
+<p>通过分析，单个 LSTM 无法捕捉到“but … higher than”的结构，但是 paper 中的模型对其敏感，说明共享层不仅增强了特定词的意义，并且帮助特定任务学到结构信息。</p>
+<h3 id="错误分析"><a href="#错误分析" class="headerlink" title="错误分析"></a>错误分析</h3><p>该模型的错误案例可分为两种：</p>
+<ol>
+<li>一些含有非常复杂的结构的句子不能被适当处理，例如二次否定、虚拟语气。对于这些情况，在结构上可以做一些改进，比如基于树的 LSTM；</li>
+<li>某些句子难以从书面意思判断其情绪，例如“I tried to read the time on my watch.”</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/1605-05101-notes/" title="【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning">https://kyonhuang.top/blog/1605-05101-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" rel="tag"># 自然语言处理</a>
+              <a href="/blog/tags/%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%AD%A6%E4%B9%A0/" rel="tag"># 多任务学习</a>
+              <a href="/blog/tags/%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/" rel="tag"># 文本分类</a>
+              <a href="/blog/tags/RNN/" rel="tag"># RNN</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/whu-KG-technology-course/" rel="prev" title="记知识图谱前沿技术课程（武汉大学站）">
+                  <i class="fa fa-chevron-left"></i> 记知识图谱前沿技术课程（武汉大学站）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/operating-system-notes/" rel="next" title="操作系统复习笔记">
+                  操作系统复习笔记 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

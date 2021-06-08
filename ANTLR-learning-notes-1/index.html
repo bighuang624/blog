@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="新学期又迎来新课程《解释器构造实践》，通过综合应用来加深对编译原理技术的理解。该实验课最终要求设计并编制调试一个 CMM（C Minus Minus，C 语言的一个子集）程序结构的解释器，对输入的满足 CMM 语法的源程序文件进行解释执行。 课程推荐使用自动化生成工具 ANTLR，因此在这里持续记录我的解释器构造及 ANTLR 学习过程。当然也不排除之后可能会换用其他工具，或者全部自己实现。 AN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ANTLR v4 学习笔记（一）－ANTLR 初体验">
+<meta property="og:url" content="https://kyonhuang.top/blog/ANTLR-learning-notes-1/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="新学期又迎来新课程《解释器构造实践》，通过综合应用来加深对编译原理技术的理解。该实验课最终要求设计并编制调试一个 CMM（C Minus Minus，C 语言的一个子集）程序结构的解释器，对输入的满足 CMM 语法的源程序文件进行解释执行。 课程推荐使用自动化生成工具 ANTLR，因此在这里持续记录我的解释器构造及 ANTLR 学习过程。当然也不排除之后可能会换用其他工具，或者全部自己实现。 AN">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr1.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr2.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr3.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr4.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr5.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr6.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr-generation.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example1.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example2.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example3.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example4.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/integrating-test.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/translate-test.jpg">
+<meta property="article:published_time" content="2017-09-06T07:34:19.000Z">
+<meta property="article:modified_time" content="2018-05-10T15:50:06.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="编译技术">
+<meta property="article:tag" content="ANTLR">
+<meta property="article:tag" content="解释器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr1.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/ANTLR-learning-notes-1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;ANTLR-learning-notes-1&#x2F;&quot;,&quot;path&quot;:&quot;ANTLR-learning-notes-1&#x2F;&quot;,&quot;title&quot;:&quot;ANTLR v4 学习笔记（一）－ANTLR 初体验&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>ANTLR v4 学习笔记（一）－ANTLR 初体验 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E5%AF%B9%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF%E7%9A%84%E8%AE%A4%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">我对编译技术的认识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E8%AF%86-ANTLR"><span class="nav-number">2.</span> <span class="nav-text">初识 ANTLR</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-ANTLR"><span class="nav-number">2.1.</span> <span class="nav-text">安装 ANTLR</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ANTLR-%E5%85%A8%E8%B2%8C"><span class="nav-number">3.</span> <span class="nav-text">ANTLR 全貌</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%9F%BA%E6%9C%AC%E7%9A%84%E8%A7%A3%E6%9E%90%E8%BF%87%E7%A8%8B"><span class="nav-number">3.1.</span> <span class="nav-text">最基本的解析过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5-ANTLR-%E7%9A%84%E8%A7%A3%E6%9E%90%E8%BF%87%E7%A8%8B"><span class="nav-number">3.2.</span> <span class="nav-text">深入 ANTLR 的解析过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E8%AF%AD%E6%B3%95%E5%88%86%E6%9E%90%E6%A0%91%E6%9E%84%E5%BB%BA%E8%AF%AD%E8%A8%80%E5%BA%94%E7%94%A8"><span class="nav-number">3.3.</span> <span class="nav-text">用语法分析树构建语言应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95%E5%88%86%E6%9E%90%E6%A0%91%E7%9A%84-Listener-%E5%92%8C-Visitor-%E6%9C%BA%E5%88%B6"><span class="nav-number">3.4.</span> <span class="nav-text">语法分析树的 Listener 和 Visitor 机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Listener"><span class="nav-number">3.4.1.</span> <span class="nav-text">Listener</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Visitor"><span class="nav-number">3.4.2.</span> <span class="nav-text">Visitor</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%89%8B%E4%B8%8A%E8%B7%AF"><span class="nav-number">4.</span> <span class="nav-text">动手上路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ANTLR-%E5%B7%A5%E5%85%B7%EF%BC%8C%E8%BF%90%E8%A1%8C%E6%97%B6%E7%B1%BB%E5%BA%93%E5%92%8C%E7%94%9F%E6%88%90%E4%BB%A3%E7%A0%81"><span class="nav-number">4.1.</span> <span class="nav-text">ANTLR 工具，运行时类库和生成代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%94%9F%E6%88%90%E7%9A%84%E8%A7%A3%E6%9E%90%E5%99%A8"><span class="nav-number">4.2.</span> <span class="nav-text">测试生成的解析器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%86%E7%94%9F%E6%88%90%E7%9A%84%E8%A7%A3%E6%9E%90%E5%99%A8%E9%9B%86%E6%88%90%E8%BF%9B-Java-%E7%A8%8B%E5%BA%8F"><span class="nav-number">4.3.</span> <span class="nav-text">将生成的解析器集成进 Java 程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%84%E5%BB%BA%E8%AF%AD%E8%A8%80%E5%BA%94%E7%94%A8"><span class="nav-number">4.4.</span> <span class="nav-text">构建语言应用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">5.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/ANTLR-learning-notes-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ANTLR v4 学习笔记（一）－ANTLR 初体验
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-09-06 15:34:19" itemprop="dateCreated datePublished" datetime="2017-09-06T15:34:19+08:00">2017-09-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-05-10 23:50:06" itemprop="dateModified" datetime="2018-05-10T23:50:06+08:00">2018-05-10</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%A7%A3%E9%87%8A%E5%99%A8%E6%9E%84%E9%80%A0/" itemprop="url" rel="index"><span itemprop="name">解释器构造</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>新学期又迎来新课程《解释器构造实践》，通过综合应用来加深对编译原理技术的理解。该实验课最终要求设计并编制调试一个 CMM（C Minus Minus，C 语言的一个子集）程序结构的解释器，对输入的满足 CMM 语法的源程序文件进行解释执行。</p>
+<p>课程推荐使用自动化生成工具 ANTLR，因此在这里持续记录我的解释器构造及 ANTLR 学习过程。当然也不排除之后可能会换用其他工具，或者全部自己实现。</p>
+<p>ANTLR 目前更新到 v4.7，有一本详尽的使用说明《The Definitive ANTLR 4 Reference》。可惜到目前为止还没有找到中文译本，只有一些零零碎碎的翻译。所幸读完前两章，感觉我的英文水平还是能支持我不用查太多的词就能理解书中所著内容。因此这篇学习笔记也会整理一些书中重要的内容（当然会加以翻译）。</p>
+<p>更新记录：</p>
+<ul>
+<li>17.09.06 《The Definitive ANTLR 4 Reference》Chapter 1、2 阅读完毕，笔记初版发布</li>
+<li>17.09.11 Chapter 3 阅读完毕，增加动手上路章节。</li>
+<li>17.09.20 对全文进行一定的润色，并修正了一些不太贴切的翻译</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="我对编译技术的认识"><a href="#我对编译技术的认识" class="headerlink" title="我对编译技术的认识"></a>我对编译技术的认识</h2><p>在正式进行 ANTLR 的学习前，先让我们聊一聊在经过上学期《编译技术及应用》的学习，以及查阅了有关资料后，我对编译技术和编译工具的一点认识。</p>
+<p>说实话，如果单单是谈在《编译技术及应用》这门课上的认识的话，我可能只能像孔乙己一样，接连便是难懂的话，什么“上下文无关文法”，什么“LL(1)”，引得各位都哄笑起来，屏幕内外充满了快活的空气…  </p>
+<p>尽管经过了计算器和 JSONCompiler 两次实验，但我们可能对编译技术的应用还没有什么认识，觉得编译器的唯一用处就是写一个能把 xx 语言翻译成 xx 然后再运行成功…</p>
+<p>基于写这篇博文的契机，我查了一下编译技术的各种应用，才发现其实“编译”这个概念应用还是很广泛的。</p>
+<p>比如我的博客是用 hexo 这个博客框架搭建的，而你现在看到的这篇博文是 hexo 将我写的 markdown 文件解析成 html 生成的，这其中自然有编译模块的功劳。</p>
+<p>再比如作为一个前端，有不少我使用过或日常接触的工具、框架其实都是编译相关知识的应用：Babel 作为 ES 6 的所有新特性还没有在主流浏览器全面推广的一个暂时的解决方法，将 ES 6 编译成 ES 5 等浏览器能够运行的 JavaScript 代码；在 Vue 中频繁出现的模版引擎、<code>v-for=&quot;item in list&quot;</code>等也有编译的身影。如果真正对编译原理理解透彻，大概可以去摸摸 v8 ，帮助提高一下 Node.js 的运行效率。</p>
+<p>编程，本质上是程序员通过语言来控制计算机按照人的意志去进行各种运算和操作。自 20 世纪 50 年代早期，第一个只能进行单目运算的编译程序诞生起，编译技术一直作为人与计算机之间的传声筒，支撑着计算机语言的发展，使其更加系统化、合理化。</p>
+<p>在知乎上“编译原理学了有什么用？”这个提问下，有答主贴了一幅《C 编译器解剖》序的照片，其中有一段话：</p>
+<blockquote>
+<p>操作系统和编译器就如武侠小说中的“九阴真经”，没看过“九阴真经”的侠客也可以行走江湖，但看过并练成九阴真经的人最终才更有机会登上华山之巅。</p>
+</blockquote>
+<p>怀着对程序员之巅的心向往之，我也对编译原理更生敬畏。</p>
+<p>当然，如何让这门古老的屠龙术落地，而不至于成为学生心中虚无缥缈的空中楼阁。我个人认为可以再开设一些相关的新课题，让学生能够充分了解编译技术的实用性，从而能够自主学习、实践。我也希望《解释器构造实践》能成为一个不错的起点。</p>
+<h2 id="初识-ANTLR"><a href="#初识-ANTLR" class="headerlink" title="初识 ANTLR"></a>初识 ANTLR</h2><blockquote>
+<p>对应《The Definitive ANTLR 4 Reference》中 Chapter 1 Meet ANTLR。书里的这一章主要是介绍 ANTLR 的下载安装方法，并运行了一个简单的 demo。</p>
+</blockquote>
+<h3 id="安装-ANTLR"><a href="#安装-ANTLR" class="headerlink" title="安装 ANTLR"></a>安装 ANTLR</h3><p>ANTLR 是用 Java 编写的，所以就算你想使用 C# 或者 C++ 来配合 ANTLR 生成解释器，安装 ANTLR 前也需要有 Java 环境。</p>
+<p>之后需要下载 antlr-4.x-complete.jar（越新越好，4.x 指最新版本的版本号）并把它放在你记得住的地方。这个 jar 包包含了运行 ANTLR 工具所需要的所有依赖，还包含两个支持库：一个树状排版库，以及 StringTemplate，一个用于生成代码以及其他结构化文本的模版引擎。</p>
+<p>安装的具体步骤请直接看<a target="_blank" rel="noopener" href="http://www.antlr.org/">官网</a>的 Quick Start，在此不作展示。</p>
+<h2 id="ANTLR-全貌"><a href="#ANTLR-全貌" class="headerlink" title="ANTLR 全貌"></a>ANTLR 全貌</h2><blockquote>
+<p>对应《The Definitive ANTLR 4 Reference》中 Chapter 2 The Big Picture，书中这一章介绍了从字符流到语法分析树的过程、ANTLR 运行流程中的一些重要术语，以及ANTLR 自带的 Listener、Visitor 这两种遍历树的机制。</p>
+</blockquote>
+<p>想要实现一种语言，我们就需要构建读取句子的应用，并对输入的元素做出正确的反应。</p>
+<p>如果一个应用可以计算或执行句子，我们就叫它<strong>解释器（interpreter）</strong>。包括计算器、配置文件读取器、Python 解释器都属于解释器。</p>
+<p>而如果一个应用将句子转换成另一种语言，我们就叫它<strong>翻译器（translator）</strong>。例如 Java 到 C# 的翻译器和<strong>编译器</strong>都属于翻译器。</p>
+<p>不管是解释器还是翻译器，想要正确运行，应用首先都要识别出所有有效的句子、词组、字词组等，识别语言的程序就叫<strong>解析器（parser）</strong>或<strong>语法分析器（syntax analyzer）</strong>。</p>
+<p>完全 DIY 一个解析器非常麻烦，所以我们需要 ANTLR 的帮助。ANTLR 是一种能写出程序的程序，只需编写 ANTLR 的语法（grammars）文件，描述我们要解析的语言的语法，ANTLR 就能够自动生成用来解析这种语言的解析器。而用来声明我们语言的ANTLR语言的语法，就是<strong>元语言（meta-language）</strong>。</p>
+<h3 id="最基本的解析过程"><a href="#最基本的解析过程" class="headerlink" title="最基本的解析过程"></a>最基本的解析过程</h3><p>为了简单起见，我们将解析分为两个阶段，第一阶段是<strong>词法分析（lexical analysis）</strong>，对应的分析程序叫做<strong>词法分析器（lexer）</strong>，负责将符号（token）分组成<strong>符号类（token class or token type）</strong>。而第二阶段就是真正的<em>语法分析</em>，默认 ANTLR 会构建出一棵<strong>语法分析树（parse tree / syntax tree）</strong>。下图展示了一个简单的赋值表达式的解析过程：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr1.jpg" />
+
+<p>语法树的叶子是输入的 token，而上级结点是包含其孩子结点的词组名（phase），线性的句子其实是语法树的序列化。最终生成语法树的好处是：</p>
+<ol>
+<li>树形结构易于遍历和处理，并且容易被程序员理解，方便了应用代码做进一步处理。</li>
+<li>多种解释或翻译的应用代码都可以重用一个解析器。但 ANTLR 也支持像传统解析器生成器那样，将应用处理代码直接嵌入到语法中。</li>
+<li>对于因为计算依赖而需要多趟处理的翻译器来说，比起多次调用解析器去解析，遍历语法树多次更加高效。</li>
+</ol>
+<h3 id="深入-ANTLR-的解析过程"><a href="#深入-ANTLR-的解析过程" class="headerlink" title="深入 ANTLR 的解析过程"></a>深入 ANTLR 的解析过程</h3><p>ANTLR 生成的解析器叫做<strong>递归下降语法分析器（recursive-descent parser）</strong>，属于自顶向下语法分析器（top-down parser）的一种。</p>
+<p>顾名思义，递归下降指的就是解析过程是从语法树的根开始，向叶子（token）递归。还是以前面的赋值表达式解析为例，其递归下降语法分析器的代码大概是下面这个样子：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr2.jpg" />
+
+<p>很酷的一点是<code>stat()</code>、<code>assign()</code>、<code>expr()</code>等方法调用所形成的调用栈能与语法分析树的内部节点一一对应。<code>match()</code>的调用对应树的叶子，而<code>assign()</code>方法直接顺序读取输入字符，而不用做任何选择。相比之下，<code>stat()</code>方法要复杂一些，因为在解析时，它需要<strong>向前看（lookahead）</strong>一些字符才能确认走哪个代码分支，有时甚至要读取完所有输入才能得出预测结果。</p>
+<p>虽然 ANTLR 默默地为我们处理了这整个过程，但对这个选择过程有一个基本的了解会使得对生成的解析器进行 debug 变得更加容易。</p>
+<h3 id="用语法分析树构建语言应用"><a href="#用语法分析树构建语言应用" class="headerlink" title="用语法分析树构建语言应用"></a>用语法分析树构建语言应用</h3><p>在内部，ANTLR 的数据结构会尽可能地共享数据来节约内存。如下图所示，语法分析树的叶子节点指向 token 流中的 token，而 token 中的起止字符索引指向字符流，并不拷贝子字符串。而像空格这种不与任何 token 相关的字符会直接被 Lexer 丢弃掉。</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr3.jpg" />
+
+<p>ANTLR 为每条规则都会生成一个 RuleNode，叫做<strong>上下文（Context）对象</strong>，它会记录根据规则识别词组时产生的所有上下文信息。每一个上下文对象都知道已经识别的短语的起始 token 和结束 token，并且提供了对这些短语的访问。例如，<code>AssignContext</code>提供<code>ID()</code>和<code>expr()</code>方法来访问标识符节点和表达式子树。</p>
+<h3 id="语法分析树的-Listener-和-Visitor-机制"><a href="#语法分析树的-Listener-和-Visitor-机制" class="headerlink" title="语法分析树的 Listener 和 Visitor 机制"></a>语法分析树的 Listener 和 Visitor 机制</h3><p>ANTLR 在其运行库提供了 Listener 和 Visitor 两种语法分析树遍历机制。</p>
+<h4 id="Listener"><a href="#Listener" class="headerlink" title="Listener"></a>Listener</h4><p>Listener 的特点是全自动化，我们不必写一个语法分析树的遍历器，ANTLR 会生成一个 ParseTreeWalker 的子类来主导深度优先遍历过程，我们只需处理各种事件就可以了。例如当遍历器遍历到<code>assign</code>规则的节点时，会触发<code>enterAssign()</code>并向其传递<code>AssignContext</code>参数；而当遍历器遍历完<code>assign</code>节点的所有子节点时，触发<code>exitAssign()</code>。下图展示了 ParseTreeWalker 如何进行深度优先遍历：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr4.jpg" />
+
+<p>而下图展示了 ParseTreeWalker 的完整监听器方法调用队列：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr5.jpg" />
+
+<h4 id="Visitor"><a href="#Visitor" class="headerlink" title="Visitor"></a>Visitor</h4><p>而 Visitor 则提供了可控的遍历方式，我们可以自行决定是否将子结点作为参数调用<code>visit()</code>方法。</p>
+<p>在使用 ANTLR 生成时加上参数<code>-visitor</code>，会生成带有默认实现的 Visitor 实现类。我们不必实现接口中的每一个方法，只需要覆盖我们感兴趣的方法。</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr6.jpg" />
+
+<h2 id="动手上路"><a href="#动手上路" class="headerlink" title="动手上路"></a>动手上路</h2><blockquote>
+<p>对应《The Definitive ANTLR 4 Reference》中 Chapter 3 A Starter ANTLR Project。</p>
+</blockquote>
+<h3 id="ANTLR-工具，运行时类库和生成代码"><a href="#ANTLR-工具，运行时类库和生成代码" class="headerlink" title="ANTLR 工具，运行时类库和生成代码"></a>ANTLR 工具，运行时类库和生成代码</h3><p>ANTLR 分为两个重要的部分：ANLTR 工具自身和 ANTLR 运行时（runtime） API。运行 ALTLR 工具会生成能够辨认语法所描述语言的句子的代码（词法分析程序和语法分析程序）；而运行时类库提供了生成代码所需的一系列类与方法，例如 Parser, Lexer 和 token。</p>
+<p>我们先对一份语法运行 ANTLR，然后借助 jar 包中的运行时类库（runtime classes in the jar）对生成的代码进行编译。最后，编译得到的应用与运行库结合着运行。</p>
+<p>《The Definitive ANTLR 4 Reference》（后文可能简写为《Reference》）给出了一份简单的示例，让我们可以快速了解 ANTLR 所需语法的格式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Grammers always start with a grammer header. This grammer */</span></span><br><span class="line"><span class="comment">/** is called ArrayInit and must match the filename: ArrayInit.g4 */</span></span><br><span class="line">grammar ArrayInit;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** A rule called init that that matches comma-separated values between &#123;...&#125; */</span></span><br><span class="line">init : <span class="string">&#x27;&#123;&#x27;</span> value (<span class="string">&#x27;,&#x27;</span> value)* <span class="string">&#x27;&#125;&#x27;</span> ;  <span class="comment">// must match at least one value</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** A value can be either a nested array/struct or a simple integer (INT) */</span></span><br><span class="line">value : init</span><br><span class="line">      | INT</span><br><span class="line">      ;</span><br><span class="line">      </span><br><span class="line"><span class="comment">// parser rules start with lowercase letters, lexer rules with uppercase</span></span><br><span class="line">INT :  [<span class="number">0</span>-<span class="number">9</span>]+ ;              <span class="comment">// Define Token INT as one or more digits</span></span><br><span class="line">WS  :  [ \t\r\n]+ -&gt; skip ;  <span class="comment">// Define whitespace rule, toss it out </span></span><br></pre></td></tr></table></figure>
+
+<p>之后通过命令行运行<code>antlr4 ArrayInit.g4</code>，ANTLR 为我们生成很多一般需要我们自己手写的文件：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/antlr-generation.jpg" />
+
+<p>这些文件的功能如下：</p>
+<ul>
+<li>ArrayInitParser.java：包含了专用于 ArrayInit 语法的解析器（parser）类的定义。</li>
+<li>ArrayInitLexer.java：包含专用的词法分析程序（lexer）类的定义。</li>
+<li>ArrayInit.Tokens：对于我们定义的每个 token，ANTLR 分配了一个 token 类型码（token type number）并将这些值保存在 ArrayInit.tokens。因为这个文件的存在，当我们将较大规模的语法分割为各种小型的语法表达时，ANTLR 能够使同种 token 的类型码保持一致。</li>
+<li>ArrayInitListener.java, ArrayInitBaseListener.java：ANTLR 生成的解释器会默认根据输入构建一棵树。通过遍历这棵树，一个遍历器可以将事件（回调函数）传递给我们提供的监听者对象（listener object）。ArrayInitListener 是描述我们可以实现的回调函数的接口，而ArrayInitBaseListener 是默认空实现的集合，使我们可以方便的重写（override）那些我们感兴趣的回调函数。通过<code>-visitor</code>命令行参数，ANTLR 也可以为我们生成树的 visitors。</li>
+</ul>
+<h3 id="测试生成的解析器"><a href="#测试生成的解析器" class="headerlink" title="测试生成的解析器"></a>测试生成的解析器</h3><p>之后，我们通过<code>javac *.java</code>来编译 ANTLR 生成的所有代码。UNIX 系统用户可以将以下代码写入<code>.bash_profile</code>或其他启动脚本，以免每次都要在命令行输入一遍：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> CLASSPATH=<span class="string">&quot;.:/usr/local/lib/antlr-4.7-complete.jar:<span class="variable">$CLASSPATH</span>&quot;</span></span><br><span class="line"><span class="built_in">alias</span> antlr4=<span class="string">&#x27;java -jar /usr/local/lib/antlr-4.7-complete.jar&#x27;</span></span><br><span class="line"><span class="built_in">alias</span> grun=<span class="string">&#x27;java org.antlr.v4.gui.TestRig&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>之后就可以通过<code>grun</code>命令来测试生成的解析器了。注意输入要以 EOF（Unix 系统 Ctrl + D，Windows 系统 Ctrl + Z）作为结束。加上<code>-tokens</code>命令行参数，输出的每一行会展示一个单独的 token 及其所有信息：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example1.jpg" />
+
+<p><code>-tree</code>会生成一个 Lisp 风格的简单语法分析树：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example2.jpg" />
+
+<p>而<code>-gui</code>会生成一个展示语法分析树的 GUI 界面：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example3.jpg" />
+
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/grun-the-example4.jpg" />
+
+<p>根据我们定义的语法规则，ANTLR 自动生成了这棵语法分析树。之后我们会利用 ANTLR 内置的遍历器触发<code>enterInit()</code>和<code>enterValue()</code>等各种回调函数。</p>
+<h3 id="将生成的解析器集成进-Java-程序"><a href="#将生成的解析器集成进-Java-程序" class="headerlink" title="将生成的解析器集成进 Java 程序"></a>将生成的解析器集成进 Java 程序</h3><p>我们来写一个简单的 Java <code>main()</code>方法来集成生成的解析器，并打印出和使用<code>-tree</code>参数一样的语法分析树。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// import ANTLR&#x27;s runtime libraries</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.*;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.tree.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// create a CharStream that reads from standard input</span></span><br><span class="line">        ANTLRInputStream input = <span class="keyword">new</span> ANTLRInputStream(System.in);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// create a lexer that feeds off of input CharStream</span></span><br><span class="line">        ArrayInitLexer lexer = <span class="keyword">new</span> ArrayInitLexer(input);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// create a buffer of tokens pulled from the lexer</span></span><br><span class="line">        CommonTokenStream tokens = <span class="keyword">new</span> CommonTokenStream(lexer);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// create a parser that feeds off the tokens buffer</span></span><br><span class="line">        ArrayInitParser parser = <span class="keyword">new</span> ArrayInitParser(tokens);</span><br><span class="line">        </span><br><span class="line">        ParseTree tree = parser.init();  <span class="comment">// begin parsing at init rule</span></span><br><span class="line">        System.out.println(tree.toStringTree(parser));  <span class="comment">// print LISP-style tree</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试结果如下。语法错误也可以被报告：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/integrating-test.jpg" />
+
+<h3 id="构建语言应用"><a href="#构建语言应用" class="headerlink" title="构建语言应用"></a>构建语言应用</h3><p>我们的目标不仅仅是识别，还想做一些翻译工作。最简单的方法是利用 ANTLR 内置的语法分析树遍历器，这样我们不需要自己去进行树遍历，大大减少了工作量。</p>
+<p>我们给 ArrayInit 加一个新需求：将 short 数组<code>&#123;99, 3, 451&#125;</code>翻译为字符串<code>\u0063\u0003\u01c3</code>。实现这个需求，我们只需要继承<code>ArrayInitBaseListener</code>，来实现其中的一些监听器方法。</p>
+<p>我们在 ShortToUnicodeString.java 中实现我们的监听器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Convert short array inits like &#123;1, 2, 3&#125; to &quot;\u0001\u0002\u0003&quot; */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShortToUnicodeString</span> <span class="keyword">extends</span> <span class="title">ArrayInitBaseListener</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enterInit</span><span class="params">(ArrayInitParser.InitContext ctx)</span> </span>&#123;</span><br><span class="line">        System.out.print(<span class="string">&#x27;&quot;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exitInit</span><span class="params">(ArrayInitParser.InitContext ctx)</span> </span>&#123;</span><br><span class="line">        System.out.print(<span class="string">&#x27;&quot;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enterValue</span><span class="params">(ArrayInitParser.ValueContext ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> value = Integer.valueOf(ctx.INT().getText());</span><br><span class="line">        System.out.printf(<span class="string">&quot;\\u%04x&quot;</span>, value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们不需要覆盖每一个<code>enter/exit</code>方法，只需要实现我们需要的那些。代码里<code>ctx.INT()</code>代表上下文对象请求已经匹配的整数 INT 的值。记住我们之前提到的，上下文对象会记录根据规则识别词组时产生的所有信息。</p>
+<p>接下来，我们要创建一个主程序：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// import ANTLR&#x27;s runtime libraries</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.*;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.tree.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Translate</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// create a CharStream that reads from standard input</span></span><br><span class="line">        ANTLRInputStream input = <span class="keyword">new</span> ANTLRInputStream(System.in);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// create a lexer that feeds off of input CharStream</span></span><br><span class="line">        ArrayInitLexer lexer = <span class="keyword">new</span> ArrayInitLexer(input);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// create a buffer of tokens pulled from the lexer</span></span><br><span class="line">        CommonTokenStream tokens = <span class="keyword">new</span> CommonTokenStream(lexer);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// create a parser that feeds off the tokens buffer</span></span><br><span class="line">        ArrayInitParser parser = <span class="keyword">new</span> ArrayInitParser(tokens);</span><br><span class="line">        </span><br><span class="line">        ParseTree tree = parser.init();  <span class="comment">// begin parsing at init rule</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Create a generic parse tree walker that can trigger callbacks</span></span><br><span class="line">        ParseTreeWalker walker = <span class="keyword">new</span> ParseTreeWalker();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Walk the tree created during the parse, trigger callbacks</span></span><br><span class="line">        walker.walk(<span class="keyword">new</span> ShortToUnicodeString(), tree);</span><br><span class="line">        System.out.println();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>比起上一节的主程序，我们多创建了一个树遍历器（<code>ParseTreeWalker walker</code>），并用它来遍历语法分析器返回的语法分析树，它会触发<code>ShortToUnicodeString</code>中的回调方法。</p>
+<p>javac 进行编译后就可以使用了：</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/antlr/note1/translate-test.jpg" />
+
+<p>我们可以通过传入不同的监听器来产生完全不同的输出。监听器将语法和我们的语言应用很大程度上解耦了，使语法具有了更大的重用性。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>第一篇笔记到这里就结束了。我们聊了一下我对编译技术的一点看法，并阅读了《The Definitive ANTLR 4 Reference》的前三章。而书的 Part I: Introducing ANTLR and Computer Languages 还剩第四章 A Quick Tour，根据实验课的要求，这一章我会单独写一篇学习笔记，示例与内容也会和书上有一些区别。在这之后我会继续学习解释器构造，并继续写这本书的阅读笔记，敬请期待。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>《The Definitive ANTLR 4 Reference》</li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/dc_726/article/details/45399371">Antlr v4入门教程和实例 - 西代零零发 - CSDN博客</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/ANTLR-learning-notes-1/" title="ANTLR v4 学习笔记（一）－ANTLR 初体验">https://kyonhuang.top/blog/ANTLR-learning-notes-1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/" rel="tag"># 编译技术</a>
+              <a href="/blog/tags/ANTLR/" rel="tag"># ANTLR</a>
+              <a href="/blog/tags/%E8%A7%A3%E9%87%8A%E5%99%A8/" rel="tag"># 解释器</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/async-IO-in-Node/" rel="prev" title="Node 异步 I/O">
+                  <i class="fa fa-chevron-left"></i> Node 异步 I/O
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/lets-start-Python/" rel="next" title="Let's start Python!">
+                  Let's start Python! <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="在从成都回武汉的火车上开始写这一篇博客。 历时共七个月的花旗杯终于结束了。作为创队元老，我从头到尾参与了这个项目，从每个组员的奇思妙想中挖掘出我们现在的选题，在一次次的争论中始终坚持它就是最好的选择。我也投入了大量的时间和精力，写完了整个网站前端开发的每一行代码，并参与了部分的算法研究工作。整个项目也数次从被放弃的边缘拉回来，成员也有一定的变动，可以说历经波折。 到达成都后，临行前请人算了一卦的浦">
+<meta property="og:type" content="article">
+<meta property="og:title" content="花旗杯-新的终点，新的起点">
+<meta property="og:url" content="https://kyonhuang.top/blog/new-end-new-start/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="在从成都回武汉的火车上开始写这一篇博客。 历时共七个月的花旗杯终于结束了。作为创队元老，我从头到尾参与了这个项目，从每个组员的奇思妙想中挖掘出我们现在的选题，在一次次的争论中始终坚持它就是最好的选择。我也投入了大量的时间和精力，写完了整个网站前端开发的每一行代码，并参与了部分的算法研究工作。整个项目也数次从被放弃的边缘拉回来，成员也有一定的变动，可以说历经波折。 到达成都后，临行前请人算了一卦的浦">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/huaqi-prize.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-472d42ef0cb3ff5d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://kyonhuang.top/images/huaqi-team.png">
+<meta property="article:published_time" content="2017-11-27T05:22:24.000Z">
+<meta property="article:modified_time" content="2018-06-30T08:49:54.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="随笔">
+<meta property="article:tag" content="花旗杯">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/huaqi-prize.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/new-end-new-start/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;new-end-new-start&#x2F;&quot;,&quot;path&quot;:&quot;new-end-new-start&#x2F;&quot;,&quot;title&quot;:&quot;花旗杯-新的终点，新的起点&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>花旗杯-新的终点，新的起点 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E5%8A%A0%E6%AF%94%E8%B5%9B%E7%9A%84%E7%BB%8F%E5%8E%86"><span class="nav-number">1.</span> <span class="nav-text">参加比赛的经历</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%A2%E9%98%9F%E5%BC%80%E5%8F%91%E7%9A%84%E7%BB%8F%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">团队开发的经验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">3.</span> <span class="nav-text">结语</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/new-end-new-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          花旗杯-新的终点，新的起点
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-11-27 13:22:24" itemprop="dateCreated datePublished" datetime="2017-11-27T13:22:24+08:00">2017-11-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-06-30 16:49:54" itemprop="dateModified" datetime="2018-06-30T16:49:54+08:00">2018-06-30</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E7%BF%BB%E6%BB%9A%E5%90%A7%E5%A4%A7%E5%AD%A6%E7%94%9F/" itemprop="url" rel="index"><span itemprop="name">翻滚吧大学生</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在从成都回武汉的火车上开始写这一篇博客。</p>
+<p>历时共七个月的花旗杯终于结束了。作为创队元老，我从头到尾参与了这个项目，从每个组员的奇思妙想中挖掘出我们现在的选题，在一次次的争论中始终坚持它就是最好的选择。我也投入了大量的时间和精力，写完了整个网站前端开发的每一行代码，并参与了部分的算法研究工作。整个项目也数次从被放弃的边缘拉回来，成员也有一定的变动，可以说历经波折。</p>
+<p>到达成都后，临行前请人算了一卦的浦先生幸运地抽到答辩的最后一位，这让我们可以观摩其他队伍的答辩、对评委的关注点进行揣摩，并有较为充足的准备时间。之后，前往成都的核心队员开始昼夜不分地修改项目计划书、PPT、展示讲稿等各种材料，直到上台答辩的最后一秒。这个过程中，另外四名成员应该比我要更为辛苦，在答辩前一夜，负责算法的曹队和冯大佬更是直到凌晨三点还在讨论评委可能提出的问题（他们也确实命中了绝大部分问题，功居甚伟），而王同学也果断承担起本来属于队长的项目展示的重任。在这样的准备强度下，尽管也有遗憾，我对我们组的答辩表现可以打到 100 分，也为我们的付出感到骄傲。</p>
+<p>最终，我们的“探方网——网络文学 IP 价值评估及预测系统”获得了第十三届“花旗杯”金融创新应用大赛的三等奖。可惜的是，我们是最后一个宣布的三等奖，也就是说离二等奖仅有一步之遥。但能在全国二十强中最终名列第四，也是大赛诸多评委老师对我们项目极大肯定。</p>
+<p>从比较现实的角度来看，这次参赛经历带给我个人大学期间第一个有分量、对保研有加分的奖项，以及一点和劳动量好像不太对等的奖金。当然，我还有一些对我而言更为重要的东西与看到这篇博文的每一位分享。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/huaqi-prize.jpg" alt="huaqi-prize"></p>
+<span id="more"></span>
+
+<h2 id="参加比赛的经历"><a href="#参加比赛的经历" class="headerlink" title="参加比赛的经历"></a>参加比赛的经历</h2><p>在成都备战的深夜里，几名核心大佬都表示“再也不参加花旗杯这样的非技术类比赛了”。“非技术类”确实对花旗杯是一个不太正当的评价，但准备花旗的开发周期之长、团队管理之累、准备工作之繁琐，对我们这些软件工程专业的 nerd 来说，是醉心于技术的阻碍。我们花了相当比例的精力在项目的包装上，而在实际技术层面可能没有达到我们想要的高度。</p>
+<p>但我还是很享受这个过程，因为比起纯粹的技术人员，我感觉可能我会更多地接触，也更为喜欢这样的项目包装、推广过程。我认为没有任何一个成功的项目能够单纯成长在技术的温室中，项目的包装是项目真正成为<strong>产品</strong>所不得不经历的工作。通过这样的工作，让技术人的智慧成果被更多人了解、使用和赏识，我认为这是十分有意义的。何况，在花旗的答辩场上，金玉其外、败絮其中的项目都被资深的评委老师们毫不留情地迅速戳破。</p>
+<p>整个过程确实很累很苦，尤其是最末期，网站的前端基本上一天加好几个功能，我也很骄傲我坚持了下来。在走出答辩场地后，我们五个人在楼下花旗杯决赛的展牌前合影。在空间 po 出照片时，我配的字是“我感觉毕了业”。因为我在那一刻的感觉大概和《中国有嘻哈》欧阳靖在结束最后一次的表演时一样，如释重负，而又如获新生。</p>
+<p>看看自己的码云，整个前端项目都是我的 commit，哈哈：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-472d42ef0cb3ff5d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="huaqi-commit.jpg"></p>
+<p>这次花旗杯的参赛经历对我来说是一次十分难忘的经历，在前端技术层面上有机会接触到很多新东西和新问题，提升很大。鉴于国软院有通知渠道并推荐参加的有含金量的比赛确实不多，我十分推荐学弟学妹们参加花旗杯。当然，下一届的学弟学妹如若进入决赛，大概要去东北挨冻了。另外，我也很欢迎有学弟学妹在明年联系我，作为项目方向、团队管理、答辩展示的一个咨询人员。</p>
+<h2 id="团队开发的经验"><a href="#团队开发的经验" class="headerlink" title="团队开发的经验"></a>团队开发的经验</h2><p><img src="/images/huaqi-team.png" alt="huaqi-team"></p>
+<p>这次花旗杯应该就是我本科中第一次，也是最后一次相对来说的大型团队开发项目了。数十人的团队开发在大学里是十分难得的经验，我也学到了很多，尤其是那些我们没有做的很好的环节，例如分工、沟通、日程规划等。以下是几条建议：</p>
+<ul>
+<li>队长应该<strong>主动</strong>和各部分负责人沟通，确定进度。</li>
+<li>工作分配和修改必须要明确到人，并且利用好在线可查看可修改的备忘文件，例如石墨文档等。</li>
+<li>日程规划应在与各负责人协调的情况下，预留一定的缓冲时间。</li>
+</ul>
+<p>作为最初始的成员，我看着团队成员不断增加，也看到有些成员因为各种原因自己选择退出了这个项目。对于中途退出的成员，我们虽然没有给他们前期的努力以回报，但理解他们并心存感激；但我也看到有极少部分成员对这个项目缺少投入。不论是因为确实身兼数职、分身乏术，还是企图偷懒、不劳而获，我都认为这是缺乏责任心的表现。我理解在接近七个月的项目开发中，感到怠惰、信心不足是正常的表现，我自己也有过这样的心理。但是在整个项目中，如果你所做的努力远远少于其他人，最终却分享同样的荣誉，这不但拖累了项目的进度，对整个项目组的士气更有着极其不良的影响。因此，选择团队成员也是修行的一种，而及时止损也是选择的一种。</p>
+<p>对我自己来说，由于我个人的交际不是很广，没有太多的参与这次项目成员的挑选过程。通过这次经历，我也认识到广交朋友的益处，会努力在保证交友质量的前提去结识更多人。另外，在以后的项目开发中，我希望在个人技术水平达标的前提下，我能够承担起组长的重任，让整个团队有更好的开发积极性和管理秩序，同时挑战自我，获得进步。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>在这七个月里，我也对自己的性格缺陷进行了审视。我不太好意思向大家列举这些性格缺陷，但它们使我在包括花旗项目在内的学习过程中，甚至是在大学生涯的为人处事、个人发展等各方面遇到了不少挫折。我对未来我在性格方面的改善和转变有一些期许。我也不是很喜欢我现在的生活方式，希望能让它变得更加多彩。</p>
+<p>我走到了花旗杯的终点。但对我来说，还有很多的起点。我希望在未来的日子里，我能够更加坚定、更加拼搏、更加成熟、更加不甘平庸。这很难，我希望我能够做到。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/new-end-new-start/" title="花旗杯-新的终点，新的起点">https://kyonhuang.top/blog/new-end-new-start/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E9%9A%8F%E7%AC%94/" rel="tag"># 随笔</a>
+              <a href="/blog/tags/%E8%8A%B1%E6%97%97%E6%9D%AF/" rel="tag"># 花旗杯</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/intro-to-data-preprocessing/" rel="prev" title="数据预处理及常用处理方法">
+                  <i class="fa fa-chevron-left"></i> 数据预处理及常用处理方法
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/dynamic-programming/" rel="next" title="算法一篇通——动态规划">
+                  算法一篇通——动态规划 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

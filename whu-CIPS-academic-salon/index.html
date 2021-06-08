@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="趁着余兴未尽，来将今天早上参加的讲座记录一下。很幸运周四在教学楼下看到了这次活动的海报。本次系列讲座是 CIPS 青工委（中国中文信息学会青年工作委员会）在武汉大学的一次活动，主持人是武大的李晨亮老师，嘉宾包括清华的刘洋老师、刘知远老师、张敏老师，天津大学的张鹏老师和北大的严睿老师。五名老师在其所关注的细分领域各有建树，全是自然语言处理和信息检索领域的大牛。接下来以老师报告的顺序大概介绍一下各位老">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记 CIPS 青工委武汉大学系列讲座">
+<meta property="og:url" content="https://kyonhuang.top/blog/whu-CIPS-academic-salon/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="趁着余兴未尽，来将今天早上参加的讲座记录一下。很幸运周四在教学楼下看到了这次活动的海报。本次系列讲座是 CIPS 青工委（中国中文信息学会青年工作委员会）在武汉大学的一次活动，主持人是武大的李晨亮老师，嘉宾包括清华的刘洋老师、刘知远老师、张敏老师，天津大学的张鹏老师和北大的严睿老师。五名老师在其所关注的细分领域各有建树，全是自然语言处理和信息检索领域的大牛。接下来以老师报告的顺序大概介绍一下各位老">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/1.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/2.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/3.jpg">
+<meta property="article:published_time" content="2018-03-24T11:39:29.000Z">
+<meta property="article:modified_time" content="2019-05-11T02:26:10.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="自然语言处理">
+<meta property="article:tag" content="讲座">
+<meta property="article:tag" content="CIPS 青工委">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/1.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/whu-CIPS-academic-salon/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;whu-CIPS-academic-salon&#x2F;&quot;,&quot;path&quot;:&quot;whu-CIPS-academic-salon&#x2F;&quot;,&quot;title&quot;:&quot;记 CIPS 青工委武汉大学系列讲座&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>记 CIPS 青工委武汉大学系列讲座 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%98%E6%B4%8B%E3%80%8A%E5%9F%BA%E4%BA%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BF%BB%E8%AF%91%E3%80%8B"><span class="nav-number">1.</span> <span class="nav-text">刘洋《基于深度学习的机器翻译》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A5%E7%9D%BF%E3%80%8A%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9C%A8%E4%BA%BA%E6%9C%BA%E5%AF%B9%E8%AF%9D%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E6%8A%80%E6%9C%AF%E7%8E%B0%E7%8A%B6%E4%B8%8E%E6%8C%91%E6%88%98%E3%80%8B"><span class="nav-number">2.</span> <span class="nav-text">严睿《人工智能在人机对话系统中的技术现状与挑战》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%A0%E6%95%8F%E3%80%8A%E7%94%A8%E6%88%B7%E6%BB%A1%E6%84%8F%E7%9A%84%E5%BC%82%E8%B4%A8%E5%8F%AF%E8%A7%A3%E9%87%8A%E7%9A%84%E6%8E%A8%E8%8D%90%EF%BC%9ATHUIR%E5%B7%A5%E4%BD%9C%E8%BF%9B%E5%B1%95%E3%80%8B"><span class="nav-number">3.</span> <span class="nav-text">张敏《用户满意的异质可解释的推荐：THUIR工作进展》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%A0%E9%B9%8F%E3%80%8A%E9%87%8F%E5%AD%90%E5%8A%9B%E5%AD%A6%E5%90%AF%E5%8F%91%E7%9A%84%E4%BF%A1%E6%81%AF%E6%A3%80%E7%B4%A2%E5%92%8C%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E3%80%8B"><span class="nav-number">4.</span> <span class="nav-text">张鹏《量子力学启发的信息检索和自然语言处理》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%98%E7%9F%A5%E8%BF%9C%E3%80%8A%E7%9F%A5%E8%AF%86%E8%A1%A8%E7%A4%BA%E5%AD%A6%E4%B9%A0%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E3%80%8B"><span class="nav-number">5.</span> <span class="nav-text">刘知远《知识表示学习及其应用》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%98%E5%BA%B7%E3%80%8A%E5%9F%BA%E4%BA%8E%E5%BC%B1%E6%A0%87%E6%B3%A8%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E7%9F%A5%E8%AF%86%E6%8A%BD%E5%8F%96%E3%80%8B"><span class="nav-number">6.</span> <span class="nav-text">刘康《基于弱标注的大规模知识抽取》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E4%BD%93%E6%84%9F%E5%8F%97"><span class="nav-number">7.</span> <span class="nav-text">总体感受</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/whu-CIPS-academic-salon/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记 CIPS 青工委武汉大学系列讲座
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-03-24 19:39:29" itemprop="dateCreated datePublished" datetime="2018-03-24T19:39:29+08:00">2018-03-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-05-11 10:26:10" itemprop="dateModified" datetime="2019-05-11T10:26:10+08:00">2019-05-11</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%B2%E5%BA%A7%E5%BF%83%E5%BE%97%E8%AE%B0%E5%BD%95/" itemprop="url" rel="index"><span itemprop="name">讲座心得记录</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>趁着余兴未尽，来将今天早上参加的讲座记录一下。很幸运周四在教学楼下看到了这次活动的海报。本次系列讲座是 CIPS 青工委（中国中文信息学会青年工作委员会）在武汉大学的一次活动，主持人是武大的李晨亮老师，嘉宾包括清华的刘洋老师、刘知远老师、张敏老师，天津大学的张鹏老师和北大的严睿老师。五名老师在其所关注的细分领域各有建树，全是自然语言处理和信息检索领域的大牛。接下来以老师报告的顺序大概介绍一下各位老师的报告内容，和我对各位老师的感受。因为我忘记带拍照用的手机了，因此没有照片，而且笔记也不完整，部分理解可能有偏差，尽请见谅。</p>
+<p>2018.04.03 更新：更新上周五中科院自动化所刘康老师的讲座笔记。</p>
+<span id="more"></span>
+
+<h2 id="刘洋《基于深度学习的机器翻译》"><a href="#刘洋《基于深度学习的机器翻译》" class="headerlink" title="刘洋《基于深度学习的机器翻译》"></a>刘洋《基于深度学习的机器翻译》</h2><p>首先是委员会主任刘洋老师的报告。PPT 与他主页上 <a target="_blank" rel="noopener" href="http://nlp.csai.tsinghua.edu.cn/~ly/talks/cwmt2016_ly_v3_160826.pptx">Advances in Neural Machne Translation</a> 的内容有 70% 是一致的，可以据此了解一下。</p>
+<p>刘洋老师主要介绍了机器翻译的发展，从规则机器翻译 -&gt; 统计机器翻译 -&gt; 神经机器翻译，人们关注的重点也从规则到特征，最后变到架构。他认为神经机器翻译的可研究方向还包括架构学习（让机器学习架构来得到表现更好的，而非人类手工调整）、先验知识融合、单词学习、高效算法、可解释性等等。</p>
+<p>总体来说，刘洋老师的报告是五场报告中最容易理解的，他在其中加入了很多例子帮助理解，而非一味堆积 paper 成果。</p>
+<p>有观众提出问题，认为目前的机器翻译还缺少和人的感觉相配的评价指标。例如，如果机器将人名翻译错误，相似度降低很少，但是用户的使用体验就很差。另外，机器翻译用于商业时达成度不够。刘洋老师也认同目前存在这问题。</p>
+<p>刘洋老师真人比主页上的照片看起来帅一些，年轻一些。另外，坐在我前面一排的小朋友应该是刘洋老师的儿子，整个讲座过程中都非常安静，很难得，也显出刘洋老师家教有方。</p>
+<h2 id="严睿《人工智能在人机对话系统中的技术现状与挑战》"><a href="#严睿《人工智能在人机对话系统中的技术现状与挑战》" class="headerlink" title="严睿《人工智能在人机对话系统中的技术现状与挑战》"></a>严睿《人工智能在人机对话系统中的技术现状与挑战》</h2><p>严睿老师主要介绍了人机对话的一些现状，包括：</p>
+<ul>
+<li><p>分类：</p>
+<ul>
+<li>按领域：开放领域 / 垂直领域：医疗、金融、法律…</li>
+<li>按回复方式：检索式（目前业界主流） / 生成式（下一代潮流：深度学习加持） / 综合式</li>
+<li>主动 / 被动</li>
+<li>…</li>
+</ul>
+</li>
+<li><p>算法：</p>
+<ul>
+<li>上下文信息</li>
+<li>知识库信息（世界知识）</li>
+<li>语意逻辑信息 </li>
+</ul>
+</li>
+<li><p>挑战：</p>
+<ul>
+<li>源自人类认知直觉的剖析</li>
+<li>相关性、趣味性、信息量、情感化</li>
+</ul>
+</li>
+</ul>
+<p>另外，介绍了较多的 paper 的工作。</p>
+<p>严睿老师语速比较快，给我的感觉是思路很活跃。另外，讲完后不久他就离场了，不知道是不是去看樱花去了，哈哈。</p>
+<h2 id="张敏《用户满意的异质可解释的推荐：THUIR工作进展》"><a href="#张敏《用户满意的异质可解释的推荐：THUIR工作进展》" class="headerlink" title="张敏《用户满意的异质可解释的推荐：THUIR工作进展》"></a>张敏《用户满意的异质可解释的推荐：THUIR工作进展》</h2><p>张敏老师主要介绍了自己所在的 THUIR 研究组对于推荐系统的一些工作，包括：</p>
+<ol>
+<li>可解释推荐。</li>
+<li>时间对推荐的影响（也算是可解释性）：ARIMA 时间序列模型。</li>
+<li>社会关系对推荐的影响（抑制的信息）：不认识不代表负类，而是在之后会认识的概率上在进行标识。并且也使用了迁移学习。</li>
+<li>用户满意度：多样性 vs 满意度。</li>
+<li>用户理解：群体推荐的公平性和满意度。</li>
+</ol>
+<p>张敏老师的工作应该是五场报告中我最感兴趣的。活动后我斗胆去询问她是否还有学硕或者直博的名额，可惜她的名额已经满了（抢手到可怕），让我给她发邮件看研究组里另外两位老师是否还有名额。（更新：张老师课题组名额全满了）</p>
+<h2 id="张鹏《量子力学启发的信息检索和自然语言处理》"><a href="#张鹏《量子力学启发的信息检索和自然语言处理》" class="headerlink" title="张鹏《量子力学启发的信息检索和自然语言处理》"></a>张鹏《量子力学启发的信息检索和自然语言处理》</h2><p>张鹏老师研究的问题比较新颖，将深度学习和量子计算结合起来。他所在的 TJU’s Quantum IR/NLP group 应该在这方面做了不少工作，但是我们可能就对这个方向不是很了解了。讲着讲着薛定谔的猫也出来了，有点懵…唯一一个报告完后没有学生提问的。老师人还是很和蔼的。</p>
+<h2 id="刘知远《知识表示学习及其应用》"><a href="#刘知远《知识表示学习及其应用》" class="headerlink" title="刘知远《知识表示学习及其应用》"></a>刘知远《知识表示学习及其应用》</h2><p>最后是知乎网红刘知远老师。PPT 和他主页上的<a target="_blank" rel="noopener" href="http://thunlp.org/~lzy/talks/nrl2017.pdf">社会计算与表示学习</a> 前一半内容基本相同，后一半是介绍自己的近期工作。</p>
+<p>刘老师首先介绍了知识图谱实体与关系。知识图谱的典型表示方案是基于符号表示的三元组（RDF），但是无法有效计算实体间的语义关系，解决方案是将知识映射到低维向量空间。</p>
+<p>之后，介绍了 TransE：将关系表示为从 head 到 tail 的翻译操作，和融合文本和知识进行关系抽取等。具体内容可以看 PPT，个人水平有限，难以总结。</p>
+<p>老师目前主要关注大规模知识图谱的应用，包括关系抽取、实体对齐（不同领域的知识图谱的结合）、实体分类等。介绍了开源平台：<a target="_blank" rel="noopener" href="http://openke.thunlp.org/">http://openke.thunlp.org/</a>。顺便一提，刘老师凌晨两点发了一条微博，表示整理了自己的一些工作，开源了相关代码，赞！</p>
+<p>未来工作方向：</p>
+<ul>
+<li>利用表示学习技术将知识图谱用于相关领域（信息检索、推荐系统）</li>
+<li>利用表示学习技术改进知识获取能力（富语境信息抽取、开放关系抽取、开放事件抽取）</li>
+</ul>
+<p>刘知远老师在知乎上对于学术科研写了不少回答，对我很有帮助。个人关注了他的微博和知乎。不过现场感觉刘老师比知乎上给人的感觉要更有威慑力一些…</p>
+<h2 id="刘康《基于弱标注的大规模知识抽取》"><a href="#刘康《基于弱标注的大规模知识抽取》" class="headerlink" title="刘康《基于弱标注的大规模知识抽取》"></a>刘康《基于弱标注的大规模知识抽取》</h2><p>在第一次讲座后一周，中科院自动化所的刘康老师也来到武大，对知识抽取的现状以及研究组在这方面的工作进行了介绍。以下是一个比较抽象的笔记：</p>
+<p>非结构化文本 =&gt; 知识</p>
+<p>知识图谱类型：</p>
+<ol>
+<li>实体 - 实体(三元组) 头实体-关系-尾实体</li>
+<li>事件为中心：可能有一个事件和多个实体</li>
+</ol>
+<p>构建知识图谱：</p>
+<ul>
+<li>关系抽取 / 事件抽取：动词作为触发词    挑战：开放的关系<ol>
+<li>在一句话中确定两个实体的关系（和分类任务相似）</li>
+<li>不给定具体上下文，要求一对实体的关系（方法：在文本中回标）</li>
+</ol>
+</li>
+</ul>
+<p>特征表示：</p>
+<ul>
+<li>用 DL（CNN）</li>
+<li>刘老师的工作：<ul>
+<li>Position Embeddings：记录实体的相对位置 </li>
+<li>Dynamic Multi-Pooling and Piece-wise MaxPooling：每一段做一个最大池化</li>
+</ul>
+</li>
+</ul>
+<p>自动标注大量训练数据：</p>
+<ul>
+<li>回标：将已找到的实体三元组在文本中回找，所有对应的语句都可以当作正样本 =&gt; 问题：关系可能不一样</li>
+<li>以上策略不能用于以事件为中心的知识：找不到事件所具体对应的字符串</li>
+<li>动词作为触发词，找其他实体 =&gt; 问题：在一句话中不会有全部的实体 =&gt; 找关键的 arguments（实体） =&gt; 如何找 key arguments？TF-IDF、相似度…</li>
+</ul>
+<p>训练策略：如何减少噪声的影响？</p>
+<ul>
+<li>Multi-Instance Learning</li>
+<li>Attention </li>
+<li>transE：三元组中，实体为点，关系为向量</li>
+</ul>
+<p>最新的工作：强化学习</p>
+<p>落地：从金融、法律公告中抽取结构化的知识</p>
+<ul>
+<li>文本分类（分析具体是哪种类型的事件 -&gt; Event Identification -&gt; 没记下来…</li>
+</ul>
+<p>老师展示了一个根据以上想法已经成型的 Web 应用。</p>
+<h2 id="总体感受"><a href="#总体感受" class="headerlink" title="总体感受"></a>总体感受</h2><p>各位老师都介绍了各自研究的领域、面临的问题以及目前的一些工作，让我能够在走上学术之路前能够充分了解自然语言处理和信息检索的一些研究方向，对我有很大的启发。</p>
+<p>现场的人数还是比较多的，临时换了一个更大的教室。刘知远老师报告时统计了一下在场的本科生，包括我在内的大约 10 人。让我没有想到的是，在场很多的研究生确实对不同老师的方向各有见解，提出了比较有深度的问题。武大啥时候冒出这么多自然语言处理方向的研究生啊，以前完全不知道，原来计院卧虎藏龙。</p>
+<p>也不知道该怎么结束这篇博文了。给大家欣赏一下我下午摄影实习照的樱花好了。</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/1.jpg" />
+
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/2.jpg" />
+
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/3.jpg" />
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/whu-CIPS-academic-salon/" title="记 CIPS 青工委武汉大学系列讲座">https://kyonhuang.top/blog/whu-CIPS-academic-salon/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" rel="tag"># 自然语言处理</a>
+              <a href="/blog/tags/%E8%AE%B2%E5%BA%A7/" rel="tag"># 讲座</a>
+              <a href="/blog/tags/CIPS-%E9%9D%92%E5%B7%A5%E5%A7%94/" rel="tag"># CIPS 青工委</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/kaggle-titanic-1/" rel="prev" title="Kaggle Titanic 生存预测--特征工程">
+                  <i class="fa fa-chevron-left"></i> Kaggle Titanic 生存预测--特征工程
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/5-days-data-cleaning/" rel="next" title="数据清理 5 天挑战">
+                  数据清理 5 天挑战 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="这篇论文综述已经成文比较久了，是四月上旬写成的。“基于设备行为特征的用户身份认证”是朱老师给我的一个题目，希望我能在阅读论文后有一些想法，并做实验去实现。 这篇文章算是一个阶段性总结，但是我们并没有一个具体的好的 idea，我这学期时间比较紧张，也不太好漫无目的地写程序做实验找实验者得到数据再以此找 idea，因此暂时搁置去做其他的工作。但是也算是我在实验室的工作之一，锻炼了我读论文的能力。希望大">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文综述 - 基于设备行为特征的用户身份认证">
+<meta property="og:url" content="https://kyonhuang.top/blog/user-authentication-of-behavioral-biometrics-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="这篇论文综述已经成文比较久了，是四月上旬写成的。“基于设备行为特征的用户身份认证”是朱老师给我的一个题目，希望我能在阅读论文后有一些想法，并做实验去实现。 这篇文章算是一个阶段性总结，但是我们并没有一个具体的好的 idea，我这学期时间比较紧张，也不太好漫无目的地写程序做实验找实验者得到数据再以此找 idea，因此暂时搁置去做其他的工作。但是也算是我在实验室的工作之一，锻炼了我读论文的能力。希望大">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://user-images.githubusercontent.com/18595460/38462995-1b1cdfce-3b22-11e8-8693-cafda9807f44.png">
+<meta property="article:published_time" content="2018-06-06T09:29:13.000Z">
+<meta property="article:modified_time" content="2019-09-06T08:34:38.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="综述">
+<meta property="article:tag" content="身份认证">
+<meta property="article:tag" content="行为特征">
+<meta property="article:tag" content="生物行为统计学">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/18595460/38462995-1b1cdfce-3b22-11e8-8693-cafda9807f44.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/user-authentication-of-behavioral-biometrics-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;user-authentication-of-behavioral-biometrics-notes&#x2F;&quot;,&quot;path&quot;:&quot;user-authentication-of-behavioral-biometrics-notes&#x2F;&quot;,&quot;title&quot;:&quot;论文综述 - 基于设备行为特征的用户身份认证&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>论文综述 - 基于设备行为特征的用户身份认证 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E6%80%BB%E4%BD%93%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">论文总体背景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">研究背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87"><span class="nav-number">1.2.</span> <span class="nav-text">评估指标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E8%AE%BA%E6%96%87%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">具体论文介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E9%BC%A0%E6%A0%87%E8%A1%8C%E4%B8%BA%E7%89%B9%E5%BE%81%E7%9A%84%E7%94%A8%E6%88%B7%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E4%B8%8E%E7%9B%91%E6%8E%A7-1"><span class="nav-number">2.1.</span> <span class="nav-text">基于鼠标行为特征的用户身份认证与监控[1]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#User-Authentication-using-Combination-of-Behavioral-Biometrics-over-the-Touchpad-acting-like-Touch-screen-of-Mobile-Device-2"><span class="nav-number">2.2.</span> <span class="nav-text">User Authentication using Combination of Behavioral Biometrics over the Touchpad acting like Touch screen of Mobile Device[2]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%AE%9E%E6%97%B6%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%9A%84%E6%96%B9%E6%B3%95%E7%A0%94%E7%A9%B6-3"><span class="nav-number">2.3.</span> <span class="nav-text">动态实时身份认证的方法研究[3]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%8C%E4%B8%BA%E6%88%AA%E8%8E%B7%E6%8A%80%E6%9C%AF%E5%AF%B9%E9%BC%A0%E6%A0%87%E5%8A%A8%E5%8A%9B%E5%AD%A6%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%9A%84%E5%BD%B1%E5%93%8D-4"><span class="nav-number">2.4.</span> <span class="nav-text">行为截获技术对鼠标动力学身份认证的影响[4]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A-Practical-Real-Time-Authentication-System-with-Identity-Tracking-Based-on-Mouse-Dynamics-5"><span class="nav-number">2.5.</span> <span class="nav-text">A Practical Real-Time Authentication System with Identity Tracking Based on Mouse Dynamics[5]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Verification-of-Computer-Users-Using-Keystroke-Dynamics-6"><span class="nav-number">2.6.</span> <span class="nav-text">Verification of Computer Users Using Keystroke Dynamics[6]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#User-Re-Authentication-via-Mouse-Movements-7"><span class="nav-number">2.7.</span> <span class="nav-text">User Re-Authentication via Mouse Movements[7]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-detection-of-faked-identity-using-unexpected-questions-and-mouse-dynamics-8"><span class="nav-number">2.8.</span> <span class="nav-text">The detection of faked identity using unexpected questions and mouse dynamics[8]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Keystroke-dynamics-as-a-biometric-for-authentication-9"><span class="nav-number">2.9.</span> <span class="nav-text">Keystroke dynamics as a biometric for authentication[9]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HMOG-New-Behavioral-Biometric-Features-for-Continuous-Authentication-of-Smartphone-Users-10"><span class="nav-number">2.10.</span> <span class="nav-text">HMOG: New Behavioral Biometric Features for Continuous Authentication of Smartphone Users[10]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Silent-User-Identification-Via-Touch-and-Movement-Behavioral-Biometrics-11"><span class="nav-number">2.11.</span> <span class="nav-text">Silent User Identification Via Touch and Movement Behavioral Biometrics[11]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit-Smartphone-User-Authentication-with-Sensors-and-Contextual-Machine-Learning-12"><span class="nav-number">2.12.</span> <span class="nav-text">Implicit Smartphone User Authentication with Sensors and Contextual Machine Learning[12]</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E4%BB%A5%E6%B7%B1%E5%85%A5%E7%A0%94%E7%A9%B6%E7%9A%84%E6%96%B9%E5%90%91"><span class="nav-number">3.</span> <span class="nav-text">可以深入研究的方向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E5%88%97%E8%A1%A8"><span class="nav-number">4.</span> <span class="nav-text">论文列表</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/user-authentication-of-behavioral-biometrics-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          论文综述 - 基于设备行为特征的用户身份认证
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-06-06 17:29:13" itemprop="dateCreated datePublished" datetime="2018-06-06T17:29:13+08:00">2018-06-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-09-06 16:34:38" itemprop="dateModified" datetime="2019-09-06T16:34:38+08:00">2019-09-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>这篇论文综述已经成文比较久了，是四月上旬写成的。“基于设备行为特征的用户身份认证”是朱老师给我的一个题目，希望我能在阅读论文后有一些想法，并做实验去实现。</p>
+<p>这篇文章算是一个阶段性总结，但是我们并没有一个具体的好的 idea，我这学期时间比较紧张，也不太好漫无目的地写程序做实验找实验者得到数据再以此找 idea，因此暂时搁置去做其他的工作。但是也算是我在实验室的工作之一，锻炼了我读论文的能力。希望大四有机会看能不能进一步做出一些成果。</p>
+<p>对了，我知道这不是一篇合格或者说合乎规范的论文综述。</p>
+<h2 id="论文总体背景"><a href="#论文总体背景" class="headerlink" title="论文总体背景"></a>论文总体背景</h2><h3 id="研究背景"><a href="#研究背景" class="headerlink" title="研究背景"></a>研究背景</h3><p>身份认证是指用户声明自己的身份并利用相关特征数据来证实该身份，将该用户的相关特征数据与其声明用户的模板进行比较，是一种一对一的匹配方法。安全的身份认证是保证计算机及网络系统安全的基本前提。现有的身份认证技术主要包括三类，分别利用了不同的信息:</p>
+<ol>
+<li>记忆信息，如密码、PIN 等；</li>
+<li>辅助设备、如 ID 卡、令牌等；</li>
+<li>生物特征，如指纹，虹膜等。</li>
+</ol>
+<p>这些传统的识别技术自身均存有缺陷，如密码难于记忆并容易搞混和泄露，ID 卡需要随身携带且易失窃或失效，生物认证需要额外的硬件设备。鉴于此，研究人员仍然在不断寻找新的身份认证手段和方法。[1]</p>
+<p><strong>基于设备行为特征的用户身份认证</strong>是研究通过键盘、鼠标等计算机输入设备以及触摸屏、陀螺仪等移动终端设备的使用行为特征来识别计算机操作者身份的可行性及相关方法。该研究基于所有用户在设备上进行操作的行为特征不尽相同的<strong>假设</strong>。因为其有着不需要额外的设备、在当前大多数计算机系统中可以直接部署、认证和监控期间对用户几乎无干扰等优点，因此逐渐成为身份认证研究中的新热点。除开网络安全、机器学习，该问题也被归于<strong>生物行为统计学（Behavioral Biometrics）</strong>。</p>
+<span id="more"></span>
+
+<h3 id="评估指标"><a href="#评估指标" class="headerlink" title="评估指标"></a>评估指标</h3><p>在该研究中中，对模型或系统性能的评估指标通常与生物统计学中类似问题相同，定义如下：</p>
+<ul>
+<li>False Acceptance Rate（错误接受率，FAR）：冒名顶替者被系统接受的百分比；</li>
+<li>False Rejection Rate（错误拒绝率，FRR）：真实授权用户被系统拒绝的百分比；</li>
+<li>Equal Error Rate（等错误率，EER）：错误接受率和错误拒绝率相等时的错误率，即前两者相交的点。[2]</li>
+</ul>
+<h2 id="具体论文介绍"><a href="#具体论文介绍" class="headerlink" title="具体论文介绍"></a>具体论文介绍</h2><h3 id="基于鼠标行为特征的用户身份认证与监控-1"><a href="#基于鼠标行为特征的用户身份认证与监控-1" class="headerlink" title="基于鼠标行为特征的用户身份认证与监控[1]"></a>基于鼠标行为特征的用户身份认证与监控[1]</h3><p>本文对 20 个用户 2 个月的鼠标行为数据进行比较分析，结合 SVM（支持向量机）建立模型。</p>
+<p>本文的亮点是提出了一种基于顺序前进贪婪搜索和支持向量机的特征组合选择算法，以降低鼠标特征空间的维数，显著提高身份认证和监控的准确度。错误接受率为 1.67%，错误拒绝率为 3.68%。</p>
+<h3 id="User-Authentication-using-Combination-of-Behavioral-Biometrics-over-the-Touchpad-acting-like-Touch-screen-of-Mobile-Device-2"><a href="#User-Authentication-using-Combination-of-Behavioral-Biometrics-over-the-Touchpad-acting-like-Touch-screen-of-Mobile-Device-2" class="headerlink" title="User Authentication using Combination of Behavioral Biometrics over the Touchpad acting like Touch screen of Mobile Device[2]"></a>User Authentication using Combination of Behavioral Biometrics over the Touchpad acting like Touch screen of Mobile Device[2]</h3><p>本文的研究成果表明，在触摸屏设备上，用 k-NN 分类方法，手指压力比击键力学更能给出判别信息。此外，仅使用手指压力，准确度高达99%。</p>
+<p>本文的优点是详细地介绍了生物统计学，以及数据采集使用的设备和方法。</p>
+<h3 id="动态实时身份认证的方法研究-3"><a href="#动态实时身份认证的方法研究-3" class="headerlink" title="动态实时身份认证的方法研究[3]"></a>动态实时身份认证的方法研究[3]</h3><p>本文研究的前提是介入式场景的身份认证需要的时间短（几秒内），但是人的短时行为不稳定，影响准确率；而认证时间长，内部攻击可能已经完成。</p>
+<p>本文研究重点在于动态场景和固定场景配合的身份认证。动态场景中，系统等待合适的时机注入异常事件，构建包括鼠标光标的跳变、隐藏和呆滞 3 种异常场景，采集用户在异常发生时的鼠标行为；在连续两次动态身份认证异常后，系统引导用户进入固定场景（本文在此设计了一款记忆性的拼图游戏）以长时间采集行为数据，确定是判断为用户正常、更新模版库还是判断为伪造用户并报警。</p>
+<p>本文的亮点是提出了一种全场景身份认证系统，动态用场景和固定场景的配合克服固定场景无法实时身份认证的弊端，而且保证了用户体验和资源节省。错误接受率为 1.8%，错误拒绝率为 3.0%，平均认证时间仅需 8.12s。</p>
+<h3 id="行为截获技术对鼠标动力学身份认证的影响-4"><a href="#行为截获技术对鼠标动力学身份认证的影响-4" class="headerlink" title="行为截获技术对鼠标动力学身份认证的影响[4]"></a>行为截获技术对鼠标动力学身份认证的影响[4]</h3><p>本文研究了三种截获用户鼠标行为数据的方法：消息钩子、WM_INPUT 消息处理和过滤驱动，在采样时钟分辨率、时间精度、位置信息等方面分析了不同方法所获取的数据之间的区别，并利用神经网络分类器构建了身份认证模型。</p>
+<p>本文的结论是三种行为截获技术中，消息钩子方法截获的数据时间准确性高，轨迹位置表示的误差较小，用于身份认证的效果较好。</p>
+<p>本文的亮点是研究重点另辟蹊径，放在了行为截获技术这一特征采集的源头。</p>
+<h3 id="A-Practical-Real-Time-Authentication-System-with-Identity-Tracking-Based-on-Mouse-Dynamics-5"><a href="#A-Practical-Real-Time-Authentication-System-with-Identity-Tracking-Based-on-Mouse-Dynamics-5" class="headerlink" title="A Practical Real-Time Authentication System with Identity Tracking Based on Mouse Dynamics[5]"></a>A Practical Real-Time Authentication System with Identity Tracking Based on Mouse Dynamics[5]</h3><p>本文提出了一种基于鼠标动态的实时认证方法，称为PAITS（Practical Authentication with Identity Tracking System）。该方法也是通过注入异常事件，与“动态实时身份认证的方法研究”一文相比，优点在于数据集更大：12 个志愿者，1038 个鼠标会话。</p>
+<h3 id="Verification-of-Computer-Users-Using-Keystroke-Dynamics-6"><a href="#Verification-of-Computer-Users-Using-Keystroke-Dynamics-6" class="headerlink" title="Verification of Computer Users Using Keystroke Dynamics[6]"></a>Verification of Computer Users Using Keystroke Dynamics[6]</h3><p>本文的特点在于采用了模糊 ARTMAP、径向基函数网络（RBFN）和学习矢量量化（LVQ）神经网络模型等一些较为少见的神经网络模型，声称在特征选用按键持续时间与按键间隔时间相结合时识别准确率最好能够达到 100%。考虑到本文发表的时间（1997年），如今常用的神经网络理应有更好的分类效果，因此怀疑以上表现的原因是数据集较小。</p>
+<h3 id="User-Re-Authentication-via-Mouse-Movements-7"><a href="#User-Re-Authentication-via-Mouse-Movements-7" class="headerlink" title="User Re-Authentication via Mouse Movements[7]"></a>User Re-Authentication via Mouse Movements[7]</h3><p>通过突然的警报来构建动态场景，根据鼠标移动行为来进行用户认证。假阳性率为0.43%，假阴性率为1.75%。可能是因为发表时间较早（2004 年），与其余论文比没有感觉有特别突出的亮点。</p>
+<h3 id="The-detection-of-faked-identity-using-unexpected-questions-and-mouse-dynamics-8"><a href="#The-detection-of-faked-identity-using-unexpected-questions-and-mouse-dynamics-8" class="headerlink" title="The detection of faked identity using unexpected questions and mouse dynamics[8]"></a>The detection of faked identity using unexpected questions and mouse dynamics[8]</h3><p>本文的研究前提和其他论文不太相似，不需要保存有声明用户的行为特征数据，而基于记忆检测（RT-based memory detection），通过通过鼠标轨迹有效检测伪造身份。</p>
+<p>本文的实验场景中，要求被试者采用假身份并通过已知的信息进行排练，以达到伪装的目的。他们需要在现场的监测人员的监督下，在电脑上回答问题。问题分为了可预测问题（准备好答案的身份相关问题，例如出生年月）、不可预测问题（没有做好反应准备的身份相关问题，例如属相）和控制问题（包含个人信息且必须正确回答，因为这些问题的真实答案对于现场的监测人员是透明的，例如肤色）。对于不可预测问题，会在反应时间、错误数量以及鼠标轨迹上反映出来。</p>
+<p>本文选取的特征数量较多（13个），在此之上选取了效果最好的 4 个进行训练，并使用了四种分类器：随机森林、Logistic、支持向量机和 Logistic Model Tree，用 10 折交叉验证来表明结果的可靠性。</p>
+<p>本文的缺点在于数据集太少（不到 100 个样本）、数据分布缺少泛化性（被试者只有意大利和德国人）、只用了准确率做评估指标（没有使用 FAR、FRR、EER）。</p>
+<h3 id="Keystroke-dynamics-as-a-biometric-for-authentication-9"><a href="#Keystroke-dynamics-as-a-biometric-for-authentication-9" class="headerlink" title="Keystroke dynamics as a biometric for authentication[9]"></a>Keystroke dynamics as a biometric for authentication[9]</h3><p>本文的亮点：</p>
+<ol>
+<li>提出一些基于击键特征的具体应用场景，例如任何访问服务器的用户都会被提示输入一些与他/她的用户名和密码相关联的短语。如果他/她的键入模式匹配在声明的标识的合理阈值内，则授予访问权限；或者通过检测打字节奏来判断困倦、疲劳等用户非正常状态，用于空中交通控制等；</li>
+<li>主张使用结构化文本，而非任意文本（或称自由文本）来获得用户击键数据。</li>
+</ol>
+<h3 id="HMOG-New-Behavioral-Biometric-Features-for-Continuous-Authentication-of-Smartphone-Users-10"><a href="#HMOG-New-Behavioral-Biometric-Features-for-Continuous-Authentication-of-Smartphone-Users-10" class="headerlink" title="HMOG: New Behavioral Biometric Features for Continuous Authentication of Smartphone Users[10]"></a>HMOG: New Behavioral Biometric Features for Continuous Authentication of Smartphone Users[10]</h3><p>本文引入了一套行为特征，称为 HMOG（hand movement, orientation, and grasp，手的移动、定位和抓取），对移动设备上三种特征（HMOG、击键和轻触）单独和结合时分类结果进行了综合评价。</p>
+<p>本文的亮点：</p>
+<ol>
+<li>讨论了在坐着和行走两种情况下收集到的数据的不同。坐着时 EER 为 10.05%，行走时 EER 为 7.16%，行走时数据使用时效果更好的原因是 HMOG 特征能够捕捉到行走所引起的独特的身体动作；</li>
+<li>分析了认证过程对移动设备能耗的影响。</li>
+</ol>
+<h3 id="Silent-User-Identification-Via-Touch-and-Movement-Behavioral-Biometrics-11"><a href="#Silent-User-Identification-Via-Touch-and-Movement-Behavioral-Biometrics-11" class="headerlink" title="Silent User Identification Via Touch and Movement Behavioral Biometrics[11]"></a>Silent User Identification Via Touch and Movement Behavioral Biometrics[11]</h3><p>本文的研究重点在于提出了 SilentSense：一种通过利用用户触摸行为、生物识别技术和利用集成传感器来捕捉用户的屏幕触控动作所造成的微移动框架。</p>
+<p>该框架通过集成了一个基于运动的生物识别技术，解决由触摸引起的移动设备的微移动被大规模的用户移动抑制的问题。所用的技术包括：</p>
+<ol>
+<li>考虑到用户可以用任何姿态握住手机，将手机坐标系中的原始加速度矢量实时转换为地球坐标系；</li>
+<li>利用带通滤波器对线性加速度进行滤波；</li>
+<li>从处理后的加速度数据中提取行走特征。步行者的垂直位移与他/她的步长和高度直接相关，因此是一个重要的特征。</li>
+</ol>
+<p>研究的用户行为包括轻触、滚屏、扔甩、多次触碰，选用特征包括垂直位移、步长、水平加速度的均值和标准差。</p>
+<p>另外，本文还提出了一种新的在线决策机制，可以控制打开或关闭传感器，以提供了能耗成本、延迟和准确性之间的平衡。该在线决策机制会根用户的习惯，产生适应性的观察频率。</p>
+<h3 id="Implicit-Smartphone-User-Authentication-with-Sensors-and-Contextual-Machine-Learning-12"><a href="#Implicit-Smartphone-User-Authentication-with-Sensors-and-Contextual-Machine-Learning-12" class="headerlink" title="Implicit Smartphone User Authentication with Sensors and Contextual Machine Learning[12]"></a>Implicit Smartphone User Authentication with Sensors and Contextual Machine Learning[12]</h3><p>本文系统地展示了如何在传感器和特征选择、机器学习技术、上下文检测和多设备的不同设计方案中实现高认证精度。提出的 SmarterYou 框架认证精确度为 98.1%，系统开销可忽略不计，电池消耗不足 2.4%。</p>
+<p>本文的亮点在于：</p>
+<ol>
+<li>使用了 KRR（kernel ridge regression）算法；</li>
+<li>使用 Fisher scores 来选取特征子集。Fisher scores 是广泛使用的监督特征选择方法之一；</li>
+<li>较为详细地介绍了上下文检测：在不同环境下，传感器的测量结果可能不同。因此单独训练上下文检测模型来在做用户认证前的上下文检测。在初步实验后，将提出的四种上下文合并为两种，最终实现上下文检测精度超过 99%，时间小于 3 毫秒。数据获取方法是让用户在受控的实验室条件下使用他们的智能手机，使用过程中保持运动或静止；当为用户执行上下文检测时，使用的上下文检测模型是用其他用户的数据进行训练的。</li>
+</ol>
+<p>另外，本文包含了一个移动设备上相关工作效果比较的表格，可以参考。</p>
+<p><img src="https://user-images.githubusercontent.com/18595460/38462995-1b1cdfce-3b22-11e8-8693-cafda9807f44.png" alt="2018-04-08 10 48 58"></p>
+<h2 id="可以深入研究的方向"><a href="#可以深入研究的方向" class="headerlink" title="可以深入研究的方向"></a>可以深入研究的方向</h2><ol>
+<li>将对上述研究的学习成果从“用户身份认证”迁移到“爬虫识别”。不过，基于行为特征的验证码实际上已经非常成熟了，例如通过拖动条采集响应时间、拖拽速度、位置、轨迹、重试次数等特征进行识别，以及 <a target="_blank" rel="noopener" href="https://www.leiphone.com/news/201412/Hnux7n19OcNWwUFt.html">Google 的复选框点击验证码</a>。因此，如果要选择这个方向，需要有更多创新。</li>
+<li>将对上述研究的学习成果从“用户身份认证”迁移到“用户体验分析”。根据用户行为特征的异常来判断用户的心情，或者内容对用户的吸引力。</li>
+<li>移动设备验证码：现在移动端好像都是短信验证码，或者是最基本的图形验证码。能不能实现在触摸屏上画一个圈就能验证？或者与手机划线解锁相结合？</li>
+<li>提出一个具体的应用场景，并调整选取特征、指标、算法等。</li>
+</ol>
+<h2 id="论文列表"><a href="#论文列表" class="headerlink" title="论文列表"></a>论文列表</h2><p>[1] 沈超, 蔡忠闽, 管晓宏,等. 基于鼠标行为特征的用户身份认证与监控[J]. 通信学报, 2010, 31(7):68-75.</p>
+<p>[2] Saevanee, Hataichanok, and P. Bhatarakosol. “User Authentication Using Combination of Behavioral Biometrics over the Touchpad Acting Like Touch Screen of Mobile Device.” International Conference on Computer and Electrical Engineering IEEE Computer Society, 2008:82-86.</p>
+<p>[3] 毛传武, 程阳, 余文明. 动态实时身份认证的方法研究[J]. 网络与信息安全学报, 2016, 2(3):76-85.</p>
+<p>[4] 王淼, 蔡忠闽, 沈超,等. 行为截获技术对鼠标动力学身份认证的影响[J]. 微电子学与计算机, 2013, 30(4):14-21.</p>
+<p>[5] Chen, Xiao Jun, et al. “A practical real-time authentication system with Identity Tracking based on mouse dynamics.” Computer Communications Workshops IEEE, 2014:121-122.</p>
+<p>[6] Obaidat, M. S., and B. Sadoun. “Verification of computer users using keystroke dynamics.” IEEE Transactions on Systems Man &amp; Cybernetics Part B Cybernetics A Publication of the IEEE Systems Man &amp; Cybernetics Society 27.2(1997):261-9.</p>
+<p>[7] Pusara, Maja, and C. E. Brodley. “User re-authentication via mouse movements.” The Workshop on Visualization &amp; Data Mining for Computer Security ACM, 2004:1-8.</p>
+<p>[8] Monaro, M, L. Gamberini, and G. Sartori. “The detection of faked identity using unexpected questions and mouse dynamics.” Plos One 12.5(2017).</p>
+<p>[9] Monrose, Fabian, and A. D. Rubin. “Keystroke dynamics as a biometric for authentication.” Future Generation Computer Systems 16.4(2000):351-359.</p>
+<p>[10] Sitová, Zdeňka, et al. “HMOG: New Behavioral Biometric Features for Continuous Authentication of Smartphone Users.” IEEE Transactions on Information Forensics &amp; Security 11.5(2016):877-892.</p>
+<p>[11] Bo, Cheng, et al. “SilentSense:silent user identification via touch and movement behavioral biometrics.” Computer Science (2013):187-190.</p>
+<p>[12] Lee, Wei Han, and R. B. Lee. “Implicit Smartphone User Authentication with Sensors and Contextual Machine Learning.” (2017):297-308.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/user-authentication-of-behavioral-biometrics-notes/" title="论文综述 - 基于设备行为特征的用户身份认证">https://kyonhuang.top/blog/user-authentication-of-behavioral-biometrics-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E7%BB%BC%E8%BF%B0/" rel="tag"># 综述</a>
+              <a href="/blog/tags/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/" rel="tag"># 身份认证</a>
+              <a href="/blog/tags/%E8%A1%8C%E4%B8%BA%E7%89%B9%E5%BE%81/" rel="tag"># 行为特征</a>
+              <a href="/blog/tags/%E7%94%9F%E7%89%A9%E8%A1%8C%E4%B8%BA%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag"># 生物行为统计学</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/computer-network-notes/" rel="prev" title="计算机网络复习笔记">
+                  <i class="fa fa-chevron-left"></i> 计算机网络复习笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/survey-on-web-based-question-answering-notes/" rel="next" title="【paper reading】基于 Web 的问答系统综述">
+                  【paper reading】基于 Web 的问答系统综述 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

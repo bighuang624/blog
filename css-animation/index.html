@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="按照传统的方式，在页面上实现动画的方式有多种，包括使用 GIF 图片、使用 JavaScript 来动态修改 DOM 的位置并加上一个定时器、使用 Flash 等。但这些方法都存在自己的问题，比如引入额外的文件会导致页面尺寸变大，这样会导致页面加载变慢，从而影响用户体验。 通过浏览器对 CSS3 标准的支持，我们不必再依赖于大尺寸的外部文件，仅凭 CSS 就可以实现动画。我以前没有机会使用，所以基">
+<meta property="og:type" content="article">
+<meta property="og:title" content="神奇的CSS动画">
+<meta property="og:url" content="https://kyonhuang.top/blog/css-animation/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="按照传统的方式，在页面上实现动画的方式有多种，包括使用 GIF 图片、使用 JavaScript 来动态修改 DOM 的位置并加上一个定时器、使用 Flash 等。但这些方法都存在自己的问题，比如引入额外的文件会导致页面尺寸变大，这样会导致页面加载变慢，从而影响用户体验。 通过浏览器对 CSS3 标准的支持，我们不必再依赖于大尺寸的外部文件，仅凭 CSS 就可以实现动画。我以前没有机会使用，所以基">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kyonhuang.top/blog/images/type-writer.gif">
+<meta property="article:published_time" content="2017-03-25T07:58:01.000Z">
+<meta property="article:modified_time" content="2019-10-07T12:32:08.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="CSS动画">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kyonhuang.top/blog/images/type-writer.gif">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/css-animation/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;css-animation&#x2F;&quot;,&quot;path&quot;:&quot;css-animation&#x2F;&quot;,&quot;title&quot;:&quot;神奇的CSS动画&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>神奇的CSS动画 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#transition-%E5%B1%9E%E6%80%A7"><span class="nav-number">1.</span> <span class="nav-text">transition 属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#keyframes%EF%BC%88%E5%85%B3%E9%94%AE%E5%B8%A7%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">keyframes（关键帧）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#animation-%E5%B8%B8%E7%94%A8%E5%B1%9E%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">animation 常用属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81"><span class="nav-number">4.</span> <span class="nav-text">浏览器支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-number">5.</span> <span class="nav-text">使用示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%AD%97%E6%9C%BA%E5%8A%A8%E6%95%88"><span class="nav-number">5.1.</span> <span class="nav-text">打字机动效</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/css-animation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          神奇的CSS动画
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-03-25 15:58:01" itemprop="dateCreated datePublished" datetime="2017-03-25T15:58:01+08:00">2017-03-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-10-07 20:32:08" itemprop="dateModified" datetime="2019-10-07T20:32:08+08:00">2019-10-07</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E5%89%8D%E7%AB%AF%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">前端学习笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>按照传统的方式，在页面上实现动画的方式有多种，包括使用 GIF 图片、使用 JavaScript 来动态修改 DOM 的位置并加上一个定时器、使用 Flash 等。但这些方法都存在自己的问题，比如引入额外的文件会导致页面尺寸变大，这样会导致页面加载变慢，从而影响用户体验。</p>
+<p>通过浏览器对 CSS3 标准的支持，我们不必再依赖于大尺寸的外部文件，仅凭 CSS 就可以实现动画。我以前没有机会使用，所以基本没有接触功能强大的 CSS 动画。在这篇博文中系统地总结一下，后续补充几个使用示例进一步巩固。</p>
+<p>17.04.03 更新：补充打字机动效示例。</p>
+<img src="../images/type-writer.gif" />
+
+<span id="more"></span>
+
+<h2 id="transition-属性"><a href="#transition-属性" class="headerlink" title="transition 属性"></a>transition 属性</h2><p>transition 是一个速记属性，有以下四个属性：</p>
+<ol>
+<li>transition-property：指定 CSS 属性的 name, transition 效果；</li>
+<li>transition-duration：transition 效果需要指定多少秒（或毫秒）才能完成；</li>
+<li>transition-timing-function：指定 transition 效果的转速曲线，包括五个模式：ease（渐慢，默认）、linear（匀速）、ease-in（加速）、ease-out（减速）、cubic-bezier 函数（自定义速度模式，可使用<a target="_blank" rel="noopener" href="http://cubic-bezier.com/">工具网站</a>定制）；</li>
+<li>transition-delay：定义 transition 效果开始的时候。</li>
+</ol>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// 简写</span><br><span class="line"><span class="selector-tag">img</span>&#123;</span><br><span class="line">    <span class="attribute">transition</span>: <span class="number">1s</span> <span class="number">1s</span> height ease;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 单独定义</span><br><span class="line"><span class="selector-tag">img</span>&#123;</span><br><span class="line">    <span class="attribute">transition-property</span>: height;</span><br><span class="line">    <span class="attribute">transition-duration</span>: <span class="number">1s</span>;</span><br><span class="line">    <span class="attribute">transition-delay</span>: <span class="number">1s</span>;</span><br><span class="line">    <span class="attribute">transition-timing-function</span>: ease;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中必须指定 transition-duration 属性，否则持续时间默认为 0 ，没有任何效果。</p>
+<p>transition 的局限：</p>
+<ul>
+<li>需要事件触发，没法在网页加载时自动发生；</li>
+<li>一次性，除非一再触发，否则不能重复发生；</li>
+<li>只能定义开始状态和结束状态（即只有两个状态），不能定义中间状态；</li>
+<li>需要明确知道开始状态和结束状态的具体<strong>数值</strong>，才能计算中间状态；</li>
+<li>一条 transition 规则，只能定义一个属性的变化，不能涉及多个属性。</li>
+</ul>
+<h2 id="keyframes（关键帧）"><a href="#keyframes（关键帧）" class="headerlink" title="keyframes（关键帧）"></a>keyframes（关键帧）</h2><p>animation 属性可以利用 keyframes 关键字定义动画的各个状态，将指定时间段内的动画划分的更为精细。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">@keyframes</span> rainbow &#123;</span><br><span class="line">  <span class="number">0%</span> &#123; <span class="attribute">background</span>: <span class="number">#c00</span>; &#125;</span><br><span class="line">  <span class="number">50%</span> &#123; <span class="attribute">background</span>: orange; &#125;</span><br><span class="line">  <span class="number">100%</span> &#123; <span class="attribute">background</span>: yellowgreen; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">div</span><span class="selector-pseudo">:hover</span> &#123;</span><br><span class="line">    <span class="attribute">animation</span>: <span class="number">1s</span> rainbow infinite;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>0% 可以用 from 表示，100% 可以用 to 表示：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">@keyframes</span> rainbow &#123;</span><br><span class="line">  <span class="selector-tag">from</span> &#123; <span class="attribute">background</span>: <span class="number">#c00</span>; &#125;</span><br><span class="line">  <span class="number">50%</span> &#123; <span class="attribute">background</span>: orange; &#125;</span><br><span class="line">  <span class="selector-tag">to</span> &#123; <span class="attribute">background</span>: yellowgreen; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果省略某个状态，浏览器会自动推算中间状态。也可将多个状态写在一行。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">// 以下都为合法的写法</span><br><span class="line"></span><br><span class="line"><span class="keyword">@keyframes</span> rainbow &#123;</span><br><span class="line">  <span class="number">50%</span> &#123; <span class="attribute">background</span>: orange &#125;</span><br><span class="line">  <span class="selector-tag">to</span> &#123; <span class="attribute">background</span>: yellowgreen &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@keyframes</span> rainbow &#123;</span><br><span class="line">  <span class="selector-tag">to</span> &#123; <span class="attribute">background</span>: yellowgreen &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@keyframes</span> pound &#123;</span><br><span class="line">  <span class="selector-tag">from</span>，<span class="selector-tag">to</span> &#123; <span class="attribute">transform</span>: none; &#125;</span><br><span class="line">  <span class="number">50%</span> &#123; <span class="attribute">transform</span>: <span class="built_in">scale</span>(<span class="number">1.2</span>); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从一个状态向另一个状态过渡，浏览器默认为平滑过渡。steps 函数可以实现分布过渡。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">div</span><span class="selector-pseudo">:hover</span> &#123;</span><br><span class="line">  <span class="attribute">animation</span>: <span class="number">1s</span> rainbow infinite <span class="built_in">steps</span>(<span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="animation-常用属性"><a href="#animation-常用属性" class="headerlink" title="animation 常用属性"></a>animation 常用属性</h2><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">// 简写</span><br><span class="line"><span class="selector-tag">div</span><span class="selector-pseudo">:hover</span> &#123;</span><br><span class="line">    <span class="attribute">animation</span>: <span class="number">1s</span> <span class="number">1s</span> rainbow linear <span class="number">3</span> forwards normal;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 单独定义</span><br><span class="line"><span class="selector-tag">div</span><span class="selector-pseudo">:hover</span>&#123;</span><br><span class="line">    <span class="attribute">animation-name</span>: rainbow;</span><br><span class="line">    <span class="attribute">animation-duration</span>: <span class="number">1s</span>;</span><br><span class="line">    ainmation-timing-function: linear;</span><br><span class="line">    <span class="attribute">animation-delay</span>: <span class="number">1s</span>;</span><br><span class="line">    <span class="attribute">animation-fill-mode</span>: forwards;</span><br><span class="line">    <span class="attribute">animation-direction</span>: normal;</span><br><span class="line">    <span class="attribute">animation-iteration-count</span>: <span class="number">3</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>animation 有以下常用属性（其余和 transition 大致相似）：</p>
+<p><strong>animation-iteration-count</strong>：指定动画播放次数，可指定为数值或 infinite（无限次）。</p>
+<p><strong>animation-direction</strong>：指定动画播放方向，默认为 normal。其他可选值有 reverse，alternate 和 alternate-reverse（后两种浏览器支持情况不佳）。</p>
+<p><strong>animation-fill-mode</strong>：规定当动画不播放时（当动画完成时，或当动画有一个延迟未开始播放时），要应用到元素的样式。有四个可选值：</p>
+<ol>
+<li>forwards：让动画停留在结束状态；</li>
+<li>none：回到动画没开始的状态；</li>
+<li>backwards：让动画回到第一帧的状态；</li>
+<li>both：根据 animation-direction 轮流应用 forwards 和 backwards 规则。</li>
+</ol>
+<p><strong>animation-play-state</strong>：指定动画播放突然终止时的状态，默认行为是跳回动画的开始状态。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// 让动画保持突然终止时的状态</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">div</span> &#123;</span><br><span class="line">    <span class="attribute">animation</span>: spin <span class="number">1s</span> linear infinite;</span><br><span class="line">    <span class="attribute">animation-play-state</span>: paused;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">div</span><span class="selector-pseudo">:hover</span> &#123;</span><br><span class="line">    <span class="attribute">animation-play-state</span>: running;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="浏览器支持"><a href="#浏览器支持" class="headerlink" title="浏览器支持"></a>浏览器支持</h2><p>IE 10、Firefox 16.0、Chrome 43.0、Safari 9.0、Opera 30.0 以上支持没有前缀的 animation。详见 <a target="_blank" rel="noopener" href="http://www.runoob.com/cssref/css3-pr-animation.html">CSS3 animation（动画） 属性
+</a> “浏览器支持”部分。</p>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><h3 id="打字机动效"><a href="#打字机动效" class="headerlink" title="打字机动效"></a>打字机动效</h3><p>依照 <a target="_blank" rel="noopener" href="https://juntao.gitbooks.io/3-web-designs-in-3-weeks/content/animate_your_page/index.html">让页面动起来</a> 实现的打字机动效。图片素材为自制，因此部分数据与参照有出入。素材及代码见 <a target="_blank" rel="noopener" href="https://github.com/bighuang624/Front-end_Learning/tree/master/%E6%89%93%E5%AD%97%E6%9C%BA%E5%8A%A8%E6%95%88">bighuang624/Front-end_Learning/打字机动效</a>。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2014/02/css_transition_and_animation.html">CSS动画简介 - 阮一峰的网络日志</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.runoob.com/cssref/css3-pr-animation.html">CSS3 animation（动画） 属性
+</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/junruchen/junruchen.github.io/wiki/CSS-%E5%8F%98%E6%8D%A2-%E8%BF%87%E6%B8%A1-%E5%8A%A8%E7%94%BB%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B">CSS 变换 过渡 动画使用案例</a></p>
+<p>补充：</p>
+<p><a target="_blank" rel="noopener" href="https://aotu.io/notes/2016/11/28/css3-animation-properties/">css3 animation 属性众妙</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/css-animation/" title="神奇的CSS动画">https://kyonhuang.top/blog/css-animation/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/blog/tags/CSS%E5%8A%A8%E7%94%BB/" rel="tag"># CSS动画</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/typewriter-js/" rel="prev" title="在把玩中学习——typewriter.js">
+                  <i class="fa fa-chevron-left"></i> 在把玩中学习——typewriter.js
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/es6-1-notes/" rel="next" title="《ECMAScript 6 入门》读书笔记(一)">
+                  《ECMAScript 6 入门》读书笔记(一) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

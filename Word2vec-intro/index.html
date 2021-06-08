@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="如果想要开始研究基于深度学习的自然语言处理，你很难逃开 Word2vec 这一最为经典的词嵌入学习算法。然而，想要透彻理解 Word2vec 又并非易事。因此，我写这篇博文，力图叙述清楚 Word2vec 的原理，以对学到的知识做一个梳理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Word2vec - 最经典的词嵌入学习算法">
+<meta property="og:url" content="https://kyonhuang.top/blog/Word2vec-intro/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="如果想要开始研究基于深度学习的自然语言处理，你很难逃开 Word2vec 这一最为经典的词嵌入学习算法。然而，想要透彻理解 Word2vec 又并非易事。因此，我写这篇博文，力图叙述清楚 Word2vec 的原理，以对学到的知识做一个梳理。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/Simple-Skip-gram.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/Multi-Skip-gram.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/CBOW.jpg">
+<meta property="article:published_time" content="2018-09-13T10:55:28.000Z">
+<meta property="article:modified_time" content="2018-09-14T05:13:38.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="Word2vec">
+<meta property="article:tag" content="语言模型">
+<meta property="article:tag" content="Skip-gram">
+<meta property="article:tag" content="CBOW">
+<meta property="article:tag" content="自然语言处理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/Simple-Skip-gram.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/Word2vec-intro/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;Word2vec-intro&#x2F;&quot;,&quot;path&quot;:&quot;Word2vec-intro&#x2F;&quot;,&quot;title&quot;:&quot;Word2vec - 最经典的词嵌入学习算法&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Word2vec - 最经典的词嵌入学习算法 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8-Word2vec%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要使用 Word2vec？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#One-Hot-Representation"><span class="nav-number">1.1.</span> <span class="nav-text">One-Hot Representation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Distributed-Representation"><span class="nav-number">1.2.</span> <span class="nav-text">Distributed Representation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.3.</span> <span class="nav-text">语言模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Word2vec-%E7%9A%84%E4%B8%A4%E7%A7%8D%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">Word2vec 的两种语言模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Skip-gram"><span class="nav-number">2.1.</span> <span class="nav-text">Skip-gram</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CBOW"><span class="nav-number">2.2.</span> <span class="nav-text">CBOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E6%8A%80%E5%B7%A7"><span class="nav-number">2.3.</span> <span class="nav-text">训练技巧</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8-Word2Vec%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">如何使用 Word2Vec？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">4.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E4%BD%9C%E5%8F%82%E8%80%83"><span class="nav-number">5.1.</span> <span class="nav-text">写作参考</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A5%E5%85%85%E9%98%85%E8%AF%BB"><span class="nav-number">5.2.</span> <span class="nav-text">补充阅读</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/Word2vec-intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Word2vec - 最经典的词嵌入学习算法
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-09-13 18:55:28" itemprop="dateCreated datePublished" datetime="2018-09-13T18:55:28+08:00">2018-09-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-09-14 13:13:38" itemprop="dateModified" datetime="2018-09-14T13:13:38+08:00">2018-09-14</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">自然语言处理笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>如果想要开始研究基于深度学习的自然语言处理，你很难逃开 Word2vec 这一最为经典的词嵌入学习算法。然而，想要透彻理解 Word2vec 又并非易事。因此，我写这篇博文，力图叙述清楚 Word2vec 的原理，以对学到的知识做一个梳理。</p>
+<span id="more"></span>
+
+<h2 id="为什么要使用-Word2vec？"><a href="#为什么要使用-Word2vec？" class="headerlink" title="为什么要使用 Word2vec？"></a>为什么要使用 Word2vec？</h2><h3 id="One-Hot-Representation"><a href="#One-Hot-Representation" class="headerlink" title="One-Hot Representation"></a>One-Hot Representation</h3><p>自然语言处理（NLP）相关任务中，要将自然语言交给机器学习中的算法来处理，通常需要首先将语言数学化，因为机器没法理解自然语言。作为语言最细粒度的单位，词语被转换为数值形式的产物通常为词向量，顾名思义就是把一个词表示成一个向量。</p>
+<p>最简单的词向量方式是 <strong>One-Hot Representation</strong>。简单来说，就是每个词向量的长度为词典大小，向量的分量只有一个 1，其他全为 0， 1 的位置对应该词在词典中的位置。这样的做法非常简单，也容易实现，只需要用哈希表给词典中的每个词语分配一个编号即可。NLP 领域的很多主流任务完全可以通过这种简洁的表示方法，配合其他的算法来完成。</p>
+<p>但是，One-Hot Representation 有两个不可忽视的缺点：</p>
+<ol>
+<li>One-Hot Representation 的词向量是高维稀疏的。当数据的维度越高，要找到最优解甚至达到稍低维度时模型的同等表现，所需要的数据越多，而且呈指数型增长。此问题被称为“维度灾难”。</li>
+<li>One-Hot Representation 无法体现词语间的相似度。因为每个单词都背表示为表示为完全独立的个体，不同词向量都是正交的。因此，词向量缺少语法和语义的信息。</li>
+</ol>
+<h3 id="Distributed-Representation"><a href="#Distributed-Representation" class="headerlink" title="Distributed Representation"></a>Distributed Representation</h3><p>因此，One-Hot Representation 已经逐渐不能满足需求，人们寻求在词向量表示上的新方法。之后，Hinton 在 1986 年提出了 Distributed Representation，基本思想是将每个词表达成 n 维稠密、连续的实数向量，每个分量通过训练得到。例如：<code>[0.792, −0.177, −0.107, 0.109, −0.542, ...]</code>。</p>
+<p>这样，两个问题都迎刃而解：由于词向量维度较低，“维度灾难”难以出现；而两个词语义、语法上的相似性也可以通过计算两个词之间的“距离”来表示，因为所有词向量一起可以组成一个词向量空间，只要计算欧式距离或者 cos 距离即可。</p>
+<h3 id="语言模型"><a href="#语言模型" class="headerlink" title="语言模型"></a>语言模型</h3><p>接下来，我们介绍语言模型。在统计自然语言处理中，<strong>语言模型（Language Model）</strong>指的是计算一个句子是否是自然语言的概率模型，通常用于在机器翻译、语音识别等任务得到若干候选答案后挑选一个比较正常的结果。例如，我们有 Bigram 模型，通过前一个词语已确定、后一个词语出现的概率来计算整句话遵循自然语言规则的概率：</p>
+<p>$$P(w_1, w_2, …, w_n) = \prod^n_{i=2}P(w_i | w_{i-1})$$</p>
+<p>大部分的有监督机器学习模型，都可以归结为<code>f(x)-&gt;y</code>。将语言模型看作<code>f</code>，<code>x</code>为一个句子里的一个词语，那么<code>y</code>就是这个词语的上下文词语。根据语言学中一个非常重要的假设——<strong>分布相似性</strong>，类似的词有相似的语境，即其上下文词语<code>y</code>应该相似。两个语义相似的词对应的向量也是相似的，具体反映在夹角或距离上。</p>
+<p>Word2vec 就是源于以上思想。通过词语及其上下文，我们可以训练出一个模型<code>f</code>。在 Word2vec 中，我们关心<strong>神经网络训练完后得到的权重</strong>（即模型参数），这些向量化表示的权重就是我们需要的词向量，或者也被称为<strong>词嵌入（Word Embeddings）</strong>。当然，得到词嵌入的不止 Word2vec 一种算法，但 Word2vec 是提出时间较早并且比较经典的一种，因此值得花时间去透彻理解。</p>
+<h2 id="Word2vec-的两种语言模型"><a href="#Word2vec-的两种语言模型" class="headerlink" title="Word2vec 的两种语言模型"></a>Word2vec 的两种语言模型</h2><p>Word2vec 是一种基于迭代的词嵌入学习算法，其包含两种语言模型：</p>
+<ul>
+<li><strong>Skip-gram</strong>：根据词预测目标上下文</li>
+<li>**Continuous Bag of Words (CBOW)**：根据上下文预测目标词</li>
+</ul>
+<h3 id="Skip-gram"><a href="#Skip-gram" class="headerlink" title="Skip-gram"></a>Skip-gram</h3><p>在 Skip-gram 中，我们用当前词<code>x</code>来预测上下文<code>y</code>。一般的数学模型只接受数值型输入，因此<code>x</code>的原始输入形式就使用前文提到的 One-Hot Representation，每个词语都有自己的唯一表示。<code>y</code>使用的就是词典中每个词是正确上下文的概率。</p>
+<p>当<code>y</code>只取<code>x</code>的下一个词时，网络结构如下图：</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/Simple-Skip-gram.jpg"></p>
+<p>设词典中词语数量为<code>V</code>，隐藏层节点数为<code>N</code>。当模型训练完后，当我们输入一个 One-Hot Representation 的向量作为<code>x</code>时，则在输入层到隐藏层的权重里，只有对应 1 这个位置的权重被激活，这些权重的个数为<code>N</code>，跟隐藏层节点数是一致的。由于每个词语的 One-Hot Representation 里 1 的位置是不同的，因此，对应 1 这个位置的权重组成的向量就可以作为该词的唯一表示。</p>
+<p>同理，通过训练完后的隐藏层到输出层的权重同样可以得到另一种词向量。两种词向量分别称为“输入向量”和“输出向量”，一般我们使用“输入向量”。</p>
+<p>由于<code>N</code>通常要远远小于<code>V</code>，因此我们通过 Word2vec 完成了对词向量的降维，以避免“维度灾难”的出现。</p>
+<p>另外，<strong>隐藏层的激活函数其实是线性的</strong>，相当于没做任何处理。这是 Word2vec 相对于之前的语言模型的简化之处。在用反向传播算法训练神经网络时，本质上是<strong>链式求导</strong>。</p>
+<p>更一般的情形下，上下文<code>y</code>应该有多个词，因此网络结构扩展如下图：</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/Multi-Skip-gram.jpg"></p>
+<!--损失函数-->
+
+<h3 id="CBOW"><a href="#CBOW" class="headerlink" title="CBOW"></a>CBOW</h3><p>在 CBOW 中，我们用上下文预测当前词。其他与 Skip-gram 相似，因此有网络结构如下图：</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Word2vec-intro/CBOW.jpg"></p>
+<p>具体步骤如下：</p>
+<ol>
+<li>生成所有的 One-Hot Representation；</li>
+<li>根据上下文得到相对应的词向量；</li>
+<li>将所有的上下文词向量求和后做一个平均，作为隐藏层的向量；</li>
+<li>在隐藏层向量和输出向量相乘后，通过 Softmax 计算预测概率；</li>
+<li>通过反向传播更新参数。</li>
+</ol>
+<p>损失函数为：</p>
+<p>$$H(\hat y, y) = -\sum^V_{j=1}y_jlog(\hat y_j)$$</p>
+<h3 id="训练技巧"><a href="#训练技巧" class="headerlink" title="训练技巧"></a>训练技巧</h3><p>Word2vec 本质上是一个语言模型，它的输出节点数是 V 个，对应了 V 个词语，本质上是一个多分类问题，但实际当中，词语的个数非常非常多，会给计算造成很大困难，所以需要用技巧来加速训练。对于 Word2vec，提出了两种训练技巧：</p>
+<ul>
+<li><strong>负采样（Negative Sampling）</strong>：采样负例。本质是预测总体类别的一个子集。</li>
+<li><strong>分级的 Softmax（Hierarchical Softmax）</strong>：用一种有效的树结构来计算所有词汇的概率。本质是把 N 分类问题变成 log(N) 次二分类。</li>
+</ul>
+<p>因其不是 Word2vec 的精髓，在这篇文章中，暂时不对这两种训练技巧做过多的介绍了。有兴趣的同学可以在参考资料中选择阅读，或者等待下一篇文章。</p>
+<h2 id="如何使用-Word2Vec？"><a href="#如何使用-Word2Vec？" class="headerlink" title="如何使用 Word2Vec？"></a>如何使用 Word2Vec？</h2><p>gensim 是一款开源的第三方 Python 工具包，包含 Word2vec 在内的多种主题模型算法。这里有一个<a target="_blank" rel="noopener" href="https://github.com/bighuang624/Python-Learning/tree/master/code/word2vec-test">简单的 demo</a>来演示如何使用 gensim 中的 Word2vec。你也可以查阅 gensim 的官方文档来学习更多的用法。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>Word2vec 作为最经典的词嵌入学习算法，让词嵌入开始广泛被使用。然而，Word2vec 学习的向量其实和真正的语义还有差距，因为其学到的更多是具备相似上下文的词语，例如表示“good”和“bad”的词嵌入相似度就非常高。因此，后续又有一些新的词嵌入学习算法被提出并大量使用，其中最火的就是 Glove。</p>
+<p>到目前为止，这篇博文介绍了为什么要使用 Word2vec 的产物，以及 Word2vec 的算法本质。我的目标是能够覆盖参考资料中的《N问word2vec》中的所有问题，因此后续学习还会更新此文来添加公式推导、训练技巧介绍等内容，或者写下一篇文章。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="写作参考"><a href="#写作参考" class="headerlink" title="写作参考"></a>写作参考</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26306795">[NLP] 秒懂词向量Word2vec的本质</a>：本文主干参照了知乎上的这篇文章，写得非常好，推荐</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/stanfordnlp/cs224n-winter17-notes/blob/master/notes1.pdf">课程 cs224n 的 notes1</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/mytestmy/article/details/26961315">深度学习word2vec笔记之基础篇 - CSDN博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/43214781">（No.39）N问word2vec</a>：可以通过试图回答这篇文章里的问题来检验自己对 Word2vec 到底了解多深</li>
+</ul>
+<h3 id="补充阅读"><a href="#补充阅读" class="headerlink" title="补充阅读"></a>补充阅读</h3><ul>
+<li>Mikolov 关于 Word2vec 的两篇开山之作：<ul>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1405.4053.pdf">Distributed Representations of Sentences and Documents</a>：在前人基础上提出 Word2vec</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1301.3781.pdf">Efficient estimation of word representations in vector space</a>：专门讲两个训练技巧</li>
+</ul>
+</li>
+<li><a target="_blank" rel="noopener" href="http://www.hankcs.com/nlp/Word2vec.html">Word2vec原理推导与代码分析-码农场</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1411.2738.pdf">word2vec Parameter Learning Explained</a>：他人重点推荐</li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/53011711">Word2vec 相比之前的 Word Embedding 方法好在什么地方？ - 知乎</a></li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/Word2vec-intro/" title="Word2vec - 最经典的词嵌入学习算法">https://kyonhuang.top/blog/Word2vec-intro/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/Word2vec/" rel="tag"># Word2vec</a>
+              <a href="/blog/tags/%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" rel="tag"># 语言模型</a>
+              <a href="/blog/tags/Skip-gram/" rel="tag"># Skip-gram</a>
+              <a href="/blog/tags/CBOW/" rel="tag"># CBOW</a>
+              <a href="/blog/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" rel="tag"># 自然语言处理</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/python-for-data-analysis-notes/" rel="prev" title="《利用Python进行数据分析》笔记">
+                  <i class="fa fa-chevron-left"></i> 《利用Python进行数据分析》笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/over-the-hills/" rel="next" title="越过山丘——写在大四开始时">
+                  越过山丘——写在大四开始时 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

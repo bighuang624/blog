@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="在底层系统中，异步通过信号量、消息等方式有了广泛的应用。但程序员们还是习惯采用同步的方式编写应用，在绝大多数高级编程语言中，异步并不多见。Java 中用多线程来应对高并发的场景，而 PHP 甚至连多线程都不提供。 Node 是首个将异步作为主要编程方式的运行平台。伴随着异步 I&#x2F;O 的还有事件驱动和单线程，它们共同为 Node 的设计理念奠定基调，Node 由此成为首个大规模将异步 I&#x2F;O 应用在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node 异步 I&#x2F;O">
+<meta property="og:url" content="https://kyonhuang.top/blog/async-IO-in-Node/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="在底层系统中，异步通过信号量、消息等方式有了广泛的应用。但程序员们还是习惯采用同步的方式编写应用，在绝大多数高级编程语言中，异步并不多见。Java 中用多线程来应对高并发的场景，而 PHP 甚至连多线程都不提供。 Node 是首个将异步作为主要编程方式的运行平台。伴随着异步 I&#x2F;O 的还有事件驱动和单线程，它们共同为 Node 的设计理念奠定基调，Node 由此成为首个大规模将异步 I&#x2F;O 应用在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kyonhuang.top/images/async%20IO%20model.jpg">
+<meta property="article:published_time" content="2017-09-02T12:43:16.000Z">
+<meta property="article:modified_time" content="2017-09-20T07:03:42.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="读书笔记">
+<meta property="article:tag" content="NodeJS">
+<meta property="article:tag" content="异步 I&#x2F;O">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kyonhuang.top/images/async%20IO%20model.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/async-IO-in-Node/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;async-IO-in-Node&#x2F;&quot;,&quot;path&quot;:&quot;async-IO-in-Node&#x2F;&quot;,&quot;title&quot;:&quot;Node 异步 I&#x2F;O&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Node 异步 I/O | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E5%BC%82%E6%AD%A5%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.</span> <span class="nav-text">选择异步的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9C%8B%E5%BC%82%E6%AD%A5-I-O"><span class="nav-number">2.</span> <span class="nav-text">从操作系统看异步 I&#x2F;O</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E-%E9%9D%9E%E9%98%BB%E5%A1%9E-I-O"><span class="nav-number">2.1.</span> <span class="nav-text">阻塞&#x2F;非阻塞 I&#x2F;O</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9A"><span class="nav-number">2.1.1.</span> <span class="nav-text">补充：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5-I-O-%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.2.</span> <span class="nav-text">异步 I&#x2F;O 的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Node-%E7%9A%84%E5%BC%82%E6%AD%A5-I-O"><span class="nav-number">3.</span> <span class="nav-text">Node 的异步 I&#x2F;O</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF"><span class="nav-number">3.1.</span> <span class="nav-text">事件循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%82%E5%AF%9F%E8%80%85"><span class="nav-number">3.2.</span> <span class="nav-text">观察者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.3.</span> <span class="nav-text">请求对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%9B%9E%E8%B0%83"><span class="nav-number">3.4.</span> <span class="nav-text">执行回调</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%9E-I-O-%E7%9A%84%E5%BC%82%E6%AD%A5-API"><span class="nav-number">4.</span> <span class="nav-text">非 I&#x2F;O 的异步 API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="nav-number">4.1.</span> <span class="nav-text">定时器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#process-nextTick-amp-setImmediate"><span class="nav-number">4.2.</span> <span class="nav-text">process.nextTick() &amp; setImmediate()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E9%A9%B1%E5%8A%A8%E4%B8%8E%E9%AB%98%E6%80%A7%E8%83%BD%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">5.</span> <span class="nav-text">事件驱动与高性能服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/async-IO-in-Node/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Node 异步 I/O
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-09-02 20:43:16" itemprop="dateCreated datePublished" datetime="2017-09-02T20:43:16+08:00">2017-09-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2017-09-20 15:03:42" itemprop="dateModified" datetime="2017-09-20T15:03:42+08:00">2017-09-20</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/NodeJS-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">NodeJS 学习笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在底层系统中，异步通过信号量、消息等方式有了广泛的应用。但程序员们还是习惯采用同步的方式编写应用，在绝大多数高级编程语言中，异步并不多见。Java 中用多线程来应对高并发的场景，而 PHP 甚至连多线程都不提供。</p>
+<p>Node 是首个将异步作为主要编程方式的运行平台。伴随着异步 I/O 的还有事件驱动和单线程，它们共同为 Node 的设计理念奠定基调，Node 由此成为首个大规模将异步 I/O 应用在应用层上的平台。</p>
+<p>因此，想要深入理解 Node 的运作机制，就必须理解 Node 中的异步。对操作系统有学习经验的同学应该会更容易理解。</p>
+<p>这篇博文在《深入浅出 Mode.js》第三章笔记的基础上，加上自己的思考与总结而写成。全是硬货，需得再啃。</p>
+<span id="more"></span>
+
+<h2 id="选择异步的原因"><a href="#选择异步的原因" class="headerlink" title="选择异步的原因"></a>选择异步的原因</h2><p>选择异步的原因包括用户体验和资源分配两个方面。</p>
+<p>从用户体验的角度分析，浏览器中 JavaScript 在单线程上执行，并且与 UI 渲染共用一个线程。因此采用异步请求将使下载资源期间，JavaScript 和 UI 的执行都不会处于等待状态，可以继续响应用户的交互行为。</p>
+<p>而从资源分配角度来看，当遇到一组互不相关的任务需要完成的场景时，主流选择有以下两种：</p>
+<ul>
+<li>单线程串行依次执行：容易导致阻塞，硬件资源难以有效利用；</li>
+<li>多线程并行：创建线程和执行期线程上下文切换的开销较大，且经常面临锁、状态同步等问题（但多线程在多核 CPU 上能够有效提升 CPU 的利用率）；</li>
+</ul>
+<p>而 Node 给出的解决方案是：利用<strong>单线程</strong>，远离多线程死锁、状态同步等问题；利用<strong>异步 I/O</strong>，让单线程远离阻塞以更好地利用 CPU。</p>
+<p>而为了弥补单线程无法有效利用多核 CPU 的缺点，Node 提供了类似前端浏览器中 Web Workers 的子进程，该子进程可以通过工作进程高效利用 CPU 和 I/O。</p>
+<h2 id="从操作系统看异步-I-O"><a href="#从操作系统看异步-I-O" class="headerlink" title="从操作系统看异步 I/O"></a>从操作系统看异步 I/O</h2><p>Node 的异步 I/O 不可否认地受到操作系统中异步 I/O 实现的启发。</p>
+<p>要强调的是，从计算机内核 I/O 而言，<strong>异步/同步和阻塞/非阻塞实际上是两回事</strong>。</p>
+<h3 id="阻塞-非阻塞-I-O"><a href="#阻塞-非阻塞-I-O" class="headerlink" title="阻塞/非阻塞 I/O"></a>阻塞/非阻塞 I/O</h3><p>在调用<strong>阻塞 I/O</strong> 时，应用程序需要等待 I/O 完成时才返回结果。特点是调用之后一定要等到系统内核层面完成所有操作后，调用才结束，因此造成 <strong>CPU 等待 I/O，浪费等待时间，CPU 的处理能力不能得到充分利用</strong>。</p>
+<p>与阻塞 I/O 完成整个获取数据的过程相比，<strong>非阻塞 I/O</strong> 则<strong>不带数据直接返回</strong>，要获取数据还需要通过<strong>文件描述符</strong>再次读取。非阻塞 I/O 返回之后，CPU 的时间片可以用来处理其他事务。</p>
+<p>但由于完整的 I/O 并没有完成，非阻塞 I/O 立即返回的仅仅是当前调用的状态。为了获取完整数据，需要<strong>轮询</strong>这种重复调用以判断操作是否完成的技术。</p>
+<p>现存的轮询技术包括 <strong>read</strong>（通过重复调用检查 I/O 状态，性能最低，CPU 一直等待）、<strong>select</strong>（通过对文件描述符上的事件状态进行判断）、<strong>poll</strong>（比 select 有所改进，但性能仍较低）、<strong>epoll</strong>（Linux 下<strong>效率最高</strong>的 I/O 事件通知机制，进入轮询时休眠，直到事件发生将其唤醒）和<strong>kqueue</strong>（与 epoll 类似，仅在 FreeBSD 系统存在）。</p>
+<p>虽然轮询技术能够满足了非阻塞 I/O 确保获取完整数据的需求，但应用程序依旧花费了很多时间来等待 I/O 完全返回。等待期间，CPU 要么用于<strong>遍历文件描述符的状态</strong>，要么用于<strong>休眠等待事件发生</strong>。因此，<strong>它仍然只能算是一种同步</strong>。</p>
+<h4 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h4><p>在看廖雪峰的 Python 教程的异步 IO 这一章时，在评论区看到一个对于阻塞/非阻塞和同步/异步非常精妙的解释，十分容易理解和记忆，特摘录如下：</p>
+<blockquote>
+<p>老张爱喝茶，废话不说，煮开水。<br>出场人物：老张，水壶两把（普通水壶，简称水壶；会响的水壶，简称响水壶）。</p>
+<p>1 老张把水壶放到火上，立等水开。（同步阻塞）<br>老张觉得自己有点傻</p>
+<p>2 老张把水壶放到火上，去客厅看电视，时不时去厨房看看水开没有。（同步非阻塞）<br>老张还是觉得自己有点傻，于是变高端了，买了把会响笛的那种水壶。水开之后，能大声发出嘀~~~~的噪音。</p>
+</blockquote>
+<blockquote>
+<p>3 老张把响水壶放到火上，立等水开。（异步阻塞）<br>老张觉得这样傻等意义不大</p>
+</blockquote>
+<blockquote>
+<p>4 老张把响水壶放到火上，去客厅看电视，水壶响之前不再去看它了，响了再去拿壶。（异步非阻塞）<br>老张觉得自己聪明了。</p>
+</blockquote>
+<blockquote>
+<p>所谓同步异步，只是对于水壶而言。<br>普通水壶，同步；响水壶，异步。<br>虽然都能干活，但响水壶可以在自己完工之后，提示老张水开了。这是普通水壶所不能及的。<br>同步只能让调用者去轮询自己（情况2中），造成老张效率的低下。</p>
+</blockquote>
+<blockquote>
+<p>所谓阻塞非阻塞，仅仅对于老张而言。<br>立等的老张，阻塞；看电视的老张，非阻塞。<br>情况1和情况3中老张就是阻塞的，媳妇喊他都不知道。虽然3中响水壶是异步的，可对于立等的老张没有太大的意义。所以一般异步是配合非阻塞使用的，这样才能发挥异步的效用。</p>
+</blockquote>
+<h3 id="异步-I-O-的实现"><a href="#异步-I-O-的实现" class="headerlink" title="异步 I/O 的实现"></a>异步 I/O 的实现</h3><p>我们期望的完美异步 I/O 应该是：应用程序发起非阻塞调用，无需通过遍历或者事件唤醒等方式轮询，可以直接处理下一个任务，只需在 I/O 完成后通过信号或回调将数据传递给应用程序即可。</p>
+<p>Linux 原生提供 AIO 这种符合要求的异步 I/O 方式，但只有 Linux 下有，且其无法利用系统缓存。因此现实情况下，想在单线程场景完美实现异步 I/O 有些难度。</p>
+<p>而在<strong>多线程</strong>，通过<strong>让部分线程进行阻塞 I/O 或者非阻塞 I/O 加载轮询技术来完成数据获取，让一个线程进行计算处理，再通过线程间的通信将 I/O 得到的数据进行传递</strong>，可以模拟异步 I/O。</p>
+<p>*nix 平台，Node 自行实现了线程池来完成异步 I/O；Windows 平台则采用 IOCP 实现。Node 提供了 libuv 作为抽象封装层，平台兼容性由这一层完成，并保证上层的 Node 与下层的自定义线程池及 IOCP 之间各自独立。</p>
+<p>Node 在<strong>编译期间判断平台条件</strong>，选择性编译 unix 目录或 win 目录下的源文件到目标程序中。</p>
+<ul>
+<li>我们常说的“Node 是单线程的”里的“单线程”仅指 <strong>JavaScript 执行在单线程</strong>。而内部完成 I/O 任务的另有线程池，只是 I/O 线程使用的 CPU 较少。</li>
+<li>除了用户代码无法并行执行外，所有的 I/O （磁盘 I/O 和网络 I/O 等）可以并行。</li>
+</ul>
+<h2 id="Node-的异步-I-O"><a href="#Node-的异步-I-O" class="headerlink" title="Node 的异步 I/O"></a>Node 的异步 I/O</h2><p><strong>事件循环</strong>、<strong>观察者</strong>、<strong>请求对象</strong>、<strong>I/O 线程池</strong>一同构成了 Node 异步 I/O 模型的基本要素。</p>
+<h3 id="事件循环"><a href="#事件循环" class="headerlink" title="事件循环"></a>事件循环</h3><p>每执行一次循环体的过程被称为 <strong>Tick</strong>，查看是否有事件待处理，若有则取出事件及相关回调函数。如果存在关联的回调函数，就执行它们。直到没有事件，进入下个循环。</p>
+<h3 id="观察者"><a href="#观察者" class="headerlink" title="观察者"></a>观察者</h3><p>每个事件循环中有一个或者多个观察者，<strong>判断是否有事件要处理的过程就是向这些观察者询问是否有要处理的事件</strong>。</p>
+<p>事件循环是一个典型的<strong>生产者/消费者模型</strong>。<em>异步 I/O、网络请求</em>是事件的<em>生产者</em>，事件被传递到对应的观察者那里，事件循环则从观察者那里取出事件并处理。<strong>观察者相当于事件池</strong>。</p>
+<p>在 Windows 下，这个循环基于 IOCP 创建，而在 *unix 下基于多线程创建。</p>
+<h3 id="请求对象"><a href="#请求对象" class="headerlink" title="请求对象"></a>请求对象</h3><p>请求对象是从 JavaScript 发起调用到内核执行完 I/O 操作的过渡过程中的重要<strong>中间产物</strong>。所有的状态都保存在这个对象中，包括<strong>送入 I/O 线程池等待执行</strong>以及 I/O 操作完毕后的回调处理。</p>
+<h3 id="执行回调"><a href="#执行回调" class="headerlink" title="执行回调"></a>执行回调</h3><p>组装好请求对象、送入 I/O 线程池等待执行，构成了异步 I/O 的第一部分。而回调通知是第二部分。</p>
+<p>线程池中的 I/O 操作调用完毕后，会调用方法向 IOCP 提交执行状态，并将线程归还线程池。</p>
+<p>在每次 Tick 的执行中，I/O 观察者会调用方法检查线程池中是否有执行完的请求，如果存在，会将请求对象加入到 I/O 观察者的队列中，然后将其当作事件处理。</p>
+<p>整个异步 I/O 流程图如下：</p>
+<img src="/images/async IO model.jpg" />
+
+<h2 id="非-I-O-的异步-API"><a href="#非-I-O-的异步-API" class="headerlink" title="非 I/O 的异步 API"></a>非 I/O 的异步 API</h2><p>Node 中还存在一些与 I/O 无关的异步 API：<code>setTimeout()</code>、<code>setInterval()</code>、<code>setImmediate()</code>、<code>process.nextTick()</code>。</p>
+<h3 id="定时器"><a href="#定时器" class="headerlink" title="定时器"></a>定时器</h3><p><code>setTimeout()</code>和<code>setInterval()</code>与浏览器 API 一致，创建的定时器会被插入到<strong>定时器观察者内部的一个红黑树</strong>中。每次 Tick 执行时，会从该红黑树中<strong>迭代</strong>取出定时器对象，检查是否超过定时时间，如果超过，就形成一个事件并执行其回调函数。注意：由于事件循环自身特点，定时器并非精确的。</p>
+<h3 id="process-nextTick-amp-setImmediate"><a href="#process-nextTick-amp-setImmediate" class="headerlink" title="process.nextTick() &amp; setImmediate()"></a>process.nextTick() &amp; setImmediate()</h3><p>两者都可用于将回调函数延迟执行，以异步执行一个任务。两者的区别如下：</p>
+<ul>
+<li><p>优先级：<code>process.nextTick()</code>中回调函数执行优先级要高于<code>setImmediate()</code>，原因在于<strong>事件循环对观察者的检查是有先后顺序的</strong>，idle 观察者（<code>process.nextTick()</code>） &gt; I/O 观察者 &gt; check 观察者（<code>setImmediate()</code>）。</p>
+</li>
+<li><p>具体实现：<code>process.nextTick()</code>的回调函数保存在一个<em>数组</em>中，<code>setImmediate()</code>保存在<em>链表</em>中。</p>
+</li>
+<li><p>行为：<code>process.nextTick()</code>在每轮循环中会将数组中的回调函数<em>全部执行</em>完，而<code>setImmediate()</code>在每轮循环中执行链表中的<em>一个</em>回调函数。这样的设计是为了保证每轮循环能够较快地执行结束，防止 CPU 占用过多而阻塞后续 I/O 调用的情况。</p>
+</li>
+</ul>
+<h2 id="事件驱动与高性能服务器"><a href="#事件驱动与高性能服务器" class="headerlink" title="事件驱动与高性能服务器"></a>事件驱动与高性能服务器</h2><p>事件驱动的实质：通过<strong>主循环加事件触发</strong>的方式来运行程序。</p>
+<p>几种经典的服务器模型各有其优缺点：</p>
+<ul>
+<li><strong>同步式</strong>：对于同步式的服务，一次只能处理一个请求，并且其他请求都处于等待状态。</li>
+<li><strong>每进程/每请求</strong>：为每个请求启动一个进程，这样可以处理多个请求，但因为系统资源有限而不具备扩展性。</li>
+<li><strong>每线程/每请求</strong>：为每个请求启动一个线程来处理。扩展性强于每进程/每请求，但由于每个线程都占用一定内存，大并发到来时内存还是会很快用光。</li>
+</ul>
+<p>Apache 目前还采用每线程/每请求，而 Nginx 采用事件驱动。</p>
+<p>Nginx 与 Node 比较：</p>
+<ul>
+<li>Nginx 采用纯 C 写成，性能较高，但仅适合做 Web 服务器，用于反向代理或负载均衡等服务，在处理具体业务方面欠缺；</li>
+<li>Node 是一套高性能平台，没有 Nginx 在 Web 服务器方面那么专业，但场景更大，可以处理各种具体业务。</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>《深入浅出Node.js》</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/async-IO-in-Node/" title="Node 异步 I&#x2F;O">https://kyonhuang.top/blog/async-IO-in-Node/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag"># 读书笔记</a>
+              <a href="/blog/tags/NodeJS/" rel="tag"># NodeJS</a>
+              <a href="/blog/tags/%E5%BC%82%E6%AD%A5-I-O/" rel="tag"># 异步 I/O</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/start-CI/" rel="prev" title="再探前端自动化－持续集成">
+                  <i class="fa fa-chevron-left"></i> 再探前端自动化－持续集成
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/ANTLR-learning-notes-1/" rel="next" title="ANTLR v4 学习笔记（一）－ANTLR 初体验">
+                  ANTLR v4 学习笔记（一）－ANTLR 初体验 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

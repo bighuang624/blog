@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="如果你有关注我的 Github，可以看到我和小伙伴们正在做一个中文短文本情感分析 web 应用。恰逢 WWW 2018 收录了一篇《Sentiment Analysis by Capsules》，借着这个机会了解一下“神经网络之父” Geoffrey Hinton 大神花费近十年心血的胶囊网络（Capsule Networks）。如果能够用于我们的应用中就更好了，即使因为缺少计算资源等原因而无法实">
+<meta property="og:type" content="article">
+<meta property="og:title" content="胶囊网络初探">
+<meta property="og:url" content="https://kyonhuang.top/blog/capsule-networks-intro/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="如果你有关注我的 Github，可以看到我和小伙伴们正在做一个中文短文本情感分析 web 应用。恰逢 WWW 2018 收录了一篇《Sentiment Analysis by Capsules》，借着这个机会了解一下“神经网络之父” Geoffrey Hinton 大神花费近十年心血的胶囊网络（Capsule Networks）。如果能够用于我们的应用中就更好了，即使因为缺少计算资源等原因而无法实">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-5c96a8e0b1fb2b64.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-252e3955a7502bb9.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-b09707696facdfda.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-bf5baae6af4e1020.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-0b21e542874bff2c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-b66e0182d94d57c0.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2702529-32d23ca1dcb57f67.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="article:published_time" content="2018-04-26T12:07:53.000Z">
+<meta property="article:modified_time" content="2018-05-29T12:01:08.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="胶囊网络">
+<meta property="article:tag" content="Capsule">
+<meta property="article:tag" content="CapsNet">
+<meta property="article:tag" content="Dynamic Routing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2702529-5c96a8e0b1fb2b64.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/capsule-networks-intro/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;capsule-networks-intro&#x2F;&quot;,&quot;path&quot;:&quot;capsule-networks-intro&#x2F;&quot;,&quot;title&quot;:&quot;胶囊网络初探&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>胶囊网络初探 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CNN-%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="nav-number">1.</span> <span class="nav-text">CNN 的缺陷</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-Capsule%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">Why Capsule？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Capsule-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">Capsule 的工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Capsule-%E7%9A%84%E8%BF%90%E7%AE%97%E6%AD%A5%E9%AA%A4"><span class="nav-number">4.</span> <span class="nav-text">Capsule 的运算步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E5%90%91%E9%87%8F%E7%9A%84%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95"><span class="nav-number">4.1.</span> <span class="nav-text">输入向量的矩阵乘法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E5%90%91%E9%87%8F%E7%9A%84%E6%A0%87%E9%87%8F%E5%8A%A0%E6%9D%83"><span class="nav-number">4.2.</span> <span class="nav-text">输入向量的标量加权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%8A%A0%E6%9D%83%E5%90%8E%E7%9A%84%E5%90%91%E9%87%8F%E6%B1%82%E5%92%8C"><span class="nav-number">4.3.</span> <span class="nav-text">对加权后的向量求和</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%92%8C%E8%BF%9B%E8%A1%8C%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%8F%98%E6%8D%A2%E7%94%9F%E6%88%90%E6%96%B0%E5%90%91%E9%87%8F"><span class="nav-number">4.4.</span> <span class="nav-text">对和进行非线性变换生成新向量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1%EF%BC%88Dynamic-Routing%EF%BC%89%E7%AE%97%E6%B3%95"><span class="nav-number">5.</span> <span class="nav-text">动态路由（Dynamic Routing）算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E4%BB%B7%E5%87%BD%E6%95%B0"><span class="nav-number">6.</span> <span class="nav-text">代价函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">7.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">8.</span> <span class="nav-text">参考资料</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BA%E6%96%87"><span class="nav-number">8.1.</span> <span class="nav-text">论文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E7%AB%A0"><span class="nav-number">8.2.</span> <span class="nav-text">文章</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="nav-number">8.3.</span> <span class="nav-text">开源代码</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/capsule-networks-intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          胶囊网络初探
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-04-26 20:07:53" itemprop="dateCreated datePublished" datetime="2018-04-26T20:07:53+08:00">2018-04-26</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-05-29 20:01:08" itemprop="dateModified" datetime="2018-05-29T20:01:08+08:00">2018-05-29</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">深度学习笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>如果你有关注我的 Github，可以看到我和小伙伴们正在做一个<a target="_blank" rel="noopener" href="https://github.com/bighuang624/sentiment-analysis-webapp">中文短文本情感分析 web 应用</a>。恰逢 WWW 2018 收录了一篇<a target="_blank" rel="noopener" href="https://dl.acm.org/citation.cfm?id=3186015">《Sentiment Analysis by Capsules》</a>，借着这个机会了解一下“神经网络之父” Geoffrey Hinton 大神花费近十年心血的胶囊网络（Capsule Networks）。如果能够用于我们的应用中就更好了，即使因为缺少计算资源等原因而无法实现，了解前沿技术、吸收大牛思想也是极好的。</p>
+<p>先简单介绍一下 Capsule。NIPS 2017 发表的<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1710.09829v2.pdf">《Dynamic Routing Between Capsules》</a>[1]使得这一概念开始走红，虽然 Capsule 本用于 CV 领域，不过目前也已经在各领域有了积极的尝试。Capsule 是 Hinton“反 CNN”的一面旗帜，他认为导致深度学习如火如荼的 CNN 其实有着重大的缺陷。我接下来就将介绍这个缺陷、Capsule 如何通过其工作原理避免这个缺陷、Capsule 的结构，以及 Capsule 的训练算法与损失函数等。不过因为篇幅有限，这篇文章暂时不会介绍 CapsNet 的具体架构，这部分可以看一下参考资料列的一些或者直接看原论文。顺便一提，Capsule 和胶囊两个词可能在本文中互有使用，但我实际上想用它们指同一个东西。</p>
+<span id="more"></span>
+
+<h2 id="CNN-的缺陷"><a href="#CNN-的缺陷" class="headerlink" title="CNN 的缺陷"></a>CNN 的缺陷</h2><p>如果你了解 CNN（不了解请移至<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/#/Convolutional_Neural_Networks/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">《卷积神经网络 - 吴恩达《深度学习》系列课程笔记》</a>），你会知道 CNN 依靠卷积层检测图像中的特征。前几层学习一些例如边缘的简单特征，而较深的层组合简单特征形成更为复杂的特征，最后再将复杂特征组合并输出分类预测。</p>
+<p>而在层与层之间，前一层的激活与下一层神经元的权重相乘并相加，接着传递到非线性激活函数。这种简单的加权和导致 <strong>CNN 难以察觉平移和旋转（以及类似变化）后图像的一致性</strong>，例如，将一张狗的照片旋转 5 度，训练好的 CNN 可能会认为两张图片都是狗，但是不会认为它们是同一只狗。</p>
+<p>CNN 解决这个问题的方法是使用最大池化，对于一定区域内的特征取最大值，以此缓解一定的平移和旋转的影响（平均池化同理）。事实证明，CNN 的效果惊人，以至于“它表现如此优异是一场灾难”。引号内是 Hinton 的原话，因为他认为最大池化损失了很多有价值的信息。最重要的是，CNN 只考虑简单对象的存在，而<strong>没有考虑简单对象和复杂对象之间的空间层级关系</strong>。举个例子，对于 CNN 而言，下面两张图片都是一张脸，因为它们包含相似的部件，尽管我们知道散落的器官不能被称为脸。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2702529-5c96a8e0b1fb2b64.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="人脸.jpg"></p>
+<p>以上问题导致的结果是，CNN 难以分类和辨识不同视角的同一物体。对于人类，即使你只看过几张自由女神像的照片，也能够轻松辨认不同角度的自由女神像。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2702529-252e3955a7502bb9.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="自由女神.jpg"></p>
+<p>但对于 CNN，这个任务就非常困难了，因为它没有内建对三维空间的理解。它只能与以前训练过的照片进行对比，这导致训练 CNN 往往需要百万数量级的图像才能训练出较为精准的效果，并且当遇到角度奇怪的图像时分类正确率可能受到影响。最重要的是，我们知道神经网络本就是为了尽可能还原人脑的功能，但明显人类根本不需要对每个物体都看如此规模的图片才能学会辨认。</p>
+<h2 id="Why-Capsule？"><a href="#Why-Capsule？" class="headerlink" title="Why Capsule？"></a>Why Capsule？</h2><p>基于以上分析，尽管目前 CNN 看似效果非常出色，但是它不会是未来。实际上，Hinton 早在 2011 年就提出 Capsule 的结构[2]，但是在当时还没有提出一种算法可以实现并成功学习胶囊网络。而在[1]中，Hinton 提出一种名为<strong>动态路由（Dynamic Routing）</strong>的算法解决了这个问题。</p>
+<p>CNN 通过一层层的过滤，将信息一步步由下而上的进行抽象；而 Hinton 认为人类在识别图像时是遵循类似决策树的方式。Capsule 同样遵循这个结构的思路，每个活动的 Capsule 将选择一个上层的 Capsule 作为父节点。</p>
+<p>Capsule 更好地建模神经网络中内部知识表示的分层关系，这使得训练它所需的数据量大大降低。关键的一点是，Capsule 背后的直觉非常简单优雅，易于理解。尽管目前训练胶囊网络速度比起已经成熟的深度学习模型来说要慢很多，但是假以时日，也许胶囊网络能够在更多训练集上快速高效训练。</p>
+<h2 id="Capsule-的工作原理"><a href="#Capsule-的工作原理" class="headerlink" title="Capsule 的工作原理"></a>Capsule 的工作原理</h2><p>Capsule 的工作原理归纳成一句话就是，<strong>所有胶囊检测中的特征的状态的重要信息，都将以向量的形式（神经元输出的则是标量）被胶囊封装</strong>。</p>
+<p>进一步来说，一个胶囊捕捉一个特征。胶囊将特征存在的<strong>概率</strong>作为其<strong>输出向量的长度</strong>进行编码，这与目前的神经元同理。而检测出的特征的<strong>状态</strong>被编码为该向量指向的<strong>方向</strong>（“实例参数”）。因此，当检测出的特征在图像中平移或旋转，向量长度没有改变（因为概率保持不变），但它的方向改变了。</p>
+<p>从标量到向量，这是一个让人初次听闻时拍案叫绝、但仔细思考过后又觉得理所当然的改变。这种改变使得平移或旋转导致的“变化”与“不变”被转化为向量的长度与方向，从而自然分离开来，而不是像 CNN 使用最大池化一样将“变化”全部简单粗暴地抹平为“不变”。</p>
+<h2 id="Capsule-的运算步骤"><a href="#Capsule-的运算步骤" class="headerlink" title="Capsule 的运算步骤"></a>Capsule 的运算步骤</h2><p><img src="https://upload-images.jianshu.io/upload_images/2702529-b09707696facdfda.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="胶囊vs人工神经元.jpg"></p>
+<p>上图中左边为胶囊，右边为普通神经元。本质上，普通神经元的运算步骤分为 3 步：</p>
+<ol>
+<li>输入标量的标量加权；</li>
+<li>对加权后的标量求和；</li>
+<li>对和进行非线性变换生成新标量。</li>
+</ol>
+<p>而胶囊则在向量版的基础上有少许改动，共 4 步：</p>
+<ol>
+<li>输入向量的矩阵乘法；</li>
+<li>输入向量的标量加权；</li>
+<li>对加权后的向量求和；</li>
+<li>对和进行非线性变换生成新向量。</li>
+</ol>
+<h3 id="输入向量的矩阵乘法"><a href="#输入向量的矩阵乘法" class="headerlink" title="输入向量的矩阵乘法"></a>输入向量的矩阵乘法</h3><p>上层胶囊的输入向量来自下层胶囊。这些向量相乘的权重矩阵 W 编码了低层特征和高层特征之间包括空间关系在内的重要关系。</p>
+<p>我在这里有一个疑问：这个 W 怎么得到？如果是通过训练迭代得到，那么用的是什么算法？原 paper 对这点略过不表，有一篇文章说 W 是固定不变的，但是也没有说如何获得。如果有看到这篇文章并有答案的同学，欢迎评论指出或者邮件联系我。</p>
+<h3 id="输入向量的标量加权"><a href="#输入向量的标量加权" class="headerlink" title="输入向量的标量加权"></a>输入向量的标量加权</h3><p>在这一步中，我们可能比较关心如何通过学习得到权重矩阵 W’。通常神经网络通过反向传播算法学习，而胶囊则使用<strong>动态路由算法</strong>。我们将在后文详细介绍动态路由算法，这里先简单介绍一下 W’ 中权重 cij 的一些性质：</p>
+<ol>
+<li>权重均为非负标量；</li>
+<li>对每个低层胶囊 i，所有权重 cij 的总和等于 1；</li>
+<li>对每个低层胶囊 i，权重的数量等于高层胶囊的数量。</li>
+</ol>
+<p>这三条性质均在表明，这里的权重表示概率。</p>
+<h3 id="对加权后的向量求和"><a href="#对加权后的向量求和" class="headerlink" title="对加权后的向量求和"></a>对加权后的向量求和</h3><p>除开求的是向量的和（而非标量和），这一步与通常的神经网络没有区别。</p>
+<h3 id="对和进行非线性变换生成新向量"><a href="#对和进行非线性变换生成新向量" class="headerlink" title="对和进行非线性变换生成新向量"></a>对和进行非线性变换生成新向量</h3><p>Capsule 使用了一个新颖的非线性激活函数——squash 函数。它可以压缩输入向量的长度，而不改变其方向。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2702529-bf5baae6af4e1020.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="squash.png"></p>
+<p>容易看出，蓝色矩形部分将输入向量缩放至单位长度，而红色矩形部分进行额外的缩放操作。函数图像如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2702529-0b21e542874bff2c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="suqash-function-graph.png"></p>
+<p>总结来说，对于上一个胶囊层输出的所有胶囊向量，通过转换矩阵转换为更高层的胶囊向量，最后通过动态路由算法聚合成一个胶囊向量，最后通过 squash 激活函数输出最后结果。</p>
+<h2 id="动态路由（Dynamic-Routing）算法"><a href="#动态路由（Dynamic-Routing）算法" class="headerlink" title="动态路由（Dynamic Routing）算法"></a>动态路由（Dynamic Routing）算法</h2><p>动态路由算法的思想是，低层胶囊将其输出发送给对此表示“同意”的高层胶囊。这种同意表现为<strong>向量的点积</strong>。</p>
+<p>贴一张论文中对动态路由算法的伪代码描述：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2702529-b66e0182d94d57c0.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="伪代码.jpg"></p>
+<p>我们只看几个算法中的关键点：</p>
+<ul>
+<li>第一行指明算法的输入：l 是低层的层数，\hat u 是低层输出的所有胶囊向量，r 是迭代次数。</li>
+<li>第四行使用 Softmax 的原因是强制实施“对每个低层胶囊 i，所有权重 cij 的总和等于 1”这一条性质。</li>
+<li>初始化时，所有 cij 均相等，说明底层胶囊被高层胶囊接受的概率相等。随着迭代，这种均匀分布将被改变。</li>
+<li>第七行更新了权重，也是路由算法的本质所在。在这一步中，我们查看了每个高层胶囊 j，然后检查每个输入并根据公式更新相应的权重 bij。公式表明，胶囊 j 的当前输出和从低层胶囊 i 处接收的输入的点积，加上旧权重，等于新权重。点积检测胶囊的输入和输出之间的相似性。</li>
+</ul>
+<p>论文表示，通过在 MNIST 和 CIFAR 两个数据集上的检验，实践中建议使用 3 次迭代。更多的迭代容易导致过拟合。</p>
+<h2 id="代价函数"><a href="#代价函数" class="headerlink" title="代价函数"></a>代价函数</h2><p><img src="https://upload-images.jianshu.io/upload_images/2702529-32d23ca1dcb57f67.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="代价函数.png"></p>
+<p>对于数字 c（或者说类别 c），代价函数如上图所示。MNIST 数据集中，当数字 c 与标签对应时，Tc = 1，否则为 0；m+ = 0.9，m- = 0.1。λ 取 0.5 以确保训练中的数值稳定性。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>了解 CapsNet 的具体架构有助于理解以上内容，所以我还是建议看一下原论文中这部分的内容。另外，虽然原论文相对于很多深度学习论文显得简洁而易于理解，但是有些细节并没有完全解释，我会试着再找一些资料阅读。我的下一个目标是阅读文章开头提到的《Sentiment Analysis by Capsules》。显然这篇新鲜出炉的 paper 没有什么辅助我理解的文章，我打算打印下来仔细读一读。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="论文"><a href="#论文" class="headerlink" title="论文"></a>论文</h3><ul>
+<li>[1] <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1710.09829v2.pdf">Dynamic Routing Between Capsules</a></li>
+<li>[2] <a target="_blank" rel="noopener" href="http://www.cs.utoronto.ca/~hinton/absps/transauto6.pdf?origin=publication_detail">Transforming Autoencoders</a></li>
+</ul>
+<h3 id="文章"><a href="#文章" class="headerlink" title="文章"></a>文章</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzI3ODkxODU3Mg==&mid=2247484099&idx=1&sn=97e209f1a9860c8d8c51e81d98fc8a0a&chksm=eb4ee600dc396f16624a33cdfc0ead905e62ae9447b49b20146020e6cbd7d71f089101512a40&scene=21#wechat_redirect">CapsNet入门系列之一：胶囊网络背后的直觉</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzI3ODkxODU3Mg==&mid=2247484165&idx=1&sn=0ca679e3a5f499f8d8addb405fe3df83&chksm=eb4ee7c6dc396ed0a330fcac12690110bcaf9a8a10794dbc5e1a326c69ecbb140140f55fd6ba&scene=21#wechat_redirect">CapsNet入门系列之二：胶囊如何工作</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzI3ODkxODU3Mg==&mid=2247484433&idx=1&sn=3afe4605bc2501eebbc41c6dd1af9572&chksm=eb4ee0d2dc3969c4619d6c1097d5c949c76c6c854e60d36eba4388da2c3855747818d062c90a&scene=21#wechat_redirect">CapsNet入门系列之三：囊间动态路由算法</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/6CRSen8P6zKaMGtX8IRfqw">CapsNet入门系列之四：胶囊网络架构</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/jessican_uestc/article/details/79587096">初读Geoffrey Hinton颠覆之作《Dynamic Routing Between Capsules》 - CSDN博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35409788">胶囊网络（Capsule Network）在文本分类中的探索</a></li>
+</ul>
+<h3 id="开源代码"><a href="#开源代码" class="headerlink" title="开源代码"></a>开源代码</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Sarasra/models/tree/master/research/capsules">Sarasra/models</a>：由《Dynamic Routing Between Capsules》第一作者编写</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/llSourcell/capsule_networks">llSourcell/capsule_networks</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/XifengGuo/CapsNet-Keras">XifengGuo/CapsNet-Keras</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/capsule-networks-intro/" title="胶囊网络初探">https://kyonhuang.top/blog/capsule-networks-intro/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+              <a href="/blog/tags/%E8%83%B6%E5%9B%8A%E7%BD%91%E7%BB%9C/" rel="tag"># 胶囊网络</a>
+              <a href="/blog/tags/Capsule/" rel="tag"># Capsule</a>
+              <a href="/blog/tags/CapsNet/" rel="tag"># CapsNet</a>
+              <a href="/blog/tags/Dynamic-Routing/" rel="tag"># Dynamic Routing</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/fundamentals-of-compiling-notes/" rel="prev" title="编译原理复习笔记">
+                  <i class="fa fa-chevron-left"></i> 编译原理复习笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/whu-KG-technology-course/" rel="next" title="记知识图谱前沿技术课程（武汉大学站）">
+                  记知识图谱前沿技术课程（武汉大学站） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

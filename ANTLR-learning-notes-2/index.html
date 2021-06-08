@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="继续学习解释器构造和 ANTLR。在系列博文的上一篇 ANTLR v4 学习笔记（一）－ANTLR 初体验，我们已经学习了如何安装、使用 ANTLR，并研究了构建语言应用程序所需的关键过程、术语和构建块。接下来，我们将通过一个不算复杂的例子来描述 ANTLR 的功能，来让我们对 ANTLR 有个大概的感觉。 我将用 ANTLR 来实现一个变种计算器（变种意指它和普遍看到的计算器不太一样），它遵循上">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ANTLR v4 学习笔记（二）－实现变种计算器">
+<meta property="og:url" content="https://kyonhuang.top/blog/ANTLR-learning-notes-2/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="继续学习解释器构造和 ANTLR。在系列博文的上一篇 ANTLR v4 学习笔记（一）－ANTLR 初体验，我们已经学习了如何安装、使用 ANTLR，并研究了构建语言应用程序所需的关键过程、术语和构建块。接下来，我们将通过一个不算复杂的例子来描述 ANTLR 的功能，来让我们对 ANTLR 有个大概的感觉。 我将用 ANTLR 来实现一个变种计算器（变种意指它和普遍看到的计算器不太一样），它遵循上">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/cal1.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/caltree.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/cal1-error.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/caltree-error.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/import-java.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/Calculator-effect.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/exception.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/newErrorReport.jpg">
+<meta property="og:image" content="https://kyonhuang.top/images/antlr/note2/undefined-error.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-952930bcab492aee.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/2702529-891de540a356c539.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="article:published_time" content="2017-09-21T11:25:56.000Z">
+<meta property="article:modified_time" content="2017-09-23T02:25:42.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="编译技术">
+<meta property="article:tag" content="ANTLR">
+<meta property="article:tag" content="解释器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kyonhuang.top/images/antlr/note2/cal1.jpg">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/ANTLR-learning-notes-2/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;ANTLR-learning-notes-2&#x2F;&quot;,&quot;path&quot;:&quot;ANTLR-learning-notes-2&#x2F;&quot;,&quot;title&quot;:&quot;ANTLR v4 学习笔记（二）－实现变种计算器&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>ANTLR v4 学习笔记（二）－实现变种计算器 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%99%A8%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">计算器描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%B9%E9%85%8D%E8%BF%90%E7%AE%97%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E8%AF%AD%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">匹配运算表达式的语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95%E4%BC%98%E5%8C%96"><span class="nav-number">2.1.</span> <span class="nav-text">语法优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-Visitor-%E6%9E%84%E5%BB%BA%E8%AE%A1%E7%AE%97%E5%99%A8"><span class="nav-number">3.</span> <span class="nav-text">使用 Visitor 构建计算器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%A7%E7%BB%AD%E5%AE%8C%E5%96%84"><span class="nav-number">4.</span> <span class="nav-text">继续完善</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E6%8A%A5%E5%91%8A%E6%A0%BC%E5%BC%8F%E4%BC%98%E5%8C%96"><span class="nav-number">4.1.</span> <span class="nav-text">错误报告格式优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E5%88%86%E9%94%99%E8%AF%AF%E7%89%B9%E4%BE%8B%E7%9A%84%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">4.2.</span> <span class="nav-text">部分错误特例的处理方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%99%A8%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE"><span class="nav-number">5.</span> <span class="nav-text">计算器运行截图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%99%A8%E5%AE%9E%E7%8E%B0%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">6.</span> <span class="nav-text">计算器实现中遇到的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E5%AF%B9-ANTLR-%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">7.</span> <span class="nav-text">我对 ANTLR 的理解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">8.</span> <span class="nav-text">结语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">9.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/ANTLR-learning-notes-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ANTLR v4 学习笔记（二）－实现变种计算器
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2017-09-21 19:25:56" itemprop="dateCreated datePublished" datetime="2017-09-21T19:25:56+08:00">2017-09-21</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2017-09-23 10:25:42" itemprop="dateModified" datetime="2017-09-23T10:25:42+08:00">2017-09-23</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%A7%A3%E9%87%8A%E5%99%A8%E6%9E%84%E9%80%A0/" itemprop="url" rel="index"><span itemprop="name">解释器构造</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>继续学习解释器构造和 ANTLR。在系列博文的上一篇 <a href="http://kyonhuang.top/ANTLR-learning-notes-1/">ANTLR v4 学习笔记（一）－ANTLR 初体验</a>，我们已经学习了如何安装、使用 ANTLR，并研究了构建语言应用程序所需的关键过程、术语和构建块。接下来，我们将通过一个不算复杂的例子来描述 ANTLR 的功能，来让我们对 ANTLR 有个大概的感觉。</p>
+<p>我将用 ANTLR 来实现一个变种计算器（变种意指它和普遍看到的计算器不太一样），它遵循上学期编译原理课程第一次实践作业要求。稍后我也将给出对这个计算器的要求描述。</p>
+<p>这篇博文对应着《The Definitive ANTLR 4 Reference》中的 Chapter 4 A Quick Tour，但示例和内容与书上有些区别，而且没有覆盖整个 Chapter 4 的所有内容。我会更多地介绍实现学习过程中的经历和错误、自己对 ANTLR 的理解，以及一些实践经验和心得等等。</p>
+<span id="more"></span>
+
+<h2 id="计算器描述"><a href="#计算器描述" class="headerlink" title="计算器描述"></a>计算器描述</h2><p>计算器接受四则运算表达式为输入（如下所示）。如果表达式语法正确，则输出计算结果，否则报错，指出错误位置及原因。</p>
+<p>例子1:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Input <span class="number">1</span>:     a=(<span class="number">10.44</span>*<span class="number">356</span>+<span class="number">1.28</span>)/<span class="number">2</span>+<span class="number">1024</span>*<span class="number">1.6</span>;    b=a*<span class="number">2</span>-a/<span class="number">2</span>;    print(b);    print(a);Output <span class="number">1</span>:    <span class="number">5246.04</span>    <span class="number">3497.36</span></span><br></pre></td></tr></table></figure>
+
+<p>例子2:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Input <span class="number">2</span>:     a=(<span class="number">10.44</span>*<span class="number">356</span>+<span class="number">1.28</span>)/<span class="number">2</span>+<span class="number">1024</span>*<span class="number">1.6</span>;    b=a*<span class="number">2</span>-c/<span class="number">2</span>;    print(b);Output <span class="number">2</span>:    Error(line <span class="number">2</span>,position <span class="number">6</span>): undefined identifier.</span><br></pre></td></tr></table></figure>
+
+<p>以上两个示例包含了这个计算器的全部特性：</p>
+<ol>
+<li>   每个语句需要以“<code>;</code>”结束；</li>
+<li>   涉及的操作符只要求加减乘除；支持括号；</li>
+<li>   操作数为整数或浮点数；</li>
+<li>   变量不需要先声明，可直接赋值，它的类型由右边表达式的类型决定；每个变量在使用之前必须要已经有赋值；</li>
+<li>   变量名可以是由数字和字母组成，但首字符必须是字母； </li>
+<li>   输出语句使用<code>print()</code>函数，输出并换行；</li>
+<li>   <code>print()</code>函数不仅可以输出变量，还可以直接输出表达式的值，例如<code>print(1+2)</code>；</li>
+<li>   尽量考虑周全，顾及corner cases。例如除零；</li>
+<li>程序不需要 GUI，接受一个源文件路径为命令行参数。</li>
+</ol>
+<h2 id="匹配运算表达式的语法"><a href="#匹配运算表达式的语法" class="headerlink" title="匹配运算表达式的语法"></a>匹配运算表达式的语法</h2><p>在经过之前的学习后，我们可以比较轻松地写出一份匹配运算表达式的 ANTLR 语法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a grammar called Calculator</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">grammar Calculator;</span><br><span class="line"><span class="comment">// 程序起始规则，语法分析的起点</span></span><br><span class="line">program : stat+;</span><br><span class="line"></span><br><span class="line">stat: define NEWLINE?            # defineStat</span><br><span class="line">    | print NEWLINE?             # printStat</span><br><span class="line">    | NEWLINE                    # blank</span><br><span class="line">    ;</span><br><span class="line"><span class="comment">// 声明</span></span><br><span class="line">define: VAR <span class="string">&#x27;=&#x27;</span> expr <span class="string">&#x27;;&#x27;</span>;</span><br><span class="line"><span class="comment">// 计算表达式</span></span><br><span class="line">expr: expr op=(<span class="string">&#x27;*&#x27;</span>|<span class="string">&#x27;/&#x27;</span>) expr     # MulDiv </span><br><span class="line">     | expr op=(<span class="string">&#x27;+&#x27;</span>|<span class="string">&#x27;-&#x27;</span>) expr    # AddSub</span><br><span class="line">     | <span class="string">&#x27;(&#x27;</span>expr<span class="string">&#x27;)&#x27;</span>                # parens</span><br><span class="line">     | NUMBER                    # number</span><br><span class="line">     | VAR                       # <span class="keyword">var</span></span><br><span class="line">     ;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出</span></span><br><span class="line">print: <span class="string">&#x27;print&#x27;</span><span class="string">&#x27;(&#x27;</span>VAR<span class="string">&#x27;)&#x27;</span><span class="string">&#x27;;&#x27;</span>       # printVAR</span><br><span class="line">      | <span class="string">&#x27;print&#x27;</span><span class="string">&#x27;(&#x27;</span>expr<span class="string">&#x27;)&#x27;</span><span class="string">&#x27;;&#x27;</span>     # printExpr </span><br><span class="line">      ;</span><br><span class="line"><span class="comment">// 操作数类别</span></span><br><span class="line">NUMBER: INT|FLOAT;</span><br><span class="line">VAR : [a-zA-Z][a-zA-Z0-<span class="number">9</span>]*;</span><br><span class="line">INT : [<span class="number">0</span>-<span class="number">9</span>]+;</span><br><span class="line">FLOAT : [<span class="number">0</span>-<span class="number">9</span>]+<span class="string">&#x27;.&#x27;</span>[<span class="number">0</span>-<span class="number">9</span>]+;</span><br><span class="line">NEWLINE: <span class="string">&#x27;\r&#x27;</span>? <span class="string">&#x27;\n&#x27;</span>? ;</span><br><span class="line">WS : [ \t]+ -&gt; skip;</span><br><span class="line">MUL : <span class="string">&#x27;*&#x27;</span> ;  </span><br><span class="line">DIV : <span class="string">&#x27;/&#x27;</span> ;  </span><br><span class="line">ADD : <span class="string">&#x27;+&#x27;</span> ;  </span><br><span class="line">SUB : <span class="string">&#x27;-&#x27;</span> ; </span><br></pre></td></tr></table></figure>
+
+<p>这份语法有一些值得注意的地方：</p>
+<ul>
+<li>语法分析器的规则以小写字母开头；</li>
+<li>词法分析器的规则以大写字母开头；</li>
+<li>我们使用<code>|</code>来分隔同一个语言规则的若干备选分支，并使用圆括号把一些符号组合成子规则；</li>
+<li>WS 词法规则中，<code>-&gt; skip</code>是一条指令，告诉词法分析器匹配并丢弃空白字符；</li>
+<li>你也许会注意到一些<code>#</code>开头的标签。如果备选分支上没有标签，ANTLR 就只为每条规则生成一个方法；</li>
+<li>我们为运算符等词法符号定义了一些名字，这样，在之后访问器的编写中，我们可以将这些词法符号的名字当作常量使用，使代码更加清晰。</li>
+</ul>
+<p>现在我们已经可以通过 ANTLR 内置的测试组件来进行测试。由于 Eclipse 的最新版本 ANTLR 插件里的 ANTLR 版本仍然是 4.4（官网的 ANTLR 包已到 4.7 版本），所以我们还是自己通过命令行生成 java 文件并编译：</p>
+<img src="/images/antlr/note2/cal1.jpg" />
+
+<p>添加的<code>-gui</code>参数使我们可以看到关于输入的语法分析树：</p>
+<img src="/images/antlr/note2/caltree.jpg" />
+
+<p>ANTLR 语法分析器能够自动报告语法错误并从错误中恢复。例如，我们的输入少一个<code>;</code>，语法分析器会自动输出错误信息：</p>
+<img src="/images/antlr/note2/cal1-error.jpg" />
+
+<p>添加<code>-gui</code>参数生成的可视化语法分析树会将错误节点自动标红：</p>
+<img src="/images/antlr/note2/caltree-error.jpg" />
+
+<h3 id="语法优化"><a href="#语法优化" class="headerlink" title="语法优化"></a>语法优化</h3><p>这里的“优化”不是指对语法本身，而是对 ANTLR 语法文件，即<code>.g4</code>作为扩展名的文件。ANTLR 允许我们将非常大的语法拆分为多个部分，根据习惯，我们将其分为语法分析器的语法和词法分析器的语法两部分。</p>
+<p>这样做的好处是对于两种词法规则或者语法规则相同的语言，我们可以复用这些“模块”来构建语法分析器。</p>
+<p>词法规则文件 CalculatorLexerRules.g4：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注意开头是 &quot;lexer grammer&quot;</span></span><br><span class="line">lexer grammar CalculatorLexerRules;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 操作数类别</span></span><br><span class="line">NUMBER: INT|FLOAT;</span><br><span class="line">VAR : [a-zA-Z][a-zA-Z0-<span class="number">9</span>]*;</span><br><span class="line">INT : [<span class="number">0</span>-<span class="number">9</span>]+;</span><br><span class="line">FLOAT : [<span class="number">0</span>-<span class="number">9</span>]+<span class="string">&#x27;.&#x27;</span>[<span class="number">0</span>-<span class="number">9</span>]+;</span><br><span class="line">NEWLINE: <span class="string">&#x27;\r&#x27;</span>? <span class="string">&#x27;\n&#x27;</span>? ;</span><br><span class="line">WS : [ \t]+ -&gt; skip;</span><br><span class="line">MUL : <span class="string">&#x27;*&#x27;</span> ;  </span><br><span class="line">DIV : <span class="string">&#x27;/&#x27;</span> ;  </span><br><span class="line">ADD : <span class="string">&#x27;+&#x27;</span> ;  </span><br><span class="line">SUB : <span class="string">&#x27;-&#x27;</span> ; </span><br></pre></td></tr></table></figure>
+
+<p>语法规则文件 CalculatorExpr.g4，之前语法中的词法规则全部通过 import 语句导入：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a grammar called CalculatorExpr</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">// 注意 grammer 要和文件名相同</span></span><br><span class="line">grammar CalculatorExpr;</span><br><span class="line"><span class="comment">// 引入词法规则</span></span><br><span class="line"><span class="keyword">import</span> CalculatorLexerRules;</span><br><span class="line"><span class="comment">// 程序起始规则，语法分析的起点</span></span><br><span class="line">program : stat+;</span><br><span class="line"></span><br><span class="line">stat: define NEWLINE?            # defineStat</span><br><span class="line">    | print NEWLINE?             # printStat</span><br><span class="line">    | NEWLINE                    # blank</span><br><span class="line">    ;</span><br><span class="line"><span class="comment">// 声明</span></span><br><span class="line">define: VAR <span class="string">&#x27;=&#x27;</span> expr <span class="string">&#x27;;&#x27;</span>;</span><br><span class="line"><span class="comment">// 计算表达式</span></span><br><span class="line">expr: expr op=(<span class="string">&#x27;*&#x27;</span>|<span class="string">&#x27;/&#x27;</span>) expr     # MulDiv </span><br><span class="line">     | expr op=(<span class="string">&#x27;+&#x27;</span>|<span class="string">&#x27;-&#x27;</span>) expr    # AddSub</span><br><span class="line">     | <span class="string">&#x27;(&#x27;</span>expr<span class="string">&#x27;)&#x27;</span>                # parens</span><br><span class="line">     | NUMBER                    # number</span><br><span class="line">     | VAR                       # <span class="keyword">var</span></span><br><span class="line">     ;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出</span></span><br><span class="line">print: <span class="string">&#x27;print&#x27;</span><span class="string">&#x27;(&#x27;</span>VAR<span class="string">&#x27;)&#x27;</span><span class="string">&#x27;;&#x27;</span>       # printVAR</span><br><span class="line">      | <span class="string">&#x27;print&#x27;</span><span class="string">&#x27;(&#x27;</span>expr<span class="string">&#x27;)&#x27;</span><span class="string">&#x27;;&#x27;</span>     # printExpr </span><br><span class="line">      ;</span><br></pre></td></tr></table></figure>
+
+<p>要生成 java 文件，我们只需要对语法文件使用<code>antlr4</code>命令即可。这样我们就得到了和之前一样的 java 文件（测试就不贴图了）：</p>
+<img src="/images/antlr/note2/import-java.jpg" />
+
+<p>import 语句赋予我们编写模块化语法的能力，这使得 ANTLR 语法文件的耦合度降低，复用性提高。</p>
+<h2 id="使用-Visitor-构建计算器"><a href="#使用-Visitor-构建计算器" class="headerlink" title="使用 Visitor 构建计算器"></a>使用 Visitor 构建计算器</h2><p>我们最终的目的是将生成的语法分析器集成到程序中，因此我们需要写一些 Java 代码。我们会用 Visitor（访问者模式）来实现我们的变种计算器。</p>
+<p>由于我的实现代码基于 Calculator.g4 生成的 java 文件，而非拆分后的 CalculatorExpr.g4，所以之后的文件名、类名和方法名还是会以 Calculator 开头。当然，所有功能都是相同的，使用哪份语法文件生成的 java 文件都不会有影响。</p>
+<p>我们通过以下命令来让 ANTLR 生成 Visitor 而非 Listener：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">antlr4 -no-listener -visitor -encoding UTF-8 Calculator.g4</span><br></pre></td></tr></table></figure>
+
+<p>这样，ANTLR 会自动生成一个访问器接口文件 CalculatorVisitor.java，以及该访问器的一个默认实现类 CalculatorBaseVisitor。实现时，我们需要自己写一个 Visitor 的子类，继承<br>CalculatorBaseVisitor<Float>（这样表达式的计算结果都是浮点数），并重写其中的方法，以实现变量键值对存储、计算、打印等需求。</p>
+<p>以下是我们实现的 Visitor 子类 MainVisitor 的完整代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainVisitor</span> <span class="keyword">extends</span> <span class="title">CalculatorBaseVisitor</span>&lt;<span class="title">Float</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">// 声明一个 map，存放变量与值的键值对</span></span><br><span class="line">    Map&lt;String, Float&gt; memory = <span class="keyword">new</span> HashMap&lt;String, Float&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * define: VAR &#x27;=&#x27; expr &#x27;;&#x27;;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitDefine</span><span class="params">(CalculatorParser.DefineContext ctx)</span> </span>&#123;</span><br><span class="line">        String <span class="keyword">var</span> = ctx.VAR().getText();</span><br><span class="line">        <span class="keyword">float</span> value = visit(ctx.expr());</span><br><span class="line">        memory.put(<span class="keyword">var</span>, value);</span><br><span class="line">        <span class="keyword">return</span> value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * expr op=(&#x27;*&#x27;|&#x27;/&#x27;) expr</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitMulDiv</span><span class="params">(CalculatorParser.MulDivContext ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">float</span> left = visit(ctx.expr(<span class="number">0</span>));</span><br><span class="line">        <span class="keyword">float</span> right = visit(ctx.expr(<span class="number">1</span>));</span><br><span class="line">        <span class="keyword">if</span> (ctx.op.getType() == CalculatorParser.MUL)</span><br><span class="line">            <span class="keyword">return</span> left * right;</span><br><span class="line">        <span class="keyword">return</span> left / right;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * expr op=(&#x27;+&#x27;|&#x27;-&#x27;) expr</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitAddSub</span><span class="params">(CalculatorParser.AddSubContext ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">float</span> left = visit(ctx.expr(<span class="number">0</span>));</span><br><span class="line">        <span class="keyword">float</span> right = visit(ctx.expr(<span class="number">1</span>));</span><br><span class="line">        <span class="keyword">if</span> (ctx.op.getType() == CalculatorParser.ADD)</span><br><span class="line">            <span class="keyword">return</span> left + right;</span><br><span class="line">        <span class="keyword">return</span> left - right;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * NUMBER</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitNumber</span><span class="params">(CalculatorParser.NumberContext ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Float.valueOf(ctx.NUMBER().getText());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * VAR</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitVar</span><span class="params">(CalculatorParser.VarContext ctx)</span> </span>&#123;</span><br><span class="line">        String <span class="keyword">var</span> = ctx.VAR().getText();</span><br><span class="line">        <span class="keyword">if</span> (memory.containsKey(<span class="keyword">var</span>))</span><br><span class="line">            <span class="keyword">return</span> memory.get(<span class="keyword">var</span>);</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">float</span>) <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * &#x27;(&#x27;expr&#x27;)&#x27;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitParens</span><span class="params">(CalculatorParser.ParensContext ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> visit(ctx.expr());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * print: (&#x27;print&#x27;&#x27;(&#x27;VAR&#x27;)&#x27;&#x27;;&#x27;);</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitPrintVAR</span><span class="params">(CalculatorParser.PrintVARContext ctx)</span> </span>&#123;</span><br><span class="line">        String <span class="keyword">var</span> = ctx.VAR().getText();</span><br><span class="line">        <span class="keyword">if</span> (memory.containsKey(<span class="keyword">var</span>))</span><br><span class="line">            System.out.println(memory.get(<span class="keyword">var</span>));</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            System.err.println(<span class="string">&quot;undefined identifier&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> visitChildren(ctx);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * print: (&#x27;print&#x27;&#x27;(&#x27;expr&#x27;)&#x27;&#x27;;&#x27;);</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Float <span class="title">visitPrintExpr</span><span class="params">(CalculatorParser.PrintExprContext ctx)</span> </span>&#123;</span><br><span class="line">        System.out.println(visit(ctx.expr()));</span><br><span class="line">        <span class="keyword">return</span> visitChildren(ctx);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，我们需要写一个 Calculator.java 来新建所需要的所有对象，并针对 program 规则启动语法分析器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.*;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.tree.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Calculator</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        </span><br><span class="line">        String inputFile = <span class="keyword">null</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (args.length == <span class="number">0</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Usage:\n\tjava -jar Calculator.jar [sourceFile]&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (args.length == <span class="number">1</span>) &#123;</span><br><span class="line">            inputFile = args[<span class="number">0</span>];</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.err.println(<span class="string">&quot;The file path cannot be recognized&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        InputStream instream = System.in;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(inputFile != <span class="keyword">null</span>)</span><br><span class="line">            instream = <span class="keyword">new</span> FileInputStream(inputFile);</span><br><span class="line">        <span class="meta">@SuppressWarnings(&quot;deprecation&quot;)</span></span><br><span class="line">        ANTLRInputStream input = <span class="keyword">new</span> ANTLRInputStream(instream);</span><br><span class="line">        <span class="comment">// 新建词法分析器对象</span></span><br><span class="line">        CalculatorLexer lexer = <span class="keyword">new</span> CalculatorLexer(input);</span><br><span class="line">        <span class="comment">// 新建词法符号流管道</span></span><br><span class="line">        CommonTokenStream tokens = <span class="keyword">new</span> CommonTokenStream(lexer);</span><br><span class="line">        <span class="comment">// 新建语法分析器对象</span></span><br><span class="line">        CalculatorParser parser = <span class="keyword">new</span> CalculatorParser(tokens);</span><br><span class="line">        <span class="comment">// 启动语法分析器，从 program 规则开始进行语法分析</span></span><br><span class="line">        ParseTree tree = parser.program();</span><br><span class="line">        </span><br><span class="line">        MainVisitor cal = <span class="keyword">new</span> MainVisitor();</span><br><span class="line">        </span><br><span class="line">        cal.visit(tree);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>OK，现在我们的变种计算器就有了一个初步版本。打包成 jar 包后，我们可以看一下效果：</p>
+<img src="/images/antlr/note2/Calculator-effect.jpg" />
+
+<p>我觉得可以。</p>
+<h2 id="继续完善"><a href="#继续完善" class="headerlink" title="继续完善"></a>继续完善</h2><p>那么这时候，一般就会有人跳出来说：“我觉得不行。我觉得很普通。”</p>
+<p>其实我也是这么认为的（阿黄真的很严格！）。</p>
+<p>实际上，我们这个计算器还有一些需要继续完善的地方。比如下面这种情况：</p>
+<img src="/images/antlr/note2/exception.jpg" />
+
+<p>可以看到并未赋值的变量 c 被当作 0。然而在我们的要求中，这样的变量应该当作未初始化，使用时要报错。另外，当被除数为 0 时，输出的结果会是 “Infinity”，而我们还是希望这种情况发生时会报错。以上情况说明<strong>我们定义的语法没有覆盖到所有设想中的错误</strong>。</p>
+<p>另外，ANTLR 自带的错误报告采用以下的语句，基本算是直接输出了行号、错误信息等：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.err.println(<span class="string">&quot;line &quot;</span> + line + <span class="string">&quot;:&quot;</span> + charPositionInLine + <span class="string">&quot; &quot;</span> + msg);</span><br></pre></td></tr></table></figure>
+
+<p>说实话，不是很显眼。我还是喜欢错误报告开头有一些比较明显的标示，比如<code>Error(line 2,position 6): undefined identifier</code>感觉就要好一些。</p>
+<p>不幸的是，Chapter 4 尚未涉及到 ANTLR 的错误处理机制。这部分内容在 Chapter 9 Error Reporting and Recovery 中。为了不用麻烦糖糖先记着，我们不妨先对这部分内容进行一些学习。</p>
+<h3 id="错误报告格式优化"><a href="#错误报告格式优化" class="headerlink" title="错误报告格式优化"></a>错误报告格式优化</h3><p>先从错误报告格式优化开始。ANTLR 的错误报告通过 ANTLRErrorListener 接口，由 ConsoleErrorListener 实现，输出信息比较简单。</p>
+<p>ANTLRErrorListener 包含四个方法：<strong>syntaxError</strong>、reportAmbiguity、reportAttemptingFullContext、reportContextSensitivity。其中 syntaxError 顾名思义用于处理语法错误，而后三个用于二义性处理。</p>
+<p>ANTLR 也内置了一些 ANTLRErrorListener 的实现。除开默认采用的 ConsoleErrorListener，还有一个空实现 <strong>BaseErrorListener</strong>。我们可以 new 一个 BaseErrorListener 来自定义一些错误的处理方法，然后通过 addErrorListener 把它添加到语法分析器上。</p>
+<p>根据以上思路，我们可以在 Calculator.java 中新建语法分析器对象的语句后加上几行代码，用于移除 ANTLR 默认的错误处理，以及添加一个我们自定义的错误监听器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 移除默认的错误处理</span></span><br><span class="line">parser.removeErrorListeners();</span><br><span class="line"><span class="comment">// 添加自定义错误监听器</span></span><br><span class="line">parser.addErrorListener(<span class="keyword">new</span> BaseErrorListener() &#123;</span><br><span class="line">    <span class="comment">//出现语法错误</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">syntaxError</span><span class="params">(Recognizer&lt;?, ?&gt; recognizer, Object offendingSymbol, <span class="keyword">int</span> line, <span class="keyword">int</span> charPositionInLine, String msg, RecognitionException e)</span> </span>&#123;</span><br><span class="line">        System.err.println(<span class="string">&quot;Error(line &quot;</span> + line + <span class="string">&quot;, position &quot;</span> + charPositionInLine + <span class="string">&quot;): &quot;</span> + msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>现在的错误报告看起来就更加有条理了：</p>
+<img src="/images/antlr/note2/newErrorReport.jpg" />
+
+<h3 id="部分错误特例的处理方式"><a href="#部分错误特例的处理方式" class="headerlink" title="部分错误特例的处理方式"></a>部分错误特例的处理方式</h3><p>不幸的是，读完了 Chapter 9，我仍然没有找到关于调用未初始化变量、被除数为 0 时报错应该怎么写。<br>现在我的权宜之计是直接<code>System.err.println</code>，也就是跳过错误机制。由于上下文对象会记录根据规则识别词组时产生的所有信息，可以通过<code>ctx.start.getLine()</code>获得<code>ctx.start.getCharPositionInLine()</code>错误出现的行数和行内具体位置。</p>
+<img src="/images/antlr/note2/undefined-error.jpg" />
+
+<p>可以看到所显示的位置好像并不是特别准确，个人认为是 ctx 给出的位置会追溯到所在规则开始的地方。也许随着学习更加深入，我会找到比较优雅的实现方法。</p>
+<h2 id="计算器运行截图"><a href="#计算器运行截图" class="headerlink" title="计算器运行截图"></a>计算器运行截图</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-952930bcab492aee.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="result1.jpg"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-891de540a356c539.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="result2.jpg"></p>
+<h2 id="计算器实现中遇到的问题"><a href="#计算器实现中遇到的问题" class="headerlink" title="计算器实现中遇到的问题"></a>计算器实现中遇到的问题</h2><p>实现这个变种计算器的过程当然也不是一帆风顺的，尤其我是先动手摸索再看的 Chapter 4。以下几个小坑可能还会有新司机踩上，特此写明：</p>
+<ul>
+<li>开始的语法写输出语句为<code>print: (&#39;print&#39;&#39;(&#39;VAR|expr&#39;)&#39;&#39;;&#39;);</code>没有在<code>VAR|expr</code>外加一层括号，导致后续开发匹配错误。当然，我认为现在开两个备选分支的写法应该更好。</li>
+<li>第一次实现时，没有给备选分支加上标签，之后实现 Visitor 时很多方法就需要自己写 if 判断，十分麻烦。通过标签来对每种输入都获得一个不同的事件是坠吼的。</li>
+<li>开始的语法写的是<code>WS : [ \t\r\n]+ -&gt; skip;</code>。后来测试时感觉直接跳过换行符好像有时对错误定位会有影响，于是改成现在的样子。</li>
+</ul>
+<h2 id="我对-ANTLR-的理解"><a href="#我对-ANTLR-的理解" class="headerlink" title="我对 ANTLR 的理解"></a>我对 ANTLR 的理解</h2><p>那么到现在为止，我已经使用 ANTLR 写了几个示例，并完成了一个小项目。经过实际体验，ANTLR 真的可以使我们开发语言类应用程序时，少做很多繁琐的工作。</p>
+<p>只要输入一份合法的语法（当然用户需要自行保证语法的准确性），无论多复杂，ANTLR 的语法分析器都能够自动识别，并在运行时以<strong>动态方式</strong>对语法执行分析。相比静态分析必须考虑所有可行的输入序列，动态分析使得我们不必为了适应底层的语法分析策略而扭曲我们语法，从而省略了很多不必要的工作。这是 ANTLR 4 相比其他语法分析器的一个很大的优势。</p>
+<p>举个例子，选择使用 ANTLR 进行编译相关的开发工作有一个重要的原因，是它能够自动处理直接左递归（间接左递归暂时不能够）。</p>
+<p>我们知道，左递归指某个语言规则在某个备选分支的起始位置调用了自身。由于含有左递归的文法必然不是 LL(1) 文法，也就不可能使用确定的自顶向下分析法。然而，允许使用左递归的文法来表示语言规则又要简洁的多。ANTLR 可以将直接左递归规则自动重写为等价的非左递归形式，省却了不少麻烦。</p>
+<p>此外，ANLTR 语法文件独立于程序。在生成的所需的语法分析器之后，我们只需要用熟悉的 Java 来实现我们所需要的语法分析树遍历器（重写部分方法），以符合我们的要求即可。不需要自己去写词法分析器、语法分析器，ANLTR 大大降低了语言类应用程序开发的门槛。</p>
+<p>当然，无论工具有多方便，终究只能帮助人完成事务、减少工作量，而非完全替代。想要使用好 ANTLR，还是得对编译原理有透彻的理解。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>ANTLR 学习的第二篇笔记到这里就结束了。在这之后我会继续学习解释器构造，阅读《The Definitive ANTLR 4 Reference》，并博客上持续记录学习过程中的一点心得。敬请期待。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>《The Definitive ANTLR 4 Reference》</li>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/yuexiang321/article/details/52770283">antlr入门实例——计算器 - Yue Xiang - CSDN博客</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/ANTLR-learning-notes-2/" title="ANTLR v4 学习笔记（二）－实现变种计算器">https://kyonhuang.top/blog/ANTLR-learning-notes-2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/" rel="tag"># 编译技术</a>
+              <a href="/blog/tags/ANTLR/" rel="tag"># ANTLR</a>
+              <a href="/blog/tags/%E8%A7%A3%E9%87%8A%E5%99%A8/" rel="tag"># 解释器</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/yuki-intro/" rel="prev" title="yuki-目录文档生成工具">
+                  <i class="fa fa-chevron-left"></i> yuki-目录文档生成工具
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/ANTLR-learning-notes-3/" rel="next" title="ANTLR v4 学习笔记（三）－特性拾遗">
+                  ANTLR v4 学习笔记（三）－特性拾遗 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

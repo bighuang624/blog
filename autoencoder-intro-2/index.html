@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。 本文中包含以下内容：  递归自动编码器（Recursive Au">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自动编码器一览（二）">
+<meta property="og:url" content="https://kyonhuang.top/blog/autoencoder-intro-2/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。 本文中包含以下内容：  递归自动编码器（Recursive Au">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/aDAE-aSDAE.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/hybrid-collaborative-filtering-model-with-aSDAE.png">
+<meta property="article:published_time" content="2019-07-07T11:07:07.000Z">
+<meta property="article:modified_time" content="2019-07-10T01:35:02.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="自动编码器">
+<meta property="article:tag" content="Autoencoder">
+<meta property="article:tag" content="表征学习">
+<meta property="article:tag" content="Representation Learning">
+<meta property="article:tag" content="无监督学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/autoencoder-intro-2/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;autoencoder-intro-2&#x2F;&quot;,&quot;path&quot;:&quot;autoencoder-intro-2&#x2F;&quot;,&quot;title&quot;:&quot;自动编码器一览（二）&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>自动编码器一览（二） | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%92%E5%BD%92%E8%87%AA%E5%8A%A8%E7%BC%96%E7%A0%81%E5%99%A8"><span class="nav-number">1.</span> <span class="nav-text">递归自动编码器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E9%80%92%E5%BD%92%E8%87%AA%E5%8A%A8%E7%BC%96%E7%A0%81%E5%99%A8"><span class="nav-number">1.1.</span> <span class="nav-text">传统递归自动编码器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E4%BA%8E%E9%A2%84%E6%B5%8B%E7%BB%93%E6%9E%84%E7%9A%84%E6%97%A0%E7%9B%91%E7%9D%A3%E9%80%92%E5%BD%92%E8%87%AA%E5%8A%A8%E7%BC%96%E7%A0%81%E5%99%A8"><span class="nav-number">1.2.</span> <span class="nav-text">用于预测结构的无监督递归自动编码器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%8A%E7%9B%91%E7%9D%A3%E9%80%92%E5%BD%92%E8%87%AA%E5%8A%A8%E7%BC%96%E7%A0%81%E5%99%A8"><span class="nav-number">1.3.</span> <span class="nav-text">半监督递归自动编码器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Additional-Stacked-Denoising-Autoencoder"><span class="nav-number">2.</span> <span class="nav-text">Additional Stacked Denoising Autoencoder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#More-Autoencoder"><span class="nav-number">3.</span> <span class="nav-text">More Autoencoder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/autoencoder-intro-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          自动编码器一览（二）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-07-07 19:07:07" itemprop="dateCreated datePublished" datetime="2019-07-07T19:07:07+08:00">2019-07-07</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-07-10 09:35:02" itemprop="dateModified" datetime="2019-07-10T09:35:02+08:00">2019-07-10</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">深度学习笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。</p>
+<p>本文中包含以下内容：</p>
+<ul>
+<li>递归自动编码器（Recursive Autoencoder）</li>
+<li>Additional Stacked Denoising Autoencoder（aSDAE）</li>
+</ul>
+<p>“自动编码器一览”系列：</p>
+<ul>
+<li><a href="http://kyonhuang.top/autoencoder-intro-1/">自动编码器一览（一）</a></li>
+<li><a href="http://kyonhuang.top/autoencoder-intro-2/">自动编码器一览（二）</a></li>
+<li><a href="http://kyonhuang.top/autoencoder-intro-3/">自动编码器一览（三）</a></li>
+</ul>
+<span id="more"></span>
+
+<h2 id="递归自动编码器"><a href="#递归自动编码器" class="headerlink" title="递归自动编码器"></a>递归自动编码器</h2><p>我们首先介绍论文 “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”[1] 提出的<strong>递归自动编码器（Recursive Autoencoder）</strong>。在这篇论文中，递归自动编码器被用于通过无监督或半监督的训练方式，学习不定长句子的表征向量。这样学习到的表征可以被用于下游任务。在情感预测任务上，递归自动编码器达到了当时的 state-of-the-art。递归自动编码器最大的创新之处是加入了独特的层次结构，并使用语义的组合来理解情感。递归自动编码器既可以在没有标签的领域数据上，也可以在有标签的情感数据上进行训练。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png"></p>
+<h3 id="传统递归自动编码器"><a href="#传统递归自动编码器" class="headerlink" title="传统递归自动编码器"></a>传统递归自动编码器</h3><p>传统递归自动编码器要求在以一组词向量的形式给出要输入的句子 $(x_1, x_2, \dots, x_m)$ 的同时，给出句子的二叉树形结构，这个树形结构通过一组父节点和两个子节点的三元组表示：$(p \rightarrow c_{1} c_{2})$。例如在图中，我们有 $((y_{1} \rightarrow x_{1} x_{2}), (y_{2} \rightarrow y_{1} x_{3}), \dots)$ 等三元组。因为对于每组子节点，我们使用同一个神经网络来处理，因此 $y_i$ 的维度和 $x_i$ 相同。</p>
+<p>对于每个三元组 $(p \rightarrow c_{1} c_{2})$，我们通过公示：</p>
+<p>$$p=f\left(W^{(1)}\left[c_{1} ; c_{2}\right]+b^{(1)}\right),$$</p>
+<p>来得到父节点 $p$ 的表征。注意 $f(\cdot)$ 表示非线性的激活函数。为了评估父节点 $p$ 的表征有多好，我们从父节点的表征重建其两个子节点的表征（图中橙色的节点）：</p>
+<p>$$\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]=W^{(2)} p+b^{(2)}$$</p>
+<p>在训练过程中，我们的目标就是最小化这个重建的误差。对于每个子节点对，我们使用欧式距离来计算误差：</p>
+<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right]\right)=\frac{1}{2}\left|\left[c_{1} ; c_{2}\right]-\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]\right|^{2}$$</p>
+<p>我们只需要自底向上来重复以上步骤即可。</p>
+<h3 id="用于预测结构的无监督递归自动编码器"><a href="#用于预测结构的无监督递归自动编码器" class="headerlink" title="用于预测结构的无监督递归自动编码器"></a>用于预测结构的无监督递归自动编码器</h3><p>我们可以从三个方面来优化传统的递归自动编码器。</p>
+<p>第一点是，对于输入的句子 $x$，不再需要给出其树形结构，而是自己构建。方法是使用贪婪算法在每一步去尝试每个可能选择的子节点，最后选择这一步重构损失最低的方式构建整棵树。</p>
+<p>第二点是，之前采用的重构损失是平均的惩罚所有父节点的子节点重构损失。一个改进是，对于更上层的、包含更多单词的子节点对应的重构损失，给一个更高的权重，因为它对这个句子的表征的影响更大。例如，在重构时，设 $n_1$ 和 $n_2$ 是潜在子节点 $c_1$ 和 $c_2$ 包含的单词数量，则重新定义重构损失为</p>
+<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right] ; \theta\right)= \frac{n_{1}}{n_{1}+n_{2}}\left|c_{1}-c_{1}^{\prime}\right|^{2}+\frac{n_{2}}{n_{1}+n_{2}}| | c_{2}-c_{2}^{\prime}| |^{2}$$</p>
+<p>第三点是，由于每次得到的父节点表征会马上被用于重建，因此为了降低重构误差，机器会倾向于学习值非常小的表征。为了避免这个现象出现，在每次计算得到父节点的表征 $p$ 时，可以做一个正则化 $p = \frac{p}{| p |}$。</p>
+<h3 id="半监督递归自动编码器"><a href="#半监督递归自动编码器" class="headerlink" title="半监督递归自动编码器"></a>半监督递归自动编码器</h3><p>到现在为止，递归自动编码器已经可以无监督地生成捕捉了句子的语义结构的表征。我们将这个表征输入到下游任务的模型中，这样，可以通过下游任务的训练来进行微调，从而使模型学习在表征中包含更多对下游任务更为重要的信息。</p>
+<h2 id="Additional-Stacked-Denoising-Autoencoder"><a href="#Additional-Stacked-Denoising-Autoencoder" class="headerlink" title="Additional Stacked Denoising Autoencoder"></a>Additional Stacked Denoising Autoencoder</h2><p>接下来我们来到推荐系统领域，介绍在论文 “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”[2] 被提出的 <strong>Additional Stacked Denoising Autoencoder（aSDAE）</strong>。如果一定要翻译的话，这个模型应该称为“有附加信息的堆叠去噪自动编码器”，因为这个名字有点太长了，因此我们在接下来的叙述中用 aSDAE 来代指这个自动编码器。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/aDAE-aSDAE.png"></p>
+<p>其实 aSDAE 的思想非常简单，就是在堆叠去噪自动编码器的基础上，受到 Seq2Seq 模型的启发，在每一层接受一个相同的、对应输入的附加信息（side information），然后在自动编码器的最后同时重构输入和附加信息。</p>
+<p>用公式表示 aSDAE 模型。对于 aSDAE 的隐藏层 $l \in { 1, \dots, L-1 }$，其隐藏表征 $h_l$ 的计算方法为</p>
+<p>$$h_{l}=g\left(W_{l} h_{l-1}+V_{l} \tilde{x}+b_{l}\right),$$</p>
+<p>其中，$h_0 = \tilde{s}$ 是用噪声处理过的输入，$\tilde{x}$ 是附加信息，$f(\cdot)$ 和 $g(\cdot)$ 都是激活函数。</p>
+<p>对于 aSDAE 的输出层 $L$，输出的计算为</p>
+<p>$$\begin{aligned} \hat &amp;=f\left({W}_{L} {h}_{L}+{b}_{\hat{s}}\right) \\ \hat &amp;=f\left({V}_{L} {h}_{L}+{b}_{\hat{x}}\right) \end{aligned}$$</p>
+<p>因此，aSDAE 的损失函数为</p>
+<p>$$L = \alpha|{s}-\hat|_{F}^{2}+(1-\alpha)|{x}-\hat|_{F}^{2} + \lambda\left(\sum_{l}\left|{W}_{l}\right|_{F}^{2}+\left|{V}_{l}\right|_{F}^{2}\right),$$</p>
+<p>其中，$\alpha$ 是一个用于保持平衡的超参数，$\lambda$ 是正则化参数。</p>
+<p>aSDAE 本身就介绍完了。在论文 [2] 中，aSDAE 学习用户和商品对应的隐向量矩阵，并将用户的基本个人信息、用户画像信息、物品的基本信息等附加信息引入，从而解决协同过滤中的稀疏性与冷启动问题。这些和推荐系统相关的背景知识就不多讨论了，有兴趣的同学可以看参考资料 [3]。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/hybrid-collaborative-filtering-model-with-aSDAE.png"></p>
+<h2 id="More-Autoencoder"><a href="#More-Autoencoder" class="headerlink" title="More Autoencoder"></a>More Autoencoder</h2><p>随着对自动编码器的深入了解，我们有两个问题可以讨论：</p>
+<ol>
+<li>为什么要最小化重构误差？有没有其他做法？</li>
+<li>怎么让自动编码器学习到的表征更具可解释性？</li>
+</ol>
+<p>从这两个问题引入，李宏毅老师在他的机器学习课程上又对自动编码器的一些最新进展进行了介绍和讨论。有兴趣了解的同学可以查看我的《李宏毅机器学习》课程笔记：<a href="http://kyonhuang.top/Hung-yi-Lee-ML-notes/#/More-Autoencoder">More Autoencoder - 《李宏毅机器学习》课程笔记</a>，在此就不再重复写作了。而在“自动编码器一览”系列的下一篇中，我们会来看看可能是近年来的顶会上出现最多的自动编码器的一种形式——变分自动编码器。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>[1] Richard Socher, Jeffrey Pennington, Eric H.Huang, Andrew Y.Ng, Christopher D.Manning. “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”, EMNLP 2011</li>
+<li>[2] Xin Dong, Lei Yu, Zhonghuo Wu, Yuxia Sun, Lingfeng Yuan, Fangxi Zhang. “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”, AAAI 2017 </li>
+<li>[3] 推荐系统中基于深度学习的混合协同过滤模型. <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25234865">https://zhuanlan.zhihu.com/p/25234865</a></li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/autoencoder-intro-2/" title="自动编码器一览（二）">https://kyonhuang.top/blog/autoencoder-intro-2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+              <a href="/blog/tags/%E8%87%AA%E5%8A%A8%E7%BC%96%E7%A0%81%E5%99%A8/" rel="tag"># 自动编码器</a>
+              <a href="/blog/tags/Autoencoder/" rel="tag"># Autoencoder</a>
+              <a href="/blog/tags/%E8%A1%A8%E5%BE%81%E5%AD%A6%E4%B9%A0/" rel="tag"># 表征学习</a>
+              <a href="/blog/tags/Representation-Learning/" rel="tag"># Representation Learning</a>
+              <a href="/blog/tags/%E6%97%A0%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/" rel="tag"># 无监督学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/autoencoder-intro-1/" rel="prev" title="自动编码器一览（一）">
+                  <i class="fa fa-chevron-left"></i> 自动编码器一览（一）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/before-being-a-PhD-candidate/" rel="next" title="写在博士生开始前">
+                  写在博士生开始前 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

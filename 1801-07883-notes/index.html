@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="原文链接：Deep Learning for Sentiment Analysis: A Survey 作者：Lei Zhang, Shuai Wang, Bing Liu 简介：该文首先对深度学习的技术进行了概述，然后对基于深度学习的情感分析研究进行了全面的综述。 选读原因：之前想把手头情感分析的工作再进一步推动一下，因此选择在 arXiv 上找一篇相关综述进行阅读。同样，也是对自然语言处理中的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】Deep Learning for Sentiment Analysis：A Survey">
+<meta property="og:url" content="https://kyonhuang.top/blog/1801-07883-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="原文链接：Deep Learning for Sentiment Analysis: A Survey 作者：Lei Zhang, Shuai Wang, Bing Liu 简介：该文首先对深度学习的技术进行了概述，然后对基于深度学习的情感分析研究进行了全面的综述。 选读原因：之前想把手头情感分析的工作再进一步推动一下，因此选择在 arXiv 上找一篇相关综述进行阅读。同样，也是对自然语言处理中的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Autoencoder.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/LSTM-network.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-NN.png">
+<meta property="article:published_time" content="2018-08-09T01:32:21.000Z">
+<meta property="article:modified_time" content="2019-09-06T08:34:32.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="自然语言处理">
+<meta property="article:tag" content="综述">
+<meta property="article:tag" content="情感分析">
+<meta property="article:tag" content="意见挖掘">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Autoencoder.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/1801-07883-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;1801-07883-notes&#x2F;&quot;,&quot;path&quot;:&quot;1801-07883-notes&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】Deep Learning for Sentiment Analysis：A Survey&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】Deep Learning for Sentiment Analysis：A Survey | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E6%A6%82%E5%86%B5"><span class="nav-number">1.</span> <span class="nav-text">研究概况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">研究背景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%86%85%E5%AE%B9"><span class="nav-number">2.</span> <span class="nav-text">具体内容</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E6%8A%80%E6%9C%AF"><span class="nav-number">2.1.</span> <span class="nav-text">相关技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%8D%E5%B5%8C%E5%85%A5"><span class="nav-number">2.1.1.</span> <span class="nav-text">词嵌入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E7%BC%96%E7%A0%81%E5%99%A8"><span class="nav-number">2.1.2.</span> <span class="nav-text">自动编码器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LSTM"><span class="nav-number">2.1.3.</span> <span class="nav-text">LSTM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%92%E5%BD%92%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88RecNN%EF%BC%89"><span class="nav-number">2.1.4.</span> <span class="nav-text">递归神经网络（RecNN）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%83%85%E6%84%9F%E5%88%86%E6%9E%90%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.2.</span> <span class="nav-text">情感分析任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Document-level"><span class="nav-number">2.2.1.</span> <span class="nav-text">Document level</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Sentence-level"><span class="nav-number">2.2.2.</span> <span class="nav-text">Sentence level</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Aspect-level"><span class="nav-number">2.2.3.</span> <span class="nav-text">Aspect level</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">2.2.4.</span> <span class="nav-text">其他</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E7%8C%AE"><span class="nav-number">3.</span> <span class="nav-text">文献</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/1801-07883-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】Deep Learning for Sentiment Analysis：A Survey
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-08-09 09:32:21" itemprop="dateCreated datePublished" datetime="2018-08-09T09:32:21+08:00">2018-08-09</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-09-06 16:34:32" itemprop="dateModified" datetime="2019-09-06T16:34:32+08:00">2019-09-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>原文链接：<a target="_blank" rel="noopener" href="https://arxiv.org/ftp/arxiv/papers/1801/1801.07883.pdf">Deep Learning for Sentiment Analysis: A Survey</a></p>
+<p>作者：Lei Zhang, Shuai Wang, Bing Liu</p>
+<p>简介：该文首先对深度学习的技术进行了概述，然后对基于深度学习的情感分析研究进行了全面的综述。</p>
+<p>选读原因：之前想把手头情感分析的工作再进一步推动一下，因此选择在 arXiv 上找一篇相关综述进行阅读。同样，也是对自然语言处理中的一些概念和技术的了解和复习。这篇综述相对较新，质量很高，而且作者之一刘兵老师是情感分析领域最有影响力的学者之一。当然，综述只是帮助对某一研究领域建立一个初步的印象，要想真正开始深入还是得读海量的 paper + 选择复现。这篇综述中对相关工作建立表格详细介绍，因此原文仍值得一看。</p>
+<h2 id="研究概况"><a href="#研究概况" class="headerlink" title="研究概况"></a>研究概况</h2><h3 id="研究背景"><a href="#研究背景" class="headerlink" title="研究背景"></a>研究背景</h3><p>情感分析（Sentiment analysis）或意见挖掘（Opinion mining）是对人群对于产品、服务、组织、个体、问题、事件、话题等实体的意见、情感、情绪、评价、态度的计算研究。鉴于网络社交媒体的风行，我们拥有了海量的情绪化数据。情感分析已经成为自然语言处理中最有吸引力的研究领域之一，它与管理科学、社会科学领域有交集。</p>
+<p>早期的情感分析技术包括监督方法（支持向量机、最大熵、朴素贝叶斯等监督机器学习方法）和无监督方法（包括利用情感词典、语法分析和句法模式的各种方法），而深度学习走红后，其应用到情感分析的出色效果催生大量基于深度学习的情感分析研究。</p>
+<span id="more"></span>
+
+<h2 id="具体内容"><a href="#具体内容" class="headerlink" title="具体内容"></a>具体内容</h2><h3 id="相关技术"><a href="#相关技术" class="headerlink" title="相关技术"></a>相关技术</h3><p>这里简单概括一下文中对各种深度学习技术的介绍，同时也是对我知道的点做一个复习。DNN、CNN、RNN、Attention 就不介绍了，如果想了解欢迎看我的<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/">吴恩达《深度学习》系列课程笔记</a>。</p>
+<h4 id="词嵌入"><a href="#词嵌入" class="headerlink" title="词嵌入"></a>词嵌入</h4><p>NLP 中的许多深度学习模型需要词嵌入作为输入特征。词嵌入将词转换为包含实数的向量，并做从高维稀疏向量空间（通常是 One-hot 编码得到的词向量）到低维密集向量空间的处理。嵌入向量的每个维度都代表一个单词的潜在特征，因此这些向量可以编码语言的规律和模式。</p>
+<p>Word2Vec 和 Glove 是两种常用于获得词嵌入的方法。前者是一种神经网络预测模型，可以从文本中学习词嵌入；后者是在一个全局单词共现矩阵的非零项上进行训练。</p>
+<h4 id="自动编码器"><a href="#自动编码器" class="headerlink" title="自动编码器"></a>自动编码器</h4><p><strong>自动编码器（Autoencoder）</strong>是一种主要用于数据降维或者特征抽取的的<strong>自监督</strong>学习算法。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Autoencoder.png" alt="Autoencoder"></p>
+<p>一个三层的神经网络，其中隐藏层被看作一个编码器和解码器，而输出层的目标值和输入层输入值一致。这样，隐含层是尽量保证输出数据等于输入数据的，使得隐含层能够抓住输入数据的特点，使其特征保持不变。设编码函数为<code>h()</code>、解码函数为<code>g()</code>，则目标是最小化损失函数<code>loss(x, g(h(x)))</code>，而最后获得的隐藏层激活值即是自动编码器捕捉到的训练数据中最显著的特征，权重矩阵<code>W</code>则可作为神经网络训练的初始值。</p>
+<p>自动编码器的一种扩展是<strong>去噪自动编码器（Denoising Autoencoder，DAE）</strong>。其目标是最小化<code>loss(x, g(h(~x)))</code>，其中<code>~x</code>是被某种噪声损坏的<code>x</code>，使得隐藏层学习更健壮的特征。</p>
+<h4 id="LSTM"><a href="#LSTM" class="headerlink" title="LSTM"></a>LSTM</h4><p><strong>LSTM（Long Short Term Memory，长短期记忆）</strong>是一种特殊的 RNN，用于缓解 RNN 梯度爆炸和梯度消失的问题。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/LSTM-network.png" alt="LSTM-network"></p>
+<p>在 LSTM 的一个可供重复使用的结构中，有四个层相互作用，并有 hidden state 和 cell state 两个 states。</p>
+<p>在时间步 $t$，LSTM 首先决定是否将 cell state 中的信息丢弃。这个决定由使用 sigmoid 函数的层 $f_t$（称为“<strong>遗忘门</strong>”）。函数使用 $h_{t-1}$（前一个隐藏层的输出）和 $x_t$（当前输入），输出一个 [0, 1] 的值，1 表示完全保留，0 表示完全丢弃。</p>
+<p>$$f_t = \sigma(W^fx_t + U^fh_{t-1})$$</p>
+<p>之后，LSTM 决定存储在 cell state 中的新的信息。第一步，使用 sigmoid 函数的“<strong>输入门</strong>” $i_t$ 决定 LSTM 更新的值；第二步，一个使用 tanh 函数的层创建一个候选值向量 $\tilde{C_t}$ 来加到 cell state 上。</p>
+<p>$$i_t = \sigma(W^ix_t + U^ih_{t-1})$$</p>
+<p>$$\tilde{C_t} = tanh(W^nx_t + U^nh_{t-1})$$</p>
+<p>然后用以下公式更新 $C_t$。其中遗忘门 $f_t$ 可以控制经过的梯度，以缓解梯度消失或梯度爆炸的问题。</p>
+<p>$$C_t = f_t * C_{t-1} + i_t * \tilde{C_t}$$</p>
+<p>最后，LSTM 基于 cell state 决定输出。这里用到一个使用 sigmoid 函数的“<strong>输出门</strong>”。</p>
+<p>$$o_t = \sigma(W^o x_t + U^o h_{t-1})$$</p>
+<p>$$h_t = o_t * tanh(C_t)$$</p>
+<p>LSTM 常用于序列数据，但也可用于树结构数据。<strong>树结构 LSTM（Tree-structured LSTM）</strong>在表示句子含义上比普通的 LSTM 表现更好。[1]</p>
+<h4 id="递归神经网络（RecNN）"><a href="#递归神经网络（RecNN）" class="headerlink" title="递归神经网络（RecNN）"></a>递归神经网络（RecNN）</h4><p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-NN.png" alt="RecNN"></p>
+<p><strong>递归神经网络（RecNN）</strong>通常用于从数据中学习有向无环图结构（例如树结构）。给定句子的结构表示形式（例如解析树），RecNN 以自下而上的方式递归地生成父表示形式（一般为向量），通过组合 tokens 来生成短语表示形式，最终生成整个句子。然后可以使用句子级表示形式对给定的输入句子进行最终分类（例如情感分类）。</p>
+<h3 id="情感分析任务"><a href="#情感分析任务" class="headerlink" title="情感分析任务"></a>情感分析任务</h3><p>情感分析可以根据分析对象的粒度分为三个 level：</p>
+<ul>
+<li><strong>Document level</strong>：对文章做总体的情感分类。</li>
+<li><strong>Sentence level</strong>：一般先分类为有情感和无情感的（这个过程被称作 subjectivity classification），然后再对有情感的句子进行分类。</li>
+<li><strong>Aspect level</strong>：任务是提取人们对实体和实体的各个方面/特征所表达的意见。因此，它包含了方面抽取、情感抽取和情感分类。</li>
+</ul>
+<h4 id="Document-level"><a href="#Document-level" class="headerlink" title="Document level"></a>Document level</h4><p>如果是多分类，例如 1-5 星，可以考虑用回归实现。</p>
+<p>比较传统的方法是基于词袋模型，对每篇文档定长的数值化特征向量，长度为词典中的词量，值可以是词频或者 TF-IDF。词袋模型的缺点是文本中单词顺序和上下文所蕴含的信息被完全丢弃，n-gram 可以略微减少其影响，但是增加了数据稀疏和高维等问题。另外，词袋模型无法表示语义。</p>
+<p>由此引入词嵌入和神经网络。神经网络可能只用于提取文本特征/表示，这些特征用于非神经网络的分类器中，以获得一个结合二者优点的分类器。</p>
+<p>鉴于文章常有较长的依赖关系，注意力机制在文章级别的情感分类中也经常使用。</p>
+<h4 id="Sentence-level"><a href="#Sentence-level" class="headerlink" title="Sentence level"></a>Sentence level</h4><p>由于句子相较文章来说要短得多，信息量更小，因此一些语义和句法的信息会对 Sentence level 的情感分析有帮助。早期研究中，会用包括解析树、情感词典、词性标注等来提供这些信息。但现在，CNN 和 RNN 使得不再需要用解析树从句子中提取特征，取而代之的是已经将语义、句法信息编码在内的词嵌入作为输入。同时 CNN 和 RNN 也会学习词与词之间的关系信息。</p>
+<h4 id="Aspect-level"><a href="#Aspect-level" class="headerlink" title="Aspect level"></a>Aspect level</h4><p>在 Aspect level 的情感分析中，我们不只关注情感本身，还关注它所联系的目标对象（target）。一个对象通常是一个实体或者实体的某一方面，它们有时也被称为 aspect。</p>
+<p>例如，在 “the screen is very clear but the battery life is too short.” 这一句话中，如果 target aspect 是 “screen”，那么情感是正面的；但如果 target aspect 是 “battery life”，那么情感是负面的。</p>
+<p>Aspect level 的情感分析难度较大，因为需要捕捉目标对象和上下文（context）的语义联系。</p>
+<p>三个重要任务：</p>
+<ol>
+<li>生成目标对象上下文的表示：可以使用之前提到的文本表示方法；</li>
+<li>生成目标对象的表示：可以类似词嵌入，学习一个文本嵌入；</li>
+<li>识别对于特定目标对象的重要情感上下文：目前常用注意力机制处理，但是还没有统治性的方法出现。</li>
+</ol>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>还有一些其他的研究内容，包括：</p>
+<ul>
+<li>Aspect extraction and categorization：实体对象的抽取与分类；</li>
+<li>Opinion expression extraction：意见表达词的抽取；</li>
+<li>Sentiment composition：直译为情感成分，认为意见表达的情感取向是由其构成成分的意义和语法结构决定的；</li>
+<li>Opinion holder extraction：抽取意见的持有者；</li>
+<li>Temporal opinion mining：情感或意见是有时效性的，因此预测未来的情感或意见也是一个可研究的问题；</li>
+<li>Sarcasm analysis：分析是否为讽刺；</li>
+<li>Emotion analysis：我将这里的 Emotion 翻译成情绪，比情感更主观；</li>
+<li>Multimodal data for sentiment analysis：多模态数据，例如包含文本、视觉和声学信息的数据，被用来帮助情感分析；</li>
+<li>Resource-poor language and multilingual sentiment analysis：资源贫乏语言和多语言的情感分析；</li>
+<li>Sentiment intersubjectivity：情感主体间性，研究语言的表层形式与相应的抽象概念之间的差距；</li>
+<li>Lexicon Expansion：词汇扩展；</li>
+<li>Financial Volatility Prediction：根据情感分析进行金融波动预测；</li>
+<li>Opinion Recommendation：意见推荐，将用户写好的关于商品的意见选择推荐给其他用户；</li>
+<li>Stance Detection：立场检测，分析例如政治 twitter 等数据隐含的政治立场。</li>
+</ul>
+<p>由此可见，情感分析仍然是一个值得深挖的研究方向，并且在深度学习的结合下，有更多的研究和应用出现。</p>
+<h2 id="文献"><a href="#文献" class="headerlink" title="文献"></a>文献</h2><p>[1] Tai K.S, Socher R, Manning C. D. Improved semantic representations from tree-structured long short-term memory networks. In Proceedings of the Annual Meeting of the Association for Computational Linguistics (ACL 2015), 2015.</p>
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+   tex2jax: {inlineMath: [ ['$', '$'] ],
+         displayMath: [ ['$$', '$$']]}
+ });
+</script>
+
+<script src="https://cdn.bootcss.com/mathjax/2.7.4/latest.js?config=default"></script>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/1801-07883-notes/" title="【paper reading】Deep Learning for Sentiment Analysis：A Survey">https://kyonhuang.top/blog/1801-07883-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+              <a href="/blog/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" rel="tag"># 自然语言处理</a>
+              <a href="/blog/tags/%E7%BB%BC%E8%BF%B0/" rel="tag"># 综述</a>
+              <a href="/blog/tags/%E6%83%85%E6%84%9F%E5%88%86%E6%9E%90/" rel="tag"># 情感分析</a>
+              <a href="/blog/tags/%E6%84%8F%E8%A7%81%E6%8C%96%E6%8E%98/" rel="tag"># 意见挖掘</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/database-systems-notes/" rel="prev" title="数据库系统复习笔记">
+                  <i class="fa fa-chevron-left"></i> 数据库系统复习笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/python-for-data-analysis-notes/" rel="next" title="《利用Python进行数据分析》笔记">
+                  《利用Python进行数据分析》笔记 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

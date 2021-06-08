@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="一句话总结本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。 论文信息 作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro 出处：NeurIPS 2019 机构：Element AI, Montreal, Canada">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】Adaptive Cross-Modal Few-Shot Learning">
+<meta property="og:url" content="https://kyonhuang.top/blog/AM3-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="一句话总结本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。 论文信息 作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro 出处：NeurIPS 2019 机构：Element AI, Montreal, Canada">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-Figure-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/5-Figure2-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table1-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table2-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/14-Table3-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/8-Figure3-1.png">
+<meta property="og:image" content="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/15-Table4-1.png">
+<meta property="article:published_time" content="2019-09-13T01:52:12.000Z">
+<meta property="article:modified_time" content="2019-09-13T01:59:54.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="few-shot learning">
+<meta property="article:tag" content="小样本学习">
+<meta property="article:tag" content="multimodal">
+<meta property="article:tag" content="metric learning">
+<meta property="article:tag" content="多模态">
+<meta property="article:tag" content="度量学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/AM3-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;AM3-notes&#x2F;&quot;,&quot;path&quot;:&quot;AM3-notes&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】Adaptive Cross-Modal Few-Shot Learning&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】Adaptive Cross-Modal Few-Shot Learning | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">一句话总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%BF%A1%E6%81%AF"><span class="nav-number">2.</span> <span class="nav-text">论文信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AE%B9%E7%AE%80%E8%AE%B0"><span class="nav-number">3.</span> <span class="nav-text">内容简记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">3.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.1.</span> <span class="nav-text">对比实验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E6%9C%BA%E5%88%B6%E5%88%86%E6%9E%90"><span class="nav-number">3.3.2.</span> <span class="nav-text">自适应机制分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.3.3.</span> <span class="nav-text">消融实验</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%BA%E7%AC%94%E8%AE%B0"><span class="nav-number">3.4.</span> <span class="nav-text">个人笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E8%A7%A3"><span class="nav-number">3.4.1.</span> <span class="nav-text">理解</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%AE%BA%E6%96%87"><span class="nav-number">4.</span> <span class="nav-text">参考论文</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/AM3-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】Adaptive Cross-Modal Few-Shot Learning
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2019-09-13 09:52:12 / 修改时间：09:59:54" itemprop="dateCreated datePublished" datetime="2019-09-13T09:52:12+08:00">2019-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png"></p>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。</p>
+<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
+<li>作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro</li>
+<li>出处：NeurIPS 2019</li>
+<li>机构：Element AI, Montreal, Canada; Nankai University</li>
+<li>关键词：few-shot learning, metric learning, multimodal</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1902.07104.pdf">论文链接</a></li>
+<li>开源代码：<a target="_blank" rel="noopener" href="https://github.com/ElementAI/am3">ElementAI/am3</a></li>
+<li>其他资料：<ul>
+<li><a target="_blank" rel="noopener" href="https://www.semanticscholar.org/paper/Adaptive-Cross-Modal-Few-Shot-Learning-Xing-Rostamzadeh/7d113621ab50a8b875a12cea3ad5b0263e9520ac">Semantic Scholar</a></li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>当来自视觉模态的数据有限时，利用辅助模态（例如，属性，未标记的文本语料库）来帮助图像分类主要由无样本学习（Zero-Shot Learning, ZSL）驱动。与少样本学习（Few-Shot Learning, FSL）对比，无样本学习没有少量标记样本来帮助识别新类别。大多数方法在训练阶段将两种模态对齐，以此迫使模态被映射在一起并具有相同的语义结构。这样，来自辅助模态的知识在测试时被迁移到视觉方面用于识别新类别。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-Figure-1.png"></p>
+<p>然而，视觉和自然语言语义特征根据定义具有不同的结构。对于不同的概念，视觉特征可能比文本特征更丰富和更具辨识度；而对于另一些概念，可能情况是相反的。此外，当图像数量非常少时，从视觉模态提供的信息往往是嘈杂和局部的，而（从无监督的文本语料库中学习的）语义表示可以提供强大的先验知识和上下文以帮助学习。在无样本学习中，测试阶段没有给视觉信息，因此算法只能完全依靠辅助模态（例如，文本）；而当有标记的图像样本数量很多时，神经网络倾向于忽略辅助模态，因为它已经有能力通过大量样本学会泛化。小样本学处于在这两个极端情况的中间态，因此我们可以假设视觉和语义信息都可用于小样本学习。</p>
+<p>因此，比起将两种模态对齐并进行知识迁移，在测试阶段进行从两种模态获得信息的小样本学习时，最好<strong>将各模态视为独立的知识来源，并根据不同的场景自适应地利用不同的模态</strong>。</p>
+<p>根据上述分析，本文提出<strong>自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）</strong>，可以根据要学习的新图像类别自适应地组合来自两种模态的信息，用于小样本学习。</p>
+<p>实验表明，效果超过当前的单模态小样本学习方法和模态对齐方法。另外，试验还表明，该模型可以有效调整其对两种模态的关注。当镜头数量非常小时，性能的提升特别高。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/5-Figure2-1.png"></p>
+<p>本文提出的自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）可以应用于任何基于度量的方法。本文选用原型网络（Prototypical Networks）和 TADAM。对于类别 $c$，新的原型（prototype）计算如下：</p>
+<p>$$<br>\mathbf{p}_{c}^{\prime}=\lambda_{c} \cdot \mathbf{p}_{c}+\left(1-\lambda_{c}\right) \cdot \mathbf{w}_{c}<br>$$</p>
+<p>其中，$\mathbf{w}_{c}=g\left(\mathbf{e}_{c}\right)$ 是一个对于类别 $c$ 的标签嵌入的转换版本，$\mathbf{e}_{c}$ 是对于类别 $c$ 标签的预训练词向量，而转换 $g : \mathbb{R}^{n_{w}} \rightarrow \mathbb{R}^{n_{p}}$ 让两个模态处于同一空间并可以合并。$\lambda_{c}$ 是自适应混合系数（adaptive mixture coefficient）：</p>
+<p>$$<br>\lambda_{c}=\frac{1}{1+\exp \left(-h\left(\mathbf{w}_{c}\right)\right)}<br>$$</p>
+<p>$h$ 是自适应混合网络（adaptive mixing network）。自适应混合系数 $\lambda_{c}$ 可以根据不同的变量进行控制。</p>
+<p>训练过程与原始的原型网络相似，只是距离度量变为</p>
+<p>$$<br>p_{\theta}\left(y=c | q_{t}, S_{e}, \mathcal{W}\right)=\frac{\exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{c}^{\prime}\right)\right)}{\sum_{k} \exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{k}^{\prime}\right)\right)}<br>$$</p>
+<p>损失是每个查询集样本的真类的负对数似然（the negative loglikelihood of the true class of each query sample）：</p>
+<p>$$<br>\mathcal{L}(\theta)=\underset{\left(\mathcal{S}_{e}, \mathcal{Q}_{e}\right)}{\mathbb{E}}-\sum_{t=1}^{Q_{e}} \log p_{\theta}\left(y_{t} | q_{t}, \mathcal{S}_{e}\right)<br>$$</p>
+<p>其中，$\mathcal{S}_{e}$ 是支撑集，$\mathcal{Q}_{e}$ 是查询集。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>数据集：</p>
+<ul>
+<li>miniImageNet [2]</li>
+<li>tieredImageNet [3]</li>
+<li>CUB-200 [4]：这是一个无样本学习数据集。考虑到大多数模态对齐方法没有在小样本学习数据集上有公开的实验结果，这个数据集用于将 AM3 与模态对齐方法进行对比</li>
+</ul>
+<p>本文在  和 tieredImageNet [3]，将 AM3 与三种基线进行对比：单模态 FSL 方法，模态对齐方法，模态对齐方法的基于度量的扩展。</p>
+<p>baselines：</p>
+<ul>
+<li>单模态 FSL 方法：MAML、LEO [6]、原型网络、TADAM [5] 等；</li>
+<li>模态对齐方法：CADA-VAE [7] 等；</li>
+<li>模态对齐方法的基于度量的扩展：使用了基于度量的损失以及原型网络的训练方式（episode training）。</li>
+</ul>
+<p>在 miniImageNet 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table1-1.png"></p>
+<p>在 tieredImageNet 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table2-1.png"></p>
+<p>结论：</p>
+<ol>
+<li>在所有数据集上，AM3 的表现都优于其主干方法。说明在正确使用时，文本模态可以帮助提高基于度量的 FSL 学习框架的性能；</li>
+<li>AM3（主干方法选用 TADAM）取得 SOTA，且当 shot 数（即样本数）越少时，效果提升越多。说明当视觉模态提供的信息越少时，语义信息对分类的帮助越大；</li>
+<li>当扩展到基于度量、episodic、FSL 框架时时，所有模态对齐方法的表现都显著提升。然而扩展前后这些模态对齐方法都比单模态 FSL 方法的 SOTA 要差。说明尽管模态对齐方法对于 ZSL 中的跨模态是有效的，但并不适合 FSL。<strong>一个可能的原因是，两个不同的结构被迫对齐导致双方的一些信息可能损失</strong>。</li>
+</ol>
+<p>在 CUB-200 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/14-Table3-1.png"></p>
+<p>结论：对于无样本学习场景，AM3 降级为最简单的模态对齐方法，将文本语义空间映射到视觉空间。因此，在没有自适应机制的情况下，AM3 的表现与 DeViSE 大致相同。说明自适应机制在 FSL 场景中观察到的性能提升中起主要作用。</p>
+<h4 id="自适应机制分析"><a href="#自适应机制分析" class="headerlink" title="自适应机制分析"></a>自适应机制分析</h4><p>对本文提出的自适应机制进行定量分析：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/8-Figure3-1.png"></p>
+<p>结论：</p>
+<ol>
+<li>当 shot 数（即样本数）增加时，AM3 与其主干方法的表现差距减小；</li>
+<li>自适应混合系数 $\lambda_{c}$ 的平均值与 shot 数有关，当 shot 数减小时，AM3 在文本模态上的权重更大（在视觉模态上更小）。这种趋势表明，当视觉信息非常少时，AM3 可以自动将焦点更多地调整到文本模态以帮助分类；</li>
+<li>当 $\lambda_{c}$ 的方差随着 shot 数增加而减小时，AM3 与其主干方法的性能差距也会缩小。这表明 AM3 在类别级别的适应性对性能提升有非常重要的作用（？？？觉得有点牵强）。</li>
+</ol>
+<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/15-Table4-1.png"></p>
+<p>所以选用变换后的语义特征来做自适应机制是实验得到的最好选择。</p>
+<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>我个人认为，转换 $g$ 本质上还是一种表示空间的强行对齐，会破坏模态本身的自然结构。因此，可能可以考虑一种更好的特征组合与自适应调整方式。</p>
+<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
+<li>[1] Zero-shot learning-the good, the bad and the ugly, CVPR 2017.</li>
+<li>[2] Matching networks for one shot learning, NIPS 2016.</li>
+<li>[3] Meta-learning for semi-supervised few-shot classification, ICLR 2018.</li>
+<li>[4] Caltech-UCSD Birds 200, Technical Report CNS-TR-2010-001, 2010.</li>
+<li>[5] Tadam: Task dependent adaptive metric for improved few-shot learning, NeurIPS 2018.</li>
+<li>[6] Meta-learning with latent embedding optimization, ICML 2016.</li>
+<li>[7] Generalized zero-and few-shot learning via aligned variational autoencoders, CVPR 2019.</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/AM3-notes/" title="【paper reading】Adaptive Cross-Modal Few-Shot Learning">https://kyonhuang.top/blog/AM3-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/few-shot-learning/" rel="tag"># few-shot learning</a>
+              <a href="/blog/tags/%E5%B0%8F%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0/" rel="tag"># 小样本学习</a>
+              <a href="/blog/tags/multimodal/" rel="tag"># multimodal</a>
+              <a href="/blog/tags/metric-learning/" rel="tag"># metric learning</a>
+              <a href="/blog/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/" rel="tag"># 多模态</a>
+              <a href="/blog/tags/%E5%BA%A6%E9%87%8F%E5%AD%A6%E4%B9%A0/" rel="tag"># 度量学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/TIRG-notes/" rel="prev" title="【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey">
+                  <i class="fa fa-chevron-left"></i> 【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/CloserLookFewShot-notes/" rel="next" title="【paper reading】A Closer Look at Few-shot Classification">
+                  【paper reading】A Closer Look at Few-shot Classification <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

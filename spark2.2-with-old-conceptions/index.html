@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="根据实验室的要求，现在在啃《Spark 机器学习》。这本书和市面上大多数 Spark 书籍一样，全都基于 Spark 1.x。在 Spark 版本已经升到 2.2 的今天，敲这本书上的代码可以说是遍地是坑了，很多东西都已经变更，而且很难找到正确的解决方案，弄的我很是烦躁。 没办法，问题要一点一点解决。我决定先从理清《Spark 机器学习》提到的某些 Spark 2.2 提供的概念、模块和配合工具下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理清 Spark 2.2 的概念－RDD、Dataset、MLlib">
+<meta property="og:url" content="https://kyonhuang.top/blog/spark2.2-with-old-conceptions/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="根据实验室的要求，现在在啃《Spark 机器学习》。这本书和市面上大多数 Spark 书籍一样，全都基于 Spark 1.x。在 Spark 版本已经升到 2.2 的今天，敲这本书上的代码可以说是遍地是坑了，很多东西都已经变更，而且很难找到正确的解决方案，弄的我很是烦躁。 没办法，问题要一点一点解决。我决定先从理清《Spark 机器学习》提到的某些 Spark 2.2 提供的概念、模块和配合工具下">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-10-05T02:43:16.000Z">
+<meta property="article:modified_time" content="2017-10-05T05:53:46.000Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="读书笔记">
+<meta property="article:tag" content="Spark">
+<meta property="article:tag" content="RDD">
+<meta property="article:tag" content="Dataset">
+<meta property="article:tag" content="MLlib">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/spark2.2-with-old-conceptions/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;spark2.2-with-old-conceptions&#x2F;&quot;,&quot;path&quot;:&quot;spark2.2-with-old-conceptions&#x2F;&quot;,&quot;title&quot;:&quot;理清 Spark 2.2 的概念－RDD、Dataset、MLlib&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>理清 Spark 2.2 的概念－RDD、Dataset、MLlib | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark"><span class="nav-number">1.</span> <span class="nav-text">Spark</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD"><span class="nav-number">2.</span> <span class="nav-text">RDD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">2.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%9F%E8%83%BD"><span class="nav-number">2.2.</span> <span class="nav-text">功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%87%E7%BA%A7%E5%8F%98%E5%8A%A8"><span class="nav-number">2.3.</span> <span class="nav-text">升级变动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dataset-%E5%92%8C-DataFrame"><span class="nav-number">3.</span> <span class="nav-text">Dataset 和 DataFrame</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dataset"><span class="nav-number">3.1.</span> <span class="nav-text">Dataset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DataFrame"><span class="nav-number">3.2.</span> <span class="nav-text">DataFrame</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MLlib"><span class="nav-number">4.</span> <span class="nav-text">MLlib</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5-1"><span class="nav-number">4.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%87%E7%BA%A7%E5%8F%98%E5%8A%A8-1"><span class="nav-number">4.2.</span> <span class="nav-text">升级变动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IPython"><span class="nav-number">5.</span> <span class="nav-text">IPython</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5-2"><span class="nav-number">5.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%87%E7%BA%A7%E5%8F%98%E5%8A%A8-2"><span class="nav-number">5.2.</span> <span class="nav-text">升级变动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i>学术主页</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知 乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>知 乎</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/spark2.2-with-old-conceptions/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          理清 Spark 2.2 的概念－RDD、Dataset、MLlib
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2017-10-05 10:43:16 / 修改时间：13:53:46" itemprop="dateCreated datePublished" datetime="2017-10-05T10:43:16+08:00">2017-10-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/Spark-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">Spark 学习笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>根据实验室的要求，现在在啃《Spark 机器学习》。这本书和市面上大多数 Spark 书籍一样，全都基于 Spark 1.x。在 Spark 版本已经升到 2.2 的今天，敲这本书上的代码可以说是遍地是坑了，很多东西都已经变更，而且很难找到正确的解决方案，弄的我很是烦躁。</p>
+<p>没办法，问题要一点一点解决。我决定先从理清《Spark 机器学习》提到的某些 Spark 2.2 提供的概念、模块和配合工具下手，主要关心一下几点：</p>
+<ol>
+<li>RDD 是什么？在升级到 Spark2.2+ 后有什么改动？</li>
+<li>Dataset 是什么？DataFrame 又是什么？</li>
+<li>MLlib 是什么？在升级到 Spark2.2+ 后有没有变动？如何使用？</li>
+<li>IPython 是什么？如何配合 Spark2.2+ 使用？</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="Spark"><a href="#Spark" class="headerlink" title="Spark"></a>Spark</h2><p>Apache Spark 是一个快速的, 多用途的集群计算系统。 它提供了 Java, Scala, Python 和 R 的高级 API，以及一个支持通用的执行图计算的优化过的引擎. 它还支持一组丰富的高级工具, 包括使用 SQL 处理结构化数据处理的 Spark SQL, 用于机器学习的 MLlib, 用于图形处理的 GraphX, 以及 Spark Streaming。</p>
+<h2 id="RDD"><a href="#RDD" class="headerlink" title="RDD"></a>RDD</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>RDD（Resilien Distributed Dataset，弹性分布式数据集）是 Spark 的核心概念之一。一个 RDD 代表一系列的“记录”（严格来说是某种类型的对象）。这些记录被分配或分区到一个集群的多个节点上（在本地模式下，可以类似地理解为单个进程里的多个线程上）。</p>
+<p>Spark 中的 RDD 具备容错性，即当某个节点或任务失败时（非用户代码错误引起，如硬件故障、网络连接失败等），RDD 会在余下的节点上自动重建，以便任务最终能够完成。</p>
+<h3 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h3><p>RDD 可以从一个驱动程序中已存在的 Scala 集合创建，也可以基于 Hadoop 的输入源（任何其他 Hadoop 支持的文件系统）创建，以及通过转换（transforming）来创建。</p>
+<p>RDD 支持两种类型的操作：<strong>转换（transformation）</strong>和<strong>执行（action）</strong>。一般来说，转换操作是对一个数据集里的所有记录执行某种函数，从而使记录发生改变；而执行通常是运行某些计算或聚合操作，并将结果返回给驱动程序。</p>
+<p>值得注意的是，Spark 中的<strong>转换操作是懒加载的</strong>（lazy），即在 RDD 上调用一个转换操作不会立即触发相应的计算，而是会将转换操作链接起来，并在执行操作被调用时才被高效计算。</p>
+<p>调用一个 RDD 的<code>cache</code>（或<code>persist</code>）函数将会告诉 Spark 将这个 RDD 缓存在集群的内存中，以加快下一次访问数据集的速度。</p>
+<p>更多 RDD 功能及实际编程方法可见 <a target="_blank" rel="noopener" href="http://spark.apachecn.org/docs/cn/2.2.0/rdd-programming-guide.html">Spark 编程指南 - Spark 2.2.0 中文文档 - ApacheCN</a>里的相关部分。</p>
+<h3 id="升级变动"><a href="#升级变动" class="headerlink" title="升级变动"></a>升级变动</h3><p>在 Spark 2.0 之前，Spark 的主要编程接口是 RDD。而在 Spark 2.0 之后，RDD 被 Dataset（数据集）替换。</p>
+<p>Dataset 很像 RDD，也是强类型的，并能够使用强大的 lambda 函数。但 Dataset 在引擎盖（hood）有更好的优化，因此性能要更优于 RDD。RDD 接口仍然受支持，但是建议切换使用 Dataset。</p>
+<h2 id="Dataset-和-DataFrame"><a href="#Dataset-和-DataFrame" class="headerlink" title="Dataset 和 DataFrame"></a>Dataset 和 DataFrame</h2><h3 id="Dataset"><a href="#Dataset" class="headerlink" title="Dataset"></a>Dataset</h3><p>Dataset 是一个分布式的数据集合。一个 Dataset 可以从 JVM 对象来构造并使用转换功能。Dataset API 在 Scala 和 Java 是可用的，遗憾的是，Python 暂不支持 Dataset API。但是由于 Python 的动态特性, 许多 Dataset API 的优点已经可用了。</p>
+<h3 id="DataFrame"><a href="#DataFrame" class="headerlink" title="DataFrame"></a>DataFrame</h3><p>一个 DataFrame 是一个 Dataset 组成的指定列。它的概念与一个关系型数据库中的表或者在 R/Python 中的数据帧（data frame）是相等的，但优化得更好。</p>
+<p>DataFrames 可以从结构化的文本文件、Hive中的表、外部数据库，或者已经存在的 RDD 构造而来。DataFrame API 可以在 Scala、Java、Python 和 R 中实现。在 Scala 和 Java 中，一个 DataFrame 所代表的是一个多行的 Dataset。</p>
+<p>更多相关信息可见 <a target="_blank" rel="noopener" href="http://spark.apachecn.org/docs/cn/2.2.0/sql-programming-guide.html">Spark SQL and DataFrames - Spark 2.2.0 中文文档 - ApacheCN</a>。</p>
+<h2 id="MLlib"><a href="#MLlib" class="headerlink" title="MLlib"></a>MLlib</h2><h3 id="概念-1"><a href="#概念-1" class="headerlink" title="概念"></a>概念</h3><p>MLlib 是 Spark 的机器学习库。其目标是使实用的机器学习具有可扩展性并且变得容易。在较高的水平上，它提供了以下工具：</p>
+<ul>
+<li>ML Algorithms（ML 算法）：常用的学习算法，如分类，回归，聚类和协同过滤；</li>
+<li>Featurization（特征）：特征提取，变换，降维和选择；</li>
+<li>Pipelines（管道）：用于构建，评估和调整 ML Pipelines 的工具；</li>
+<li>Persistence（持久性）：保存和加载算法，模型和 Pipelines；</li>
+<li>Utilities（实用）：线性代数，统计学，数据处理等。</li>
+</ul>
+<h3 id="升级变动-1"><a href="#升级变动-1" class="headerlink" title="升级变动"></a>升级变动</h3><p>MLlib 包括基于 RDD 的 API 和基于 DataFrame 的 API。从 Spark 2.0 开始，基于 RDD 的 API 处于维护模式，这意味着这些 API 仍然被支持且会修复 bug，但不会再添加新功能。在基于 DataFrame 的 API 能够开发到相同功能时，基于 RDD 的 API 将被弃用，并预计在 Spark 3.0 中删除。</p>
+<p>更多相关信息可见 <a target="_blank" rel="noopener" href="http://spark.apachecn.org/docs/cn/2.2.0/ml-guide.html">MLlib: 主要指南 - Spark 2.2.0 中文文档 - ApacheCN</a>。</p>
+<h2 id="IPython"><a href="#IPython" class="headerlink" title="IPython"></a>IPython</h2><p>书中的 3.2 节开始也涉及到 IPython 的使用，并且在实际使用中也有一些坑。因此也需要了解一下。</p>
+<h3 id="概念-2"><a href="#概念-2" class="headerlink" title="概念"></a>概念</h3><p>IPython 是一个 Python 的高级交互式 shell，基于 BSD 开源，比默认的 Python shell 好用得多，支持变量自动补全，自动缩进，支持 bash shell 命令，并且内置了许多很有用的功能和函数。IPython 内置的 pylab 包括用于数值计算的 NumPy 和 SciPy，以及用于交互式绘图和可视化的 matplotlib。</p>
+<h3 id="升级变动-2"><a href="#升级变动-2" class="headerlink" title="升级变动"></a>升级变动</h3><p>书中想在启动 PySpark 终端时使用 IPython 而非标准的 Python shell。启动时也可以向 IPython 传入其他参数，包括让它启动时也启动 pylab 功能。</p>
+<p>但是实际操作时，在 Spark 主目录下输入如下命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">IPYTHON=1 IPYTHON_OPTS=&quot;--pylab&quot; ./bin/pyspark</span><br></pre></td></tr></table></figure>
+
+<p>会报错，提示信息如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Error in pyspark startup:</span><br><span class="line">IPYTHON and IPYTHON_OPTS are removed in Spark 2.0+. Remove these from the environment and set PYSPARK_DRIVER_PYTHON and PYSPARK_DRIVER_PYTHON_OPTS instead.</span><br></pre></td></tr></table></figure>
+
+<p><strong>解决方法：</strong></p>
+<p>把输入命令变成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PYSPARK_DRIVER_PYTHON=ipython PYSPARK_DRIVER_PYTHON_OPTS=&quot;--pylab&quot; ./bin/pyspark</span><br></pre></td></tr></table></figure>
+
+<p>如果要使用 IPython 提供的 Notebook 应用，<br>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PYSPARK_DRIVER_PYTHON=ipython PYSPARK_DRIVER_PYTHON_OPTS=&#x27;notebook&#x27; ./bin/pyspark</span><br></pre></td></tr></table></figure>
+
+<p>参考资料：<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/42658694/starting-ipython-with-spark-2">Starting Ipython with Spark 2 - Stack Overflow</a></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>《Spark 机器学习》</li>
+<li><a target="_blank" rel="noopener" href="http://spark.apachecn.org/docs/cn/2.2.0/">概述 - Spark 2.2.0 中文文档 - ApacheCN</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/spark2.2-with-old-conceptions/" title="理清 Spark 2.2 的概念－RDD、Dataset、MLlib">https://kyonhuang.top/blog/spark2.2-with-old-conceptions/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag"># 读书笔记</a>
+              <a href="/blog/tags/Spark/" rel="tag"># Spark</a>
+              <a href="/blog/tags/RDD/" rel="tag"># RDD</a>
+              <a href="/blog/tags/Dataset/" rel="tag"># Dataset</a>
+              <a href="/blog/tags/MLlib/" rel="tag"># MLlib</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/ANTLR-learning-notes-3/" rel="prev" title="ANTLR v4 学习笔记（三）－特性拾遗">
+                  <i class="fa fa-chevron-left"></i> ANTLR v4 学习笔记（三）－特性拾遗
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/escorts-over-tiger-hill/" rel="next" title="虎山行">
+                  虎山行 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
