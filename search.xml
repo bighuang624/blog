@@ -663,6 +663,108 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
+    <title>【paper reading】Adaptive Cross-Modal Few-Shot Learning</title>
+    <url>/blog/AM3-notes/</url>
+    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png"></p>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。</p>
+<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
+<li>作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro</li>
+<li>出处：NeurIPS 2019</li>
+<li>机构：Element AI, Montreal, Canada; Nankai University</li>
+<li>关键词：few-shot learning, metric learning, multimodal</li>
+<li><a href="https://arxiv.org/pdf/1902.07104.pdf">论文链接</a></li>
+<li>开源代码：<a href="https://github.com/ElementAI/am3">ElementAI/am3</a></li>
+<li>其他资料：<ul>
+<li><a href="https://www.semanticscholar.org/paper/Adaptive-Cross-Modal-Few-Shot-Learning-Xing-Rostamzadeh/7d113621ab50a8b875a12cea3ad5b0263e9520ac">Semantic Scholar</a></li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>当来自视觉模态的数据有限时，利用辅助模态（例如，属性，未标记的文本语料库）来帮助图像分类主要由无样本学习（Zero-Shot Learning, ZSL）驱动。与少样本学习（Few-Shot Learning, FSL）对比，无样本学习没有少量标记样本来帮助识别新类别。大多数方法在训练阶段将两种模态对齐，以此迫使模态被映射在一起并具有相同的语义结构。这样，来自辅助模态的知识在测试时被迁移到视觉方面用于识别新类别。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-Figure-1.png"></p>
+<p>然而，视觉和自然语言语义特征根据定义具有不同的结构。对于不同的概念，视觉特征可能比文本特征更丰富和更具辨识度；而对于另一些概念，可能情况是相反的。此外，当图像数量非常少时，从视觉模态提供的信息往往是嘈杂和局部的，而（从无监督的文本语料库中学习的）语义表示可以提供强大的先验知识和上下文以帮助学习。在无样本学习中，测试阶段没有给视觉信息，因此算法只能完全依靠辅助模态（例如，文本）；而当有标记的图像样本数量很多时，神经网络倾向于忽略辅助模态，因为它已经有能力通过大量样本学会泛化。小样本学处于在这两个极端情况的中间态，因此我们可以假设视觉和语义信息都可用于小样本学习。</p>
+<p>因此，比起将两种模态对齐并进行知识迁移，在测试阶段进行从两种模态获得信息的小样本学习时，最好<strong>将各模态视为独立的知识来源，并根据不同的场景自适应地利用不同的模态</strong>。</p>
+<p>根据上述分析，本文提出<strong>自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）</strong>，可以根据要学习的新图像类别自适应地组合来自两种模态的信息，用于小样本学习。</p>
+<p>实验表明，效果超过当前的单模态小样本学习方法和模态对齐方法。另外，试验还表明，该模型可以有效调整其对两种模态的关注。当镜头数量非常小时，性能的提升特别高。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/5-Figure2-1.png"></p>
+<p>本文提出的自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）可以应用于任何基于度量的方法。本文选用原型网络（Prototypical Networks）和 TADAM。对于类别 $c$，新的原型（prototype）计算如下：</p>
+<p>$$<br>\mathbf{p}_{c}^{\prime}=\lambda_{c} \cdot \mathbf{p}_{c}+\left(1-\lambda_{c}\right) \cdot \mathbf{w}_{c}<br>$$</p>
+<p>其中，$\mathbf{w}_{c}=g\left(\mathbf{e}_{c}\right)$ 是一个对于类别 $c$ 的标签嵌入的转换版本，$\mathbf{e}_{c}$ 是对于类别 $c$ 标签的预训练词向量，而转换 $g : \mathbb{R}^{n_{w}} \rightarrow \mathbb{R}^{n_{p}}$ 让两个模态处于同一空间并可以合并。$\lambda_{c}$ 是自适应混合系数（adaptive mixture coefficient）：</p>
+<p>$$<br>\lambda_{c}=\frac{1}{1+\exp \left(-h\left(\mathbf{w}_{c}\right)\right)}<br>$$</p>
+<p>$h$ 是自适应混合网络（adaptive mixing network）。自适应混合系数 $\lambda_{c}$ 可以根据不同的变量进行控制。</p>
+<p>训练过程与原始的原型网络相似，只是距离度量变为</p>
+<p>$$<br>p_{\theta}\left(y=c | q_{t}, S_{e}, \mathcal{W}\right)=\frac{\exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{c}^{\prime}\right)\right)}{\sum_{k} \exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{k}^{\prime}\right)\right)}<br>$$</p>
+<p>损失是每个查询集样本的真类的负对数似然（the negative loglikelihood of the true class of each query sample）：</p>
+<p>$$<br>\mathcal{L}(\theta)=\underset{\left(\mathcal{S}_{e}, \mathcal{Q}_{e}\right)}{\mathbb{E}}-\sum_{t=1}^{Q_{e}} \log p_{\theta}\left(y_{t} | q_{t}, \mathcal{S}_{e}\right)<br>$$</p>
+<p>其中，$\mathcal{S}_{e}$ 是支撑集，$\mathcal{Q}_{e}$ 是查询集。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>数据集：</p>
+<ul>
+<li>miniImageNet [2]</li>
+<li>tieredImageNet [3]</li>
+<li>CUB-200 [4]：这是一个无样本学习数据集。考虑到大多数模态对齐方法没有在小样本学习数据集上有公开的实验结果，这个数据集用于将 AM3 与模态对齐方法进行对比</li>
+</ul>
+<p>本文在  和 tieredImageNet [3]，将 AM3 与三种基线进行对比：单模态 FSL 方法，模态对齐方法，模态对齐方法的基于度量的扩展。</p>
+<p>baselines：</p>
+<ul>
+<li>单模态 FSL 方法：MAML、LEO [6]、原型网络、TADAM [5] 等；</li>
+<li>模态对齐方法：CADA-VAE [7] 等；</li>
+<li>模态对齐方法的基于度量的扩展：使用了基于度量的损失以及原型网络的训练方式（episode training）。</li>
+</ul>
+<p>在 miniImageNet 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table1-1.png"></p>
+<p>在 tieredImageNet 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table2-1.png"></p>
+<p>结论：</p>
+<ol>
+<li>在所有数据集上，AM3 的表现都优于其主干方法。说明在正确使用时，文本模态可以帮助提高基于度量的 FSL 学习框架的性能；</li>
+<li>AM3（主干方法选用 TADAM）取得 SOTA，且当 shot 数（即样本数）越少时，效果提升越多。说明当视觉模态提供的信息越少时，语义信息对分类的帮助越大；</li>
+<li>当扩展到基于度量、episodic、FSL 框架时时，所有模态对齐方法的表现都显著提升。然而扩展前后这些模态对齐方法都比单模态 FSL 方法的 SOTA 要差。说明尽管模态对齐方法对于 ZSL 中的跨模态是有效的，但并不适合 FSL。<strong>一个可能的原因是，两个不同的结构被迫对齐导致双方的一些信息可能损失</strong>。</li>
+</ol>
+<p>在 CUB-200 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/14-Table3-1.png"></p>
+<p>结论：对于无样本学习场景，AM3 降级为最简单的模态对齐方法，将文本语义空间映射到视觉空间。因此，在没有自适应机制的情况下，AM3 的表现与 DeViSE 大致相同。说明自适应机制在 FSL 场景中观察到的性能提升中起主要作用。</p>
+<h4 id="自适应机制分析"><a href="#自适应机制分析" class="headerlink" title="自适应机制分析"></a>自适应机制分析</h4><p>对本文提出的自适应机制进行定量分析：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/8-Figure3-1.png"></p>
+<p>结论：</p>
+<ol>
+<li>当 shot 数（即样本数）增加时，AM3 与其主干方法的表现差距减小；</li>
+<li>自适应混合系数 $\lambda_{c}$ 的平均值与 shot 数有关，当 shot 数减小时，AM3 在文本模态上的权重更大（在视觉模态上更小）。这种趋势表明，当视觉信息非常少时，AM3 可以自动将焦点更多地调整到文本模态以帮助分类；</li>
+<li>当 $\lambda_{c}$ 的方差随着 shot 数增加而减小时，AM3 与其主干方法的性能差距也会缩小。这表明 AM3 在类别级别的适应性对性能提升有非常重要的作用（？？？觉得有点牵强）。</li>
+</ol>
+<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/15-Table4-1.png"></p>
+<p>所以选用变换后的语义特征来做自适应机制是实验得到的最好选择。</p>
+<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>我个人认为，转换 $g$ 本质上还是一种表示空间的强行对齐，会破坏模态本身的自然结构。因此，可能可以考虑一种更好的特征组合与自适应调整方式。</p>
+<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
+<li>[1] Zero-shot learning-the good, the bad and the ugly, CVPR 2017.</li>
+<li>[2] Matching networks for one shot learning, NIPS 2016.</li>
+<li>[3] Meta-learning for semi-supervised few-shot classification, ICLR 2018.</li>
+<li>[4] Caltech-UCSD Birds 200, Technical Report CNS-TR-2010-001, 2010.</li>
+<li>[5] Tadam: Task dependent adaptive metric for improved few-shot learning, NeurIPS 2018.</li>
+<li>[6] Meta-learning with latent embedding optimization, ICML 2016.</li>
+<li>[7] Generalized zero-and few-shot learning via aligned variational autoencoders, CVPR 2019.</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+      <categories>
+        <category>论文阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>few-shot learning</tag>
+        <tag>小样本学习</tag>
+        <tag>multimodal</tag>
+        <tag>metric learning</tag>
+        <tag>多模态</tag>
+        <tag>度量学习</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey</title>
     <url>/blog/TIRG-notes/</url>
     <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TIRG-paper-title.png"></p>
@@ -769,98 +871,99 @@ MathJax.Hub.Config({
         <category>论文阅读笔记</category>
       </categories>
       <tags>
-        <tag>image retrieval</tag>
         <tag>multimodal</tag>
         <tag>metric learning</tag>
-        <tag>feature composition</tag>
-        <tag>图像检索</tag>
         <tag>多模态</tag>
         <tag>度量学习</tag>
+        <tag>image retrieval</tag>
+        <tag>feature composition</tag>
+        <tag>图像检索</tag>
         <tag>特征组合</tag>
       </tags>
   </entry>
   <entry>
-    <title>【paper reading】Adaptive Cross-Modal Few-Shot Learning</title>
-    <url>/blog/AM3-notes/</url>
-    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png"></p>
-<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。</p>
-<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
-<li>作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro</li>
-<li>出处：NeurIPS 2019</li>
-<li>机构：Element AI, Montreal, Canada; Nankai University</li>
-<li>关键词：few-shot learning, metric learning, multimodal</li>
-<li><a href="https://arxiv.org/pdf/1902.07104.pdf">论文链接</a></li>
-<li>开源代码：<a href="https://github.com/ElementAI/am3">ElementAI/am3</a></li>
-<li>其他资料：<ul>
-<li><a href="https://www.semanticscholar.org/paper/Adaptive-Cross-Modal-Few-Shot-Learning-Xing-Rostamzadeh/7d113621ab50a8b875a12cea3ad5b0263e9520ac">Semantic Scholar</a></li>
-</ul>
-</li>
-</ul>
+    <title>【paper reading】ICLR 2021 论文选读</title>
+    <url>/blog/ICLR2021-notes/</url>
+    <content><![CDATA[<p>这篇博文简单记录一下我快速阅读 ICLR 2021 其中一些<strong>我感兴趣</strong>的论文时的笔记和感想等。由于论文数量比较多，因此可能后续还会更新。接收列表见 <a href="https://www.paperdigest.org/2021/01/iclr-2021-highlights/">Paper Digest: ICLR 2021 Highlights</a>。</p>
+<p>我比较关注的 topic 包括 transfer learning 下的 few-shot learning、domain adaptation、domain generalization 等，以及包括 VQA、visual grounding 在内的一些多模态学习的任务。我用 “#topic” 来标明这篇论文所属的 topic，这样既不用生硬地将属于多个 topic 的论文强性归类到单一 topic 下，也方便各位读者在页面内用 CTRL+F 来搜索自己感兴趣的 topic。</p>
 <span id="more"></span>
 
-<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>当来自视觉模态的数据有限时，利用辅助模态（例如，属性，未标记的文本语料库）来帮助图像分类主要由无样本学习（Zero-Shot Learning, ZSL）驱动。与少样本学习（Few-Shot Learning, FSL）对比，无样本学习没有少量标记样本来帮助识别新类别。大多数方法在训练阶段将两种模态对齐，以此迫使模态被映射在一起并具有相同的语义结构。这样，来自辅助模态的知识在测试时被迁移到视觉方面用于识别新类别。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-Figure-1.png"></p>
-<p>然而，视觉和自然语言语义特征根据定义具有不同的结构。对于不同的概念，视觉特征可能比文本特征更丰富和更具辨识度；而对于另一些概念，可能情况是相反的。此外，当图像数量非常少时，从视觉模态提供的信息往往是嘈杂和局部的，而（从无监督的文本语料库中学习的）语义表示可以提供强大的先验知识和上下文以帮助学习。在无样本学习中，测试阶段没有给视觉信息，因此算法只能完全依靠辅助模态（例如，文本）；而当有标记的图像样本数量很多时，神经网络倾向于忽略辅助模态，因为它已经有能力通过大量样本学会泛化。小样本学处于在这两个极端情况的中间态，因此我们可以假设视觉和语义信息都可用于小样本学习。</p>
-<p>因此，比起将两种模态对齐并进行知识迁移，在测试阶段进行从两种模态获得信息的小样本学习时，最好<strong>将各模态视为独立的知识来源，并根据不同的场景自适应地利用不同的模态</strong>。</p>
-<p>根据上述分析，本文提出<strong>自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）</strong>，可以根据要学习的新图像类别自适应地组合来自两种模态的信息，用于小样本学习。</p>
-<p>实验表明，效果超过当前的单模态小样本学习方法和模态对齐方法。另外，试验还表明，该模型可以有效调整其对两种模态的关注。当镜头数量非常小时，性能的提升特别高。</p>
-<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/5-Figure2-1.png"></p>
-<p>本文提出的自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）可以应用于任何基于度量的方法。本文选用原型网络（Prototypical Networks）和 TADAM。对于类别 $c$，新的原型（prototype）计算如下：</p>
-<p>$$<br>\mathbf{p}_{c}^{\prime}=\lambda_{c} \cdot \mathbf{p}_{c}+\left(1-\lambda_{c}\right) \cdot \mathbf{w}_{c}<br>$$</p>
-<p>其中，$\mathbf{w}_{c}=g\left(\mathbf{e}_{c}\right)$ 是一个对于类别 $c$ 的标签嵌入的转换版本，$\mathbf{e}_{c}$ 是对于类别 $c$ 标签的预训练词向量，而转换 $g : \mathbb{R}^{n_{w}} \rightarrow \mathbb{R}^{n_{p}}$ 让两个模态处于同一空间并可以合并。$\lambda_{c}$ 是自适应混合系数（adaptive mixture coefficient）：</p>
-<p>$$<br>\lambda_{c}=\frac{1}{1+\exp \left(-h\left(\mathbf{w}_{c}\right)\right)}<br>$$</p>
-<p>$h$ 是自适应混合网络（adaptive mixing network）。自适应混合系数 $\lambda_{c}$ 可以根据不同的变量进行控制。</p>
-<p>训练过程与原始的原型网络相似，只是距离度量变为</p>
-<p>$$<br>p_{\theta}\left(y=c | q_{t}, S_{e}, \mathcal{W}\right)=\frac{\exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{c}^{\prime}\right)\right)}{\sum_{k} \exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{k}^{\prime}\right)\right)}<br>$$</p>
-<p>损失是每个查询集样本的真类的负对数似然（the negative loglikelihood of the true class of each query sample）：</p>
-<p>$$<br>\mathcal{L}(\theta)=\underset{\left(\mathcal{S}_{e}, \mathcal{Q}_{e}\right)}{\mathbb{E}}-\sum_{t=1}^{Q_{e}} \log p_{\theta}\left(y_{t} | q_{t}, \mathcal{S}_{e}\right)<br>$$</p>
-<p>其中，$\mathcal{S}_{e}$ 是支撑集，$\mathcal{Q}_{e}$ 是查询集。</p>
-<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>数据集：</p>
+<h2 id="Few-shot-Learning"><a href="#Few-shot-Learning" class="headerlink" title="Few-shot Learning"></a>Few-shot Learning</h2><ul>
+<li><a href="https://openreview.net/forum?id=oZIvHV04XgC">Wandering Within A World: Online Contextualized Few-shot Learning</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-online-contextualized-few-shot-learning.png"></p>
+<p>本文提出了一种新的学习范式 online contextualized few-shot learning。同时，本文提出 contextual prototypical memory（CPM）模型，通过集成 RNN 来编码上下文信息，并且有一个独立的原型存储（prototype memory）来记住已经学过的类别。该模型在本文构建的三个数据集上能够比扩展到 online 设置下的经典 FSL 算法表现更好。</p>
+<h2 id="DA-DG"><a href="#DA-DG" class="headerlink" title="DA / DG"></a>DA / DG</h2><ul>
+<li><a href="https://openreview.net/forum?id=b9PoimzZFJ">Systematic generalisation with group invariant predictions</a><br>#systematic generalisation  #invariance penalty  #semantic anomaly detection  #domain generalization</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png"></p>
+<p>本文提出，数据集通常存在和目标变量相关的简单特征（但不健壮）以及更加复杂但是健壮的特征。在三个合成的数据集 coloured-MNIST、COCO-on-colours 和 COCO-on-places 上的实验结果表明，用一个 soft-partition predicting network 来将数据集划分为 majority and minority groups，并且对不同 group 同类样本的特征施加不变性惩罚（例如 KL 散度）有助于模型关注这些更加健壮的特征。</p>
+<p>Spotlight。本文对不同类型的 shift 的划分还是挺有意思的，感觉和一些在视觉上做因果学习的工作在思路上有共通之处。方法上比较简单，可能这就是大巧不工吧。然后我比较关心的问题包括能否在真实数据集上使用这个方法，效果如何？Reviewer 3 也提出了相同的问题，举例问能否在 ImageNet 上找到一个合适的划分。作者的回答是像 ImageNet 这种数据来源丰富、相对杂乱的数据集可能难度比较大，而像医学图像这种数据来源相对单一的就要好一些。</p>
+<!-- (2) 能否在视觉的其他问题上应用该方法，例如目标检测或者语义分割？这个好像还没有评审提出来。 【那我们能不能用呢w】 -->
+
+
 <ul>
-<li>miniImageNet [2]</li>
-<li>tieredImageNet [3]</li>
-<li>CUB-200 [4]：这是一个无样本学习数据集。考虑到大多数模态对齐方法没有在小样本学习数据集上有公开的实验结果，这个数据集用于将 AM3 与模态对齐方法进行对比</li>
+<li><a href="https://openreview.net/forum?id=lQdXeXDoWtI">In Search of Lost Domain Generalization</a><br>#domain generalization  #benchmark</li>
 </ul>
-<p>本文在  和 tieredImageNet [3]，将 AM3 与三种基线进行对比：单模态 FSL 方法，模态对齐方法，模态对齐方法的基于度量的扩展。</p>
-<p>baselines：</p>
+<p>本文为 DG 实现了一个名为 DomainBed 的 testbed，包含 7 个数据集、14 种算法和 3 种模型选择策略。结论是 ERM 仍然是一个非常有竞争力的 baseline。</p>
+<p>在我看来这篇论文的一大贡献是讨论了不同模型选择策略带来的影响，包括 training-domain validation（将训练数据划分为 train 和 val set）、leave-one-domain-out validation（给定多个训练域，每次将一个域作为 val，将平均准确率作为指标选择出超参后再在所有训练域上重新训练模型）、test-domain validation（允许用非常有限的测试数据来挑选模型。注意这通常不是一个合理的方法）。另一大贡献自然就是这个还挺大的实验规模，以及给后续工作留下一个还不错的 testbed。</p>
 <ul>
-<li>单模态 FSL 方法：MAML、LEO [6]、原型网络、TADAM [5] 等；</li>
-<li>模态对齐方法：CADA-VAE [7] 等；</li>
-<li>模态对齐方法的基于度量的扩展：使用了基于度量的损失以及原型网络的训练方式（episode training）。</li>
+<li><a href="https://openreview.net/forum?id=6xHJ37MVxxp">Domain Generalization with MixStyle</a><br>#domain generalization</li>
 </ul>
-<p>在 miniImageNet 数据集上的分类结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table1-1.png"></p>
-<p>在 tieredImageNet 数据集上的分类结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table2-1.png"></p>
-<p>结论：</p>
-<ol>
-<li>在所有数据集上，AM3 的表现都优于其主干方法。说明在正确使用时，文本模态可以帮助提高基于度量的 FSL 学习框架的性能；</li>
-<li>AM3（主干方法选用 TADAM）取得 SOTA，且当 shot 数（即样本数）越少时，效果提升越多。说明当视觉模态提供的信息越少时，语义信息对分类的帮助越大；</li>
-<li>当扩展到基于度量、episodic、FSL 框架时时，所有模态对齐方法的表现都显著提升。然而扩展前后这些模态对齐方法都比单模态 FSL 方法的 SOTA 要差。说明尽管模态对齐方法对于 ZSL 中的跨模态是有效的，但并不适合 FSL。<strong>一个可能的原因是，两个不同的结构被迫对齐导致双方的一些信息可能损失</strong>。</li>
-</ol>
-<p>在 CUB-200 数据集上的分类结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/14-Table3-1.png"></p>
-<p>结论：对于无样本学习场景，AM3 降级为最简单的模态对齐方法，将文本语义空间映射到视觉空间。因此，在没有自适应机制的情况下，AM3 的表现与 DeViSE 大致相同。说明自适应机制在 FSL 场景中观察到的性能提升中起主要作用。</p>
-<h4 id="自适应机制分析"><a href="#自适应机制分析" class="headerlink" title="自适应机制分析"></a>自适应机制分析</h4><p>对本文提出的自适应机制进行定量分析：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/8-Figure3-1.png"></p>
-<p>结论：</p>
-<ol>
-<li>当 shot 数（即样本数）增加时，AM3 与其主干方法的表现差距减小；</li>
-<li>自适应混合系数 $\lambda_{c}$ 的平均值与 shot 数有关，当 shot 数减小时，AM3 在文本模态上的权重更大（在视觉模态上更小）。这种趋势表明，当视觉信息非常少时，AM3 可以自动将焦点更多地调整到文本模态以帮助分类；</li>
-<li>当 $\lambda_{c}$ 的方差随着 shot 数增加而减小时，AM3 与其主干方法的性能差距也会缩小。这表明 AM3 在类别级别的适应性对性能提升有非常重要的作用（？？？觉得有点牵强）。</li>
-</ol>
-<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/15-Table4-1.png"></p>
-<p>所以选用变换后的语义特征来做自适应机制是实验得到的最好选择。</p>
-<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>我个人认为，转换 $g$ 本质上还是一种表示空间的强行对齐，会破坏模态本身的自然结构。因此，可能可以考虑一种更好的特征组合与自适应调整方式。</p>
-<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
-<li>[1] Zero-shot learning-the good, the bad and the ugly, CVPR 2017.</li>
-<li>[2] Matching networks for one shot learning, NIPS 2016.</li>
-<li>[3] Meta-learning for semi-supervised few-shot classification, ICLR 2018.</li>
-<li>[4] Caltech-UCSD Birds 200, Technical Report CNS-TR-2010-001, 2010.</li>
-<li>[5] Tadam: Task dependent adaptive metric for improved few-shot learning, NeurIPS 2018.</li>
-<li>[6] Meta-learning with latent embedding optimization, ICML 2016.</li>
-<li>[7] Generalized zero-and few-shot learning via aligned variational autoencoders, CVPR 2019.</li>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-MixStyle.png"></p>
+<p>本文受 instance normalization（IN）和 adaptive instance normalization（AdaIN）启发，提出在将样本进行分 domain 打乱或者随机打乱后，用一个随机的权重来混合两个样本的特征统计信息，从而模拟新风格来约束 CNN 的训练。该方法在分类、检索和 RL 上都取得了效果。</p>
+<ul>
+<li><a href="https://openreview.net/forum?id=BVSM0x3EDK6">Robust and Generalizable Visual Representation Learning via Random Convolutions</a><br>#domain generalization  #data augmentation</li>
 </ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-randconv.png"></p>
+<p>本文旨在从单源域数据学习和局部纹理和颜色无关的健壮视觉表征，因此提出一种数据增强技术 RandConv，用随机得卷积来生成有随机纹理但是保留全局形状的图像来提升泛化性。</p>
+<h2 id="VQA"><a href="#VQA" class="headerlink" title="VQA"></a>VQA</h2><ul>
+<li><a href="https://openreview.net/forum?id=Pd_oMxH8IlF">Iterated learning for emergent systematicity in VQA</a><br>#visual question-answering  #modular networks  #iterated learning  #compositional generalization</li>
+</ul>
+<p>神经模块网络（neural module networks, NMN）通常需要一个程序生成器（program generator）来生成符号化的程序将模块组织成计算图。然而，生成的程序很难组合式泛化。本文提出用迭式学习（iterated learning, IL）的方式，将 NMN 的程序看作来自“布局语言”的样本。在本文提出的 SHAPES-SyGet 数据集以及 CLEVR、CLOSURE 上，本方法可以用 1/10 甚至更少的程序标注与 SOTA 相媲美。 </p>
+<p>Oral。评审的意见主要集中在实验选用的数据集比较 toyish。之后作者补做了在 GQA 数据集上的实验， Vector-NMN+IL 用 4000 个程序标注能够和 Vector-NMN 用 943000 个程序标注的效果持平。</p>
+<!-- 【接下来可以把算法部分2页看一下】
+[paper](https://openreview.net/pdf?id=Pd_oMxH8IlF) -->
+
+
+<h2 id="RL"><a href="#RL" class="headerlink" title="RL"></a>RL</h2><ul>
+<li><a href="https://openreview.net/forum?id=Y87Ri-GNHYu">Ask Your Humans: Using Human Instructions to Improve Generalization in Reinforcement Learning</a><br>#reinforcement learning  #natural language  #imitation learning</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ask-your-humans.png"></p>
+<p>本文引入了一个提供自然语言指令和动作轨迹作为人类演示，一个类似 Minecraft 的 5x5 gridworld 数据集，包括 35 个任务的 6000 条指令。提出的新模型 (1) 在给定状态和目标时，学习为要执行的高级子任务生成自然语言描述；(2) 学习语言控制的低级策略来实际执行这些步骤。模型首先通过模仿学习进行预训练，之后用 RL 的 PPO 算法和稀疏 reward 进行微调（微调过程不使用 ground-truth 语言指令）。实验证明该模型能够在 zero-shot 设置下泛化到不可见任务中生成的自然语言指令，并且提供了可解释的行为。</p>
+<ul>
+<li><a href="https://openreview.net/forum?id=9SS69KwomAM">Solving Compositional Reinforcement Learning Problems via Task Reduction</a><br>#reinforcement learning  #imitation learning</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-self-imitation-via-reduction.png"></p>
+<p>本文提出一种新的学习范式 Self-Imitation via Reduction (SIR) 来解决有稀疏 reward 的组合性持续控制问题。该范式首先将较难的任务简化为解决方案已知的简单任务（称为任务缩减），然后在获得的解决方案的轨迹上执行模仿学习，从而加速训练，同时无需显式确定低级技能或选项就可向学到的策略引入组合性的偏执归纳。上面的示意图是一个任务缩减的具体例子。另外，SIR 可以将学到地任务作为新的缩减目标，从而循环式地学习任意复杂的策略。SIR 通过共同学习一个 goal-conditioned policy 和一个 universal value function 来实现，因此任务缩减可以通过对价值函数的状态搜索和不同目标的策略执行来完成。</p>
+<p>作为一个 RL 门外汉，我觉得 intution 还是挺有意思的，不过由于我没细看，我比较好奇这种任务缩减如果没有解决方案已知的简单任务的话怎么办呢？实验是是否需要假设较难的任务都存在解决方案已知的简单任务？（我看 program chair 的最终意见也有差不多的观点，即本文关注的是如何将问题分解为子问题，而在设计任务空间时确实包含了一定先验知识，即并不是学来的。）</p>
+<ul>
+<li><a href="https://openreview.net/forum?id=vcopnwZ7bC">Learning Task Decomposition with Ordered Memory Policy Network</a><br>#reinforcement learning  #hierarchical imitation learning</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ordered-memory-policy-network.png"></p>
+<p>本文提出 Ordered Memory Policy Network (OMPN) ，能够通过从演示中学习来探索子任务的层级结构，从而在监督和弱监督设置下利用非结构化的演示实现任务分解来复用学过的技能。该方法将子任务视为有限状态机（finite state machine），它们被表示为通过自顶向下和自底向上循环更新的内存库。</p>
+<p>看 Chap 2.2 开头，还是需要在 detection 阶段让用户给定子任务数量以及动作空间，以生成 task boundaries。</p>
+<h2 id="NLP"><a href="#NLP" class="headerlink" title="NLP"></a>NLP</h2><ul>
+<li><a href="https://openreview.net/forum?id=PS3IMnScugk">Learning to Recombine and Resample Data For Compositional Generalization</a><br>#compositional generalization  #data augmentation  #natural language processing  #few-shot morphology learning</li>
+</ul>
+<p>本文关注小样本时态学习问题，旨在从单词形式预测包括第三人称、单数、现在时等各种语言特征。以前的工作集中于例如符号语法建模数据或应用基于规则的数据扩增等方法，这些方法很难在没有显式规则的归纳偏置下进行泛化。本文提出一种新的基于原型的神经序列模型，通过显式重组训练示例片段来重构其他输入-输出对，并对模型的输出进行重采样来选择稀有现象的高质量合成样本，从而进行样本扩增。</p>
+<h2 id="Continual-Learning"><a href="#Continual-Learning" class="headerlink" title="Continual Learning"></a>Continual Learning</h2><ul>
+<li><a href="https://openreview.net/forum?id=ADWd4TJO13G">Lifelong Learning of Compositional Structures</a><br>#lifelong learning  #continual learning  #modular networks</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-lifelong-compositional-learning.png"></p>
+<p>本文将组合学习和终身学习结合，提出一个框架来分阶段地学习如何最佳地组合已有组件来理解新任务，以及如何调整现有组件（以及选择增加新组件）来适应新问题。3x3=9 种组合被用于说明该框架，其中知识保留机制包括简单微调、经验回放（experience replay）、弹性权重整合（elastic weight consolidation）；组合性结构包括线性模型的线性组合、软性层排序（soft layer ordering）、门网络的一个软版本（a soft version of gating networks）。八个数据集上的实验结果表明将终身学习过程划分为两个阶段能够减少灾难性遗忘。</p>
+<h2 id="generative-models"><a href="#generative-models" class="headerlink" title="generative models"></a>generative models</h2><ul>
+<li><a href="https://openreview.net/forum?id=sjuuTm4vj0">Using latent space regression to analyze and leverage compositionality in GANs</a><br>#image synthesis  #generative adversarial networks  #image editing</li>
+</ul>
+<p>本文使用一个回归器（regressor）来根据属性预测给定图像的隐式编码，从而分析和修改预训练 GAN 的隐式空间。另外编码器的输入可以加上一个 binary mask 来学习在图像不完整的情况进行重构。该方法在图像组合、属性修改、图像补齐和多模态编辑上等应用上都有良好的表现。</p>
+<p>我比较感兴趣的是该方法声称能够在图像组合时处理全局不一致和像素缺失的问题；另外研究预训练 GAN 对生成图像的局部进行混合和匹配的能力，而非直接提出新的 GAN 模型的思路也挺有意思（NLP 里很多工作已经是完全建立在预训练模型上进行研究了，当然我不太清楚这种思路是不是也在 GAN 这里成为主流了）。我对引用中 <a href="https://openreview.net/forum?id=SJxDDpEKvH">Besserve et al., 2018</a> 有一点兴趣，不过不一定有时间去读。</p>
+<ul>
+<li><a href="https://openreview.net/forum?id=qbH974jKUVy">The role of Disentanglement in Generalisation</a><br>#disentanglement  #compositionality  #variational autoencoders</li>
+</ul>
+<p>本文旨在研究神经网络是否能够利用解纠缠表征来支持组合性泛化和外推。研究建立在两个图像数据集（dSprites 和 3DShape）上，模型包含有不同解纠缠压力的 β-VAEs 和 FactorVAEs，以及去掉编码器的解码器（直接输入解纠缠隐编码）。本文的结论是学习非纠缠表征确实提高了可解释性和样本效率，但这些模型只支持最简单的组合泛化，并且解纠缠的程度对于泛化的程度没有影响。</p>
+<!-- 【还没仔细看评审意见】 -->
+
+
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
   tex2jax: {inlineMath: [ ['$', '$'] ],
@@ -873,12 +976,7 @@ MathJax.Hub.Config({
         <category>论文阅读笔记</category>
       </categories>
       <tags>
-        <tag>few-shot learning</tag>
-        <tag>小样本学习</tag>
-        <tag>multimodal</tag>
-        <tag>metric learning</tag>
-        <tag>多模态</tag>
-        <tag>度量学习</tag>
+        <tag>ICLR 2021</tag>
       </tags>
   </entry>
   <entry>
@@ -2757,72 +2855,6 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
-    <title>分布式系统演进简述</title>
-    <url>/blog/evolution-of-distributed-systems/</url>
-    <content><![CDATA[<p>“网络与分布式计算”课程布置了一个作业，要求写一篇题目为“构建分布式系统技术发展历史”的小论文。我个人以为“历史”二字应该是要我们去了解每项技术诞生的时间点，然而踏破铁鞋无处可觅。最后写成的文章主题，我个人认为比起“历史”来说，“演进过程”可能更为恰当。</p>
-<p>事实上我们可能也更为注重演进过程，因为分布式系统的演进过程，就是一代代工程师们对抗随时代和应用自身发展而逐渐升高的访问量的一部血泪史。这个过程是每一个健康发展的网站都要经历的。</p>
-<p>这次作业也给了我一个机会，去大致了解网站在发展过程中为了提升性能、简化部署、弹性扩展而做出的种种措施，受益匪浅。因此将文章放到博客上。</p>
-<span id="more"></span>
-
-<h2 id="单体应用架构"><a href="#单体应用架构" class="headerlink" title="单体应用架构"></a>单体应用架构</h2><p>在应用诞生初始，用户量、数据量规模都比较小。因此应用程序、数据库、文件等所有的资源都部署在同一台服务器上即可。这样的架构既简单实用、便于维护，成本又低，成为了这个时代的主流架构方式。在 2003 年淘宝最初上线的时候，就是以一套当时十分风靡的 LAMP 架构（Linux+Apache+MySQL+PHP）实现并部署的。</p>
-<p>单体应用架构的特点就是功能和代码集中、一个发布包部署后运行在一个进程内的应用程序。</p>
-<h2 id="垂直应用架构"><a href="#垂直应用架构" class="headerlink" title="垂直应用架构"></a>垂直应用架构</h2><p>随着应用的发展，用户访问量逐渐增加，单台服务器性能及存储空间不足，因此服务器的压力在访问高峰期会上升到比较高，响应时间逐渐变长。这时，工程师们考虑增加几台服务器，将应用程序、数据库、文件分别部署在独立的资源上。一个大的单体应用被拆分成若干个小的单体应用，这就是垂直应用架构。这种拆分方法内含分治的思想，即将一个大的问题按一定业务规则分成若干个小的问题，逐个解决。</p>
-<p>通过采用垂直应用架构，应用服务和数据服务得以分离，并发处理能力和数据存储空间得到了很大改善。</p>
-<h2 id="使用缓存改善性能"><a href="#使用缓存改善性能" class="headerlink" title="使用缓存改善性能"></a>使用缓存改善性能</h2><p>将大的单体应用拆分后，对业务有所了解和调查的工程师们发现，系统访问的特点遵循二八定律，即 80% 的业务访问集中在 20% 的数据上。那么，使用缓存技术将这 20% 访问较集中的数据缓存下来，就有助于减少数据库的访问次数，降低数据库的访问压力。同时，引入缓存也有助于降低存储成本，因为缓存+数据库服务器可以承担原本需要多台数据库服务器才能承担的请求量，因此节省了机器成本。</p>
-<p>缓存分为本地缓存（Local Cache）和远程分布式缓存（Remote Distributed Cache）。本地缓存访问速度更快，但内存资源以及承载能力有限，存在与应用程序争用内存的情况。因此，分布式缓存在如今的大型网站中得到广泛的使用。</p>
-<h2 id="使用应用服务器集群-amp-负载均衡"><a href="#使用应用服务器集群-amp-负载均衡" class="headerlink" title="使用应用服务器集群 &amp; 负载均衡"></a>使用应用服务器集群 &amp; 负载均衡</h2><p>虽然做了这么多工作，但是请求量还是水涨船高。当请求量达到需要排队等待的规模时，即使单台应用服务器性能强大，处理请求速度很快，响应速度也依然会变慢。这时，工程师们就要考虑使用多台服务器所组成的集群，通过向集群中追加资源，提升系统的并发处理能力，解决单台服务器处理能力和存储空间上限的问题。</p>
-<p>在数据中心内部，外部请求首先被定向到<strong>负载均衡器</strong>，以主机当前的负载作为函数来在主机之间负载均衡。其作为中继站向外部提供服务，使得服务器的负载压力不再成为整个系统的瓶颈。负载均衡器同时也进行外部 IP 地址和内部适当主机 IP 地址的互相转换，防止客户直接接触主机，从而具有隐藏网络内部结构和防止客户直接与主机交互等安全性益处。</p>
-<p>负载均衡的策略包括：</p>
-<ul>
-<li><p>轮询：每一次来自网络的请求轮流分配给内部中的服务器，从 1 至 N 然后重新开始。此种均衡算法适合于服务器组中的所有服务器都有相同的软硬件配置并且平均服务请求相对均衡的情况。实现简单，但存在服务器的处理能力不同的情况；</p>
-</li>
-<li><p>权重：根据服务器的不同处理能力，给每个服务器分配不同的权值，使其能够接受相应权值数的服务请求。此种均衡算法能确保高性能的服务器得到更多的使用率，避免低性能的服务器负载过重。考虑了服务器处理能力的不足；</p>
-</li>
-<li><p>随机均衡：把来自网络的请求随机分配给内部中的多个服务器。</p>
-</li>
-</ul>
-<p>反向代理也是负载均衡的一种方法。反向代理指隐藏了真实的服务端，帮用户把请求转发到真实的服务器那里去。Nginx 就是性能非常好的反向代理服务器，可以用来做负载均衡。它会将请求在读取完整之前缓冲，这样交给后端的就是一个完整的 HTTP 请求，而不是断断续续的传递（互联网上连接速度一般比较慢），以此减少网络 IO 次数，从而提高后端的效率。</p>
-<h2 id="数据库读写分离"><a href="#数据库读写分离" class="headerlink" title="数据库读写分离"></a>数据库读写分离</h2><p>在一系列架构的增强后，用户量增加所带来的系统瓶颈可能转移到数据库上。每次读和写的操作都要经过同一个数据库服务器，在大量用户访问的情况下，资源竞争激烈。数据库的并发量有限，在保证数据库事务的 ACID 特性（原子性、一致性、隔离性和持久性）时难免发生阻塞。</p>
-<p>为了保证数据库的高可用性，工程师们将数据库进行读写分离，写操作全部引入主库，读操作引入从库。这种做法极大程度地缓解了数据库锁之间的竞争，提高了并发吞吐量和负载能力。当然，读写分离架构适用的应用中，由于读库需要不断做批量的更新操作，读操作不应要求数据强一致，即对数据的实时性要求并没有那么高。</p>
-<h2 id="CDN-加速和反向代理"><a href="#CDN-加速和反向代理" class="headerlink" title="CDN 加速和反向代理"></a>CDN 加速和反向代理</h2><p>鉴于网站的访问速度基于页面包含的内容传输到用户电脑的速度，如果用户到服务器的链路之间有一段比较缓慢的话，整体访问速度会受到很大的影响。因此，让用户从就近的服务器获取网页内容是一个理想的选择。</p>
-<p>对于业务加载需要的一些不经常改变的静态数据（一般是 css 和 js 文件），可以考虑将其缓存到 CDN 服务器上，而不是每次都到应用服务器进行获取。CDN（内容分发网络）是运营商提供的服务，服务器部署在机房，可以根据用户访问的链路直接选择最近的 CDN 服务器，将已缓存的静态数据返回，以加快静态数据加载速度。这样可以减少服务器的压力，并解决不同地区访问速度差距较大的问题。</p>
-<h2 id="分布式数据库"><a href="#分布式数据库" class="headerlink" title="分布式数据库"></a>分布式数据库</h2><p>就在工程师们忙碌的时候，数据量仍然随着业务的发展在悄无声息地增长。数据库读写分离最终也将无法满足业务需求，因此需要将数据库再次拆分。比较常用的数据库拆分手段是<strong>业务垂直分库</strong>，因为不同业务中表和表之间的数据大多没有关联，因此可以将不同的业务数据库部署在不同的物理服务器上。</p>
-<p>如果单表数据规模非常庞大，还需要使用分布式数据库来支撑，即对这些表进行水平拆分，将同一个表中的数据拆分到两个甚至多个数据库中。</p>
-<h2 id="使用-NoSQL-和搜索引擎"><a href="#使用-NoSQL-和搜索引擎" class="headerlink" title="使用 NoSQL 和搜索引擎"></a>使用 NoSQL 和搜索引擎</h2><p>随着业务越来越复杂，对数据存储和检索的需求也越来越复杂，系统需要采用一些非关系型数据库如 NoSQL 和分数据库查询技术如搜索引擎。应用服务器通过统一数据访问模块访问各种数据，减轻应用程序管理诸多数据源的麻烦。</p>
-<h2 id="业务拆分"><a href="#业务拆分" class="headerlink" title="业务拆分"></a>业务拆分</h2><p>为了应对日益复杂的业务场景，通常使用分而治之的手段将整个系统业务分成不同的产品线，应用之间通过超链接建立关系，也可以通过消息队列进行数据分发，当然更多的还是通过访问同一个数据存储系统来构成一个关联的完整系统。</p>
-<p>业务拆分包括纵向拆分和横向拆分：</p>
-<ul>
-<li><p>纵向拆分：将一个大应用拆分为多个小应用，如果新业务较为独立，那么就直接将其设计部署为一个独立的 Web 应用系统。纵向拆分相对较为简单，通过梳理业务，将较少相关的业务剥离即可。</p>
-</li>
-<li><p>横向拆分：将复用的业务拆分出来，独立部署为分布式服务，新增业务只需要调用这些分布式服务。横向拆分需要识别可复用的业务，设计服务接口，规范服务依赖关系。</p>
-</li>
-</ul>
-<h2 id="其他问题：异步、冗余、自动化"><a href="#其他问题：异步、冗余、自动化" class="headerlink" title="其他问题：异步、冗余、自动化"></a>其他问题：异步、冗余、自动化</h2><p>在漫长的演变过程中，除开以上，分布式系统的构建还有一些值得考虑的问题：</p>
-<ul>
-<li><p>异步：将一个复杂的业务操作转换为多个阶段操作，每个阶段的操作通过消息队列进行异步处理。可以理解为生产者-消费者模式，好处是加快系统响应速度和消除并发高峰。Node.js 正是因为其为异步而生，才逐渐成为服务端开发的选择之一。</p>
-</li>
-<li><p>冗余：为抵抗一些不可控因素，如自然灾害（火灾、地震）等因素导致系统不可用，应考虑异地建立容灾中心，实时备份数据。</p>
-</li>
-<li><p>自动化：自动化包括监控、告警、失效转移恢复、降级等功能，这些功能让系统在无人值守的情况下仍可以正常运行。</p>
-</li>
-</ul>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>每个小节看似容易理解，真正想要实现起来都是学问，更别谈考虑每个细节，选择最好的方式。之前看《淘宝技术这十年》，里面谈到淘宝作为中国互联网前几个称得上是超大规模的互联网系统，其发展历程中遇到了很多前人根本没有遇到过的问题。淘宝的一代代工程师们或主动或被动的开始进行一次次技术变革，这才造就了如今双十一每秒巨额的并发量。也因此，大麦、12306 等短时间要接受大量访问的网站时常瘫痪，也情有可原。架构是一门学问，想真正将每个环节都研究透彻，不是简简单单看几篇文章，做一个总结就够了的，需要和业务紧密结合。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://blog.csdn.net/yuxin6866/article/details/53038840">分布式架构的演进，分析的很详细，很到位 - CSDN博客</a></li>
-<li><a href="https://blog.csdn.net/world6/article/details/72803089?locationNum=12&fps=1">All-In-One到SOA的分布式架构演进 - CSDN博客</a></li>
-<li><a href="https://blog.csdn.net/xinzun/article/details/79412150">分布式系统漫谈【壹】_发展历程 - CSDN博客</a></li>
-<li><a href="https://www.zhihu.com/question/60199333">为什么数据库读写分离能提高数据库的性能？ - 知乎</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>架构笔记</category>
-      </categories>
-      <tags>
-        <tag>分布式系统</tag>
-        <tag>分布式架构</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数据预处理及常用处理方法</title>
     <url>/blog/intro-to-data-preprocessing/</url>
     <content><![CDATA[<p>作为互联网上最著名的数据科学竞赛平台之一，Kaggle 无疑是数据从业者和爱好者最喜欢的社区之一。最近，Kaggle 发布了 <a href="https://www.kaggle.com/amberthomas/kaggle-2017-survey-results">2017 用户调查报告</a>，共有 16000 余名用户参与的这份调查可以让我们对数据工作者的各类信息有一个了解。</p>
@@ -2888,6 +2920,72 @@ filename@function    //定位至具体函数
         <tag>数据预处理</tag>
         <tag>特征工程</tag>
         <tag>数据分析</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式系统演进简述</title>
+    <url>/blog/evolution-of-distributed-systems/</url>
+    <content><![CDATA[<p>“网络与分布式计算”课程布置了一个作业，要求写一篇题目为“构建分布式系统技术发展历史”的小论文。我个人以为“历史”二字应该是要我们去了解每项技术诞生的时间点，然而踏破铁鞋无处可觅。最后写成的文章主题，我个人认为比起“历史”来说，“演进过程”可能更为恰当。</p>
+<p>事实上我们可能也更为注重演进过程，因为分布式系统的演进过程，就是一代代工程师们对抗随时代和应用自身发展而逐渐升高的访问量的一部血泪史。这个过程是每一个健康发展的网站都要经历的。</p>
+<p>这次作业也给了我一个机会，去大致了解网站在发展过程中为了提升性能、简化部署、弹性扩展而做出的种种措施，受益匪浅。因此将文章放到博客上。</p>
+<span id="more"></span>
+
+<h2 id="单体应用架构"><a href="#单体应用架构" class="headerlink" title="单体应用架构"></a>单体应用架构</h2><p>在应用诞生初始，用户量、数据量规模都比较小。因此应用程序、数据库、文件等所有的资源都部署在同一台服务器上即可。这样的架构既简单实用、便于维护，成本又低，成为了这个时代的主流架构方式。在 2003 年淘宝最初上线的时候，就是以一套当时十分风靡的 LAMP 架构（Linux+Apache+MySQL+PHP）实现并部署的。</p>
+<p>单体应用架构的特点就是功能和代码集中、一个发布包部署后运行在一个进程内的应用程序。</p>
+<h2 id="垂直应用架构"><a href="#垂直应用架构" class="headerlink" title="垂直应用架构"></a>垂直应用架构</h2><p>随着应用的发展，用户访问量逐渐增加，单台服务器性能及存储空间不足，因此服务器的压力在访问高峰期会上升到比较高，响应时间逐渐变长。这时，工程师们考虑增加几台服务器，将应用程序、数据库、文件分别部署在独立的资源上。一个大的单体应用被拆分成若干个小的单体应用，这就是垂直应用架构。这种拆分方法内含分治的思想，即将一个大的问题按一定业务规则分成若干个小的问题，逐个解决。</p>
+<p>通过采用垂直应用架构，应用服务和数据服务得以分离，并发处理能力和数据存储空间得到了很大改善。</p>
+<h2 id="使用缓存改善性能"><a href="#使用缓存改善性能" class="headerlink" title="使用缓存改善性能"></a>使用缓存改善性能</h2><p>将大的单体应用拆分后，对业务有所了解和调查的工程师们发现，系统访问的特点遵循二八定律，即 80% 的业务访问集中在 20% 的数据上。那么，使用缓存技术将这 20% 访问较集中的数据缓存下来，就有助于减少数据库的访问次数，降低数据库的访问压力。同时，引入缓存也有助于降低存储成本，因为缓存+数据库服务器可以承担原本需要多台数据库服务器才能承担的请求量，因此节省了机器成本。</p>
+<p>缓存分为本地缓存（Local Cache）和远程分布式缓存（Remote Distributed Cache）。本地缓存访问速度更快，但内存资源以及承载能力有限，存在与应用程序争用内存的情况。因此，分布式缓存在如今的大型网站中得到广泛的使用。</p>
+<h2 id="使用应用服务器集群-amp-负载均衡"><a href="#使用应用服务器集群-amp-负载均衡" class="headerlink" title="使用应用服务器集群 &amp; 负载均衡"></a>使用应用服务器集群 &amp; 负载均衡</h2><p>虽然做了这么多工作，但是请求量还是水涨船高。当请求量达到需要排队等待的规模时，即使单台应用服务器性能强大，处理请求速度很快，响应速度也依然会变慢。这时，工程师们就要考虑使用多台服务器所组成的集群，通过向集群中追加资源，提升系统的并发处理能力，解决单台服务器处理能力和存储空间上限的问题。</p>
+<p>在数据中心内部，外部请求首先被定向到<strong>负载均衡器</strong>，以主机当前的负载作为函数来在主机之间负载均衡。其作为中继站向外部提供服务，使得服务器的负载压力不再成为整个系统的瓶颈。负载均衡器同时也进行外部 IP 地址和内部适当主机 IP 地址的互相转换，防止客户直接接触主机，从而具有隐藏网络内部结构和防止客户直接与主机交互等安全性益处。</p>
+<p>负载均衡的策略包括：</p>
+<ul>
+<li><p>轮询：每一次来自网络的请求轮流分配给内部中的服务器，从 1 至 N 然后重新开始。此种均衡算法适合于服务器组中的所有服务器都有相同的软硬件配置并且平均服务请求相对均衡的情况。实现简单，但存在服务器的处理能力不同的情况；</p>
+</li>
+<li><p>权重：根据服务器的不同处理能力，给每个服务器分配不同的权值，使其能够接受相应权值数的服务请求。此种均衡算法能确保高性能的服务器得到更多的使用率，避免低性能的服务器负载过重。考虑了服务器处理能力的不足；</p>
+</li>
+<li><p>随机均衡：把来自网络的请求随机分配给内部中的多个服务器。</p>
+</li>
+</ul>
+<p>反向代理也是负载均衡的一种方法。反向代理指隐藏了真实的服务端，帮用户把请求转发到真实的服务器那里去。Nginx 就是性能非常好的反向代理服务器，可以用来做负载均衡。它会将请求在读取完整之前缓冲，这样交给后端的就是一个完整的 HTTP 请求，而不是断断续续的传递（互联网上连接速度一般比较慢），以此减少网络 IO 次数，从而提高后端的效率。</p>
+<h2 id="数据库读写分离"><a href="#数据库读写分离" class="headerlink" title="数据库读写分离"></a>数据库读写分离</h2><p>在一系列架构的增强后，用户量增加所带来的系统瓶颈可能转移到数据库上。每次读和写的操作都要经过同一个数据库服务器，在大量用户访问的情况下，资源竞争激烈。数据库的并发量有限，在保证数据库事务的 ACID 特性（原子性、一致性、隔离性和持久性）时难免发生阻塞。</p>
+<p>为了保证数据库的高可用性，工程师们将数据库进行读写分离，写操作全部引入主库，读操作引入从库。这种做法极大程度地缓解了数据库锁之间的竞争，提高了并发吞吐量和负载能力。当然，读写分离架构适用的应用中，由于读库需要不断做批量的更新操作，读操作不应要求数据强一致，即对数据的实时性要求并没有那么高。</p>
+<h2 id="CDN-加速和反向代理"><a href="#CDN-加速和反向代理" class="headerlink" title="CDN 加速和反向代理"></a>CDN 加速和反向代理</h2><p>鉴于网站的访问速度基于页面包含的内容传输到用户电脑的速度，如果用户到服务器的链路之间有一段比较缓慢的话，整体访问速度会受到很大的影响。因此，让用户从就近的服务器获取网页内容是一个理想的选择。</p>
+<p>对于业务加载需要的一些不经常改变的静态数据（一般是 css 和 js 文件），可以考虑将其缓存到 CDN 服务器上，而不是每次都到应用服务器进行获取。CDN（内容分发网络）是运营商提供的服务，服务器部署在机房，可以根据用户访问的链路直接选择最近的 CDN 服务器，将已缓存的静态数据返回，以加快静态数据加载速度。这样可以减少服务器的压力，并解决不同地区访问速度差距较大的问题。</p>
+<h2 id="分布式数据库"><a href="#分布式数据库" class="headerlink" title="分布式数据库"></a>分布式数据库</h2><p>就在工程师们忙碌的时候，数据量仍然随着业务的发展在悄无声息地增长。数据库读写分离最终也将无法满足业务需求，因此需要将数据库再次拆分。比较常用的数据库拆分手段是<strong>业务垂直分库</strong>，因为不同业务中表和表之间的数据大多没有关联，因此可以将不同的业务数据库部署在不同的物理服务器上。</p>
+<p>如果单表数据规模非常庞大，还需要使用分布式数据库来支撑，即对这些表进行水平拆分，将同一个表中的数据拆分到两个甚至多个数据库中。</p>
+<h2 id="使用-NoSQL-和搜索引擎"><a href="#使用-NoSQL-和搜索引擎" class="headerlink" title="使用 NoSQL 和搜索引擎"></a>使用 NoSQL 和搜索引擎</h2><p>随着业务越来越复杂，对数据存储和检索的需求也越来越复杂，系统需要采用一些非关系型数据库如 NoSQL 和分数据库查询技术如搜索引擎。应用服务器通过统一数据访问模块访问各种数据，减轻应用程序管理诸多数据源的麻烦。</p>
+<h2 id="业务拆分"><a href="#业务拆分" class="headerlink" title="业务拆分"></a>业务拆分</h2><p>为了应对日益复杂的业务场景，通常使用分而治之的手段将整个系统业务分成不同的产品线，应用之间通过超链接建立关系，也可以通过消息队列进行数据分发，当然更多的还是通过访问同一个数据存储系统来构成一个关联的完整系统。</p>
+<p>业务拆分包括纵向拆分和横向拆分：</p>
+<ul>
+<li><p>纵向拆分：将一个大应用拆分为多个小应用，如果新业务较为独立，那么就直接将其设计部署为一个独立的 Web 应用系统。纵向拆分相对较为简单，通过梳理业务，将较少相关的业务剥离即可。</p>
+</li>
+<li><p>横向拆分：将复用的业务拆分出来，独立部署为分布式服务，新增业务只需要调用这些分布式服务。横向拆分需要识别可复用的业务，设计服务接口，规范服务依赖关系。</p>
+</li>
+</ul>
+<h2 id="其他问题：异步、冗余、自动化"><a href="#其他问题：异步、冗余、自动化" class="headerlink" title="其他问题：异步、冗余、自动化"></a>其他问题：异步、冗余、自动化</h2><p>在漫长的演变过程中，除开以上，分布式系统的构建还有一些值得考虑的问题：</p>
+<ul>
+<li><p>异步：将一个复杂的业务操作转换为多个阶段操作，每个阶段的操作通过消息队列进行异步处理。可以理解为生产者-消费者模式，好处是加快系统响应速度和消除并发高峰。Node.js 正是因为其为异步而生，才逐渐成为服务端开发的选择之一。</p>
+</li>
+<li><p>冗余：为抵抗一些不可控因素，如自然灾害（火灾、地震）等因素导致系统不可用，应考虑异地建立容灾中心，实时备份数据。</p>
+</li>
+<li><p>自动化：自动化包括监控、告警、失效转移恢复、降级等功能，这些功能让系统在无人值守的情况下仍可以正常运行。</p>
+</li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>每个小节看似容易理解，真正想要实现起来都是学问，更别谈考虑每个细节，选择最好的方式。之前看《淘宝技术这十年》，里面谈到淘宝作为中国互联网前几个称得上是超大规模的互联网系统，其发展历程中遇到了很多前人根本没有遇到过的问题。淘宝的一代代工程师们或主动或被动的开始进行一次次技术变革，这才造就了如今双十一每秒巨额的并发量。也因此，大麦、12306 等短时间要接受大量访问的网站时常瘫痪，也情有可原。架构是一门学问，想真正将每个环节都研究透彻，不是简简单单看几篇文章，做一个总结就够了的，需要和业务紧密结合。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://blog.csdn.net/yuxin6866/article/details/53038840">分布式架构的演进，分析的很详细，很到位 - CSDN博客</a></li>
+<li><a href="https://blog.csdn.net/world6/article/details/72803089?locationNum=12&fps=1">All-In-One到SOA的分布式架构演进 - CSDN博客</a></li>
+<li><a href="https://blog.csdn.net/xinzun/article/details/79412150">分布式系统漫谈【壹】_发展历程 - CSDN博客</a></li>
+<li><a href="https://www.zhihu.com/question/60199333">为什么数据库读写分离能提高数据库的性能？ - 知乎</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>架构笔记</category>
+      </categories>
+      <tags>
+        <tag>分布式系统</tag>
+        <tag>分布式架构</tag>
       </tags>
   </entry>
   <entry>

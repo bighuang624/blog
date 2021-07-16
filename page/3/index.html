@@ -162,7 +162,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/blog/archives/">
         
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">63</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -175,7 +175,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/blog/tags/">
           
-        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-count">129</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -227,6 +227,141 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/computer-network-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/blog/computer-network-notes/" class="post-title-link" itemprop="url">计算机网络复习笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-05-24 16:35:42" itemprop="dateCreated datePublished" datetime="2018-05-24T16:35:42+08:00">2018-05-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2018-07-08 09:16:58" itemprop="dateModified" datetime="2018-07-08T09:16:58+08:00">2018-07-08</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E5%AD%A6%E7%A7%91%E8%A1%A5%E5%AE%8C%E8%AE%A1%E5%88%92/" itemprop="url" rel="index"><span itemprop="name">学科补完计划</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="计算机网络与因特网"><a href="#计算机网络与因特网" class="headerlink" title="计算机网络与因特网"></a>计算机网络与因特网</h2><p>一个<strong>协议</strong>定义了在两个或多个通信实体之间交换报文的格式与次序，以及报文发送/接收或其他事件所采取的动作。</p>
+<h3 id="协议层次及其服务模型"><a href="#协议层次及其服务模型" class="headerlink" title="协议层次及其服务模型"></a>协议层次及其服务模型</h3><p><strong>因特网协议栈（Internet protocol stack）</strong>自顶向下：</p>
+<ol>
+<li><strong>应用层</strong>：网络应用程序及应用层协议存留的地方。</li>
+</ol>
+<ul>
+<li>常见应用层协议：HTTP、DNS、FTP、SMTP、DHCP</li>
+<li>位于应用层的分组信息称为<strong>报文（message）</strong></li>
+</ul>
+<ol start="2">
+<li><strong>运输层</strong>：负责在<strong>应用程序</strong>端点之间传送应用层报文。</li>
+</ol>
+<ul>
+<li>常见运输层协议：TCP、UDP</li>
+<li>位于应用层的分组信息称为<strong>报文段（segment）</strong></li>
+</ul>
+<ol start="3">
+<li><strong>网络层</strong>：负责在<strong>主机</strong>间传送网络层的分组。</li>
+</ol>
+<ul>
+<li>常见网络层协议：IP</li>
+<li>位于网络层的分组信息称为<strong>数据报（datagram）</strong></li>
+</ul>
+<ol start="4">
+<li><strong>链路层</strong>：负责将整个帧从一个网络元素移动到临近的网络元素。</li>
+</ol>
+<ul>
+<li>链路层的例子包括以太网，WiFi</li>
+<li>由于分组从源到目的地传送通常要经过几条链路，所以可能被途径不同的链路层协议处理</li>
+<li>位于链路层的分组信息称为<strong>帧（frame）</strong> </li>
+</ul>
+<ol start="5">
+<li><strong>物理层</strong>：将帧中的每个比特从一个结点移动到下一结点。</li>
+</ol>
+<ul>
+<li>与链路的实际传输媒介相关。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/CyC2018/Interview-Notebook/master/pics/426df589-6f97-4622-b74d-4a81fcb1da8e.png"></p>
+<p>ISO-OSI 模型：</p>
+<ol>
+<li>应用层</li>
+<li>表示层：使通信的应用协议能够解释交换数据的含义，提供数据压缩、数据解密、数据描述等服务；</li>
+<li>会话层：提供数据交换的定界和同步功能，包括建立检查点和恢复方案的方法；</li>
+<li>运输层</li>
+<li>网络层</li>
+<li>链路层</li>
+<li>物理层</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/CyC2018/Interview-Notebook/master/pics/ac106e7e-489a-4082-abd9-dabebe48394c.jpg"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/blog/computer-network-notes/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1037,94 +1172,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/blog/kaggle-titanic-1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/C-programming-language-notes/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/blog/images/profile.png">
-      <meta itemprop="name" content="Kyon Huang">
-      <meta itemprop="description" content="CS 土博在读">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kyon Huang 的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/blog/C-programming-language-notes/" class="post-title-link" itemprop="url">《C 程序设计语言》读书笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-02-02 19:25:32" itemprop="dateCreated datePublished" datetime="2018-02-02T19:25:32+08:00">2018-02-02</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2018-02-08 09:45:32" itemprop="dateModified" datetime="2018-02-08T09:45:32+08:00">2018-02-08</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/blog/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>我所在的专业没有开设 C 语言的课程，而大一虽然有开设 C++，但一是两门语言还是有一些区别，二是也过去了一年，很多东西都差不多忘干净了。这学期的系统级程序设计课程（即著名的“csapp”）和 C 语言密不可分，因此我借来了《C 程序设计语言》来补一补相关知识，并记了一些笔记。最终这门课拿了满绩，还是对得起自己的付出。</p>
-<p>我认为《C 程序设计语言》是一本很好的 C 语言入门书籍，简洁清晰。这里的笔记也都是 C 语言最基础的语法。越往深里学，越会感觉 C 语言和计算机系统的相辅相成，博大精深，也越烧脑。但是现在都必须要按需所学了，还是希望有机会能够继续深入挖掘 C 语言的精粹。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/blog/C-programming-language-notes/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

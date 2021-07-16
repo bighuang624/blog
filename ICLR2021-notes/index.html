@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="这篇博文简单记录一下我快速阅读 ICLR 2021 其中一些我感兴趣的论文时的笔记和感想等。由于论文数量比较多，因此可能后续还会更新。接收列表见 Paper Digest: ICLR 2021 Highlights。 我比较关注的 topic 包括 transfer learning 下的 few-shot learning、domain adaptation、domain generalizat">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】ICLR 2021 论文选读">
+<meta property="og:url" content="https://kyonhuang.top/blog/ICLR2021-notes/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="这篇博文简单记录一下我快速阅读 ICLR 2021 其中一些我感兴趣的论文时的笔记和感想等。由于论文数量比较多，因此可能后续还会更新。接收列表见 Paper Digest: ICLR 2021 Highlights。 我比较关注的 topic 包括 transfer learning 下的 few-shot learning、domain adaptation、domain generalizat">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-online-contextualized-few-shot-learning.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-MixStyle.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-randconv.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ask-your-humans.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-self-imitation-via-reduction.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ordered-memory-policy-network.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-lifelong-compositional-learning.png">
+<meta property="article:published_time" content="2021-07-16T02:52:22.000Z">
+<meta property="article:modified_time" content="2021-07-16T03:14:52.053Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="ICLR 2021">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-online-contextualized-few-shot-learning.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/ICLR2021-notes/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;ICLR2021-notes&#x2F;&quot;,&quot;path&quot;:&quot;ICLR2021-notes&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】ICLR 2021 论文选读&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】ICLR 2021 论文选读 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/blog/atom.xml" title="Kyon Huang 的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Few-shot-Learning"><span class="nav-number">1.</span> <span class="nav-text">Few-shot Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DA-DG"><span class="nav-number">2.</span> <span class="nav-text">DA &#x2F; DG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VQA"><span class="nav-number">3.</span> <span class="nav-text">VQA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RL"><span class="nav-number">4.</span> <span class="nav-text">RL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NLP"><span class="nav-number">5.</span> <span class="nav-text">NLP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Continual-Learning"><span class="nav-number">6.</span> <span class="nav-text">Continual Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#generative-models"><span class="nav-number">7.</span> <span class="nav-text">generative models</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">129</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/blog/atom.xml" title="RSS → https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/ICLR2021-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】ICLR 2021 论文选读
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-07-16 10:52:22 / 修改时间：11:14:52" itemprop="dateCreated datePublished" datetime="2021-07-16T10:52:22+08:00">2021-07-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>这篇博文简单记录一下我快速阅读 ICLR 2021 其中一些<strong>我感兴趣</strong>的论文时的笔记和感想等。由于论文数量比较多，因此可能后续还会更新。接收列表见 <a target="_blank" rel="noopener" href="https://www.paperdigest.org/2021/01/iclr-2021-highlights/">Paper Digest: ICLR 2021 Highlights</a>。</p>
+<p>我比较关注的 topic 包括 transfer learning 下的 few-shot learning、domain adaptation、domain generalization 等，以及包括 VQA、visual grounding 在内的一些多模态学习的任务。我用 “#topic” 来标明这篇论文所属的 topic，这样既不用生硬地将属于多个 topic 的论文强性归类到单一 topic 下，也方便各位读者在页面内用 CTRL+F 来搜索自己感兴趣的 topic。</p>
+<span id="more"></span>
+
+<h2 id="Few-shot-Learning"><a href="#Few-shot-Learning" class="headerlink" title="Few-shot Learning"></a>Few-shot Learning</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=oZIvHV04XgC">Wandering Within A World: Online Contextualized Few-shot Learning</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-online-contextualized-few-shot-learning.png"></p>
+<p>本文提出了一种新的学习范式 online contextualized few-shot learning。同时，本文提出 contextual prototypical memory（CPM）模型，通过集成 RNN 来编码上下文信息，并且有一个独立的原型存储（prototype memory）来记住已经学过的类别。该模型在本文构建的三个数据集上能够比扩展到 online 设置下的经典 FSL 算法表现更好。</p>
+<h2 id="DA-DG"><a href="#DA-DG" class="headerlink" title="DA / DG"></a>DA / DG</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=b9PoimzZFJ">Systematic generalisation with group invariant predictions</a><br>#systematic generalisation  #invariance penalty  #semantic anomaly detection  #domain generalization</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png"></p>
+<p>本文提出，数据集通常存在和目标变量相关的简单特征（但不健壮）以及更加复杂但是健壮的特征。在三个合成的数据集 coloured-MNIST、COCO-on-colours 和 COCO-on-places 上的实验结果表明，用一个 soft-partition predicting network 来将数据集划分为 majority and minority groups，并且对不同 group 同类样本的特征施加不变性惩罚（例如 KL 散度）有助于模型关注这些更加健壮的特征。</p>
+<p>Spotlight。本文对不同类型的 shift 的划分还是挺有意思的，感觉和一些在视觉上做因果学习的工作在思路上有共通之处。方法上比较简单，可能这就是大巧不工吧。然后我比较关心的问题包括能否在真实数据集上使用这个方法，效果如何？Reviewer 3 也提出了相同的问题，举例问能否在 ImageNet 上找到一个合适的划分。作者的回答是像 ImageNet 这种数据来源丰富、相对杂乱的数据集可能难度比较大，而像医学图像这种数据来源相对单一的就要好一些。</p>
+<!-- (2) 能否在视觉的其他问题上应用该方法，例如目标检测或者语义分割？这个好像还没有评审提出来。 【那我们能不能用呢w】 -->
+
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=lQdXeXDoWtI">In Search of Lost Domain Generalization</a><br>#domain generalization  #benchmark</li>
+</ul>
+<p>本文为 DG 实现了一个名为 DomainBed 的 testbed，包含 7 个数据集、14 种算法和 3 种模型选择策略。结论是 ERM 仍然是一个非常有竞争力的 baseline。</p>
+<p>在我看来这篇论文的一大贡献是讨论了不同模型选择策略带来的影响，包括 training-domain validation（将训练数据划分为 train 和 val set）、leave-one-domain-out validation（给定多个训练域，每次将一个域作为 val，将平均准确率作为指标选择出超参后再在所有训练域上重新训练模型）、test-domain validation（允许用非常有限的测试数据来挑选模型。注意这通常不是一个合理的方法）。另一大贡献自然就是这个还挺大的实验规模，以及给后续工作留下一个还不错的 testbed。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=6xHJ37MVxxp">Domain Generalization with MixStyle</a><br>#domain generalization</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-MixStyle.png"></p>
+<p>本文受 instance normalization（IN）和 adaptive instance normalization（AdaIN）启发，提出在将样本进行分 domain 打乱或者随机打乱后，用一个随机的权重来混合两个样本的特征统计信息，从而模拟新风格来约束 CNN 的训练。该方法在分类、检索和 RL 上都取得了效果。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=BVSM0x3EDK6">Robust and Generalizable Visual Representation Learning via Random Convolutions</a><br>#domain generalization  #data augmentation</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-randconv.png"></p>
+<p>本文旨在从单源域数据学习和局部纹理和颜色无关的健壮视觉表征，因此提出一种数据增强技术 RandConv，用随机得卷积来生成有随机纹理但是保留全局形状的图像来提升泛化性。</p>
+<h2 id="VQA"><a href="#VQA" class="headerlink" title="VQA"></a>VQA</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=Pd_oMxH8IlF">Iterated learning for emergent systematicity in VQA</a><br>#visual question-answering  #modular networks  #iterated learning  #compositional generalization</li>
+</ul>
+<p>神经模块网络（neural module networks, NMN）通常需要一个程序生成器（program generator）来生成符号化的程序将模块组织成计算图。然而，生成的程序很难组合式泛化。本文提出用迭式学习（iterated learning, IL）的方式，将 NMN 的程序看作来自“布局语言”的样本。在本文提出的 SHAPES-SyGet 数据集以及 CLEVR、CLOSURE 上，本方法可以用 1/10 甚至更少的程序标注与 SOTA 相媲美。 </p>
+<p>Oral。评审的意见主要集中在实验选用的数据集比较 toyish。之后作者补做了在 GQA 数据集上的实验， Vector-NMN+IL 用 4000 个程序标注能够和 Vector-NMN 用 943000 个程序标注的效果持平。</p>
+<!-- 【接下来可以把算法部分2页看一下】
+[paper](https://openreview.net/pdf?id=Pd_oMxH8IlF) -->
+
+
+<h2 id="RL"><a href="#RL" class="headerlink" title="RL"></a>RL</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=Y87Ri-GNHYu">Ask Your Humans: Using Human Instructions to Improve Generalization in Reinforcement Learning</a><br>#reinforcement learning  #natural language  #imitation learning</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ask-your-humans.png"></p>
+<p>本文引入了一个提供自然语言指令和动作轨迹作为人类演示，一个类似 Minecraft 的 5x5 gridworld 数据集，包括 35 个任务的 6000 条指令。提出的新模型 (1) 在给定状态和目标时，学习为要执行的高级子任务生成自然语言描述；(2) 学习语言控制的低级策略来实际执行这些步骤。模型首先通过模仿学习进行预训练，之后用 RL 的 PPO 算法和稀疏 reward 进行微调（微调过程不使用 ground-truth 语言指令）。实验证明该模型能够在 zero-shot 设置下泛化到不可见任务中生成的自然语言指令，并且提供了可解释的行为。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=9SS69KwomAM">Solving Compositional Reinforcement Learning Problems via Task Reduction</a><br>#reinforcement learning  #imitation learning</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-self-imitation-via-reduction.png"></p>
+<p>本文提出一种新的学习范式 Self-Imitation via Reduction (SIR) 来解决有稀疏 reward 的组合性持续控制问题。该范式首先将较难的任务简化为解决方案已知的简单任务（称为任务缩减），然后在获得的解决方案的轨迹上执行模仿学习，从而加速训练，同时无需显式确定低级技能或选项就可向学到的策略引入组合性的偏执归纳。上面的示意图是一个任务缩减的具体例子。另外，SIR 可以将学到地任务作为新的缩减目标，从而循环式地学习任意复杂的策略。SIR 通过共同学习一个 goal-conditioned policy 和一个 universal value function 来实现，因此任务缩减可以通过对价值函数的状态搜索和不同目标的策略执行来完成。</p>
+<p>作为一个 RL 门外汉，我觉得 intution 还是挺有意思的，不过由于我没细看，我比较好奇这种任务缩减如果没有解决方案已知的简单任务的话怎么办呢？实验是是否需要假设较难的任务都存在解决方案已知的简单任务？（我看 program chair 的最终意见也有差不多的观点，即本文关注的是如何将问题分解为子问题，而在设计任务空间时确实包含了一定先验知识，即并不是学来的。）</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=vcopnwZ7bC">Learning Task Decomposition with Ordered Memory Policy Network</a><br>#reinforcement learning  #hierarchical imitation learning</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ordered-memory-policy-network.png"></p>
+<p>本文提出 Ordered Memory Policy Network (OMPN) ，能够通过从演示中学习来探索子任务的层级结构，从而在监督和弱监督设置下利用非结构化的演示实现任务分解来复用学过的技能。该方法将子任务视为有限状态机（finite state machine），它们被表示为通过自顶向下和自底向上循环更新的内存库。</p>
+<p>看 Chap 2.2 开头，还是需要在 detection 阶段让用户给定子任务数量以及动作空间，以生成 task boundaries。</p>
+<h2 id="NLP"><a href="#NLP" class="headerlink" title="NLP"></a>NLP</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=PS3IMnScugk">Learning to Recombine and Resample Data For Compositional Generalization</a><br>#compositional generalization  #data augmentation  #natural language processing  #few-shot morphology learning</li>
+</ul>
+<p>本文关注小样本时态学习问题，旨在从单词形式预测包括第三人称、单数、现在时等各种语言特征。以前的工作集中于例如符号语法建模数据或应用基于规则的数据扩增等方法，这些方法很难在没有显式规则的归纳偏置下进行泛化。本文提出一种新的基于原型的神经序列模型，通过显式重组训练示例片段来重构其他输入-输出对，并对模型的输出进行重采样来选择稀有现象的高质量合成样本，从而进行样本扩增。</p>
+<h2 id="Continual-Learning"><a href="#Continual-Learning" class="headerlink" title="Continual Learning"></a>Continual Learning</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=ADWd4TJO13G">Lifelong Learning of Compositional Structures</a><br>#lifelong learning  #continual learning  #modular networks</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-lifelong-compositional-learning.png"></p>
+<p>本文将组合学习和终身学习结合，提出一个框架来分阶段地学习如何最佳地组合已有组件来理解新任务，以及如何调整现有组件（以及选择增加新组件）来适应新问题。3x3=9 种组合被用于说明该框架，其中知识保留机制包括简单微调、经验回放（experience replay）、弹性权重整合（elastic weight consolidation）；组合性结构包括线性模型的线性组合、软性层排序（soft layer ordering）、门网络的一个软版本（a soft version of gating networks）。八个数据集上的实验结果表明将终身学习过程划分为两个阶段能够减少灾难性遗忘。</p>
+<h2 id="generative-models"><a href="#generative-models" class="headerlink" title="generative models"></a>generative models</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=sjuuTm4vj0">Using latent space regression to analyze and leverage compositionality in GANs</a><br>#image synthesis  #generative adversarial networks  #image editing</li>
+</ul>
+<p>本文使用一个回归器（regressor）来根据属性预测给定图像的隐式编码，从而分析和修改预训练 GAN 的隐式空间。另外编码器的输入可以加上一个 binary mask 来学习在图像不完整的情况进行重构。该方法在图像组合、属性修改、图像补齐和多模态编辑上等应用上都有良好的表现。</p>
+<p>我比较感兴趣的是该方法声称能够在图像组合时处理全局不一致和像素缺失的问题；另外研究预训练 GAN 对生成图像的局部进行混合和匹配的能力，而非直接提出新的 GAN 模型的思路也挺有意思（NLP 里很多工作已经是完全建立在预训练模型上进行研究了，当然我不太清楚这种思路是不是也在 GAN 这里成为主流了）。我对引用中 <a target="_blank" rel="noopener" href="https://openreview.net/forum?id=SJxDDpEKvH">Besserve et al., 2018</a> 有一点兴趣，不过不一定有时间去读。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=qbH974jKUVy">The role of Disentanglement in Generalisation</a><br>#disentanglement  #compositionality  #variational autoencoders</li>
+</ul>
+<p>本文旨在研究神经网络是否能够利用解纠缠表征来支持组合性泛化和外推。研究建立在两个图像数据集（dSprites 和 3DShape）上，模型包含有不同解纠缠压力的 β-VAEs 和 FactorVAEs，以及去掉编码器的解码器（直接输入解纠缠隐编码）。本文的结论是学习非纠缠表征确实提高了可解释性和样本效率，但这些模型只支持最简单的组合泛化，并且解纠缠的程度对于泛化的程度没有影响。</p>
+<!-- 【还没仔细看评审意见】 -->
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/ICLR2021-notes/" title="【paper reading】ICLR 2021 论文选读">https://kyonhuang.top/blog/ICLR2021-notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/ICLR-2021/" rel="tag"><i class="fa fa-tag"></i> ICLR 2021</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/my-summary-of-IJCAI20/" rel="prev" title="IJCAI2020 教训总结">
+                  <i class="fa fa-chevron-left"></i> IJCAI2020 教训总结
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
