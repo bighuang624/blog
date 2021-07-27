@@ -28,6 +28,10 @@
 <meta property="og:description" content="这篇博文简单记录一下我快速阅读 ICLR 2021 其中一些我感兴趣的论文时的笔记和感想等。由于论文数量比较多，因此可能后续还会更新。接收列表见 Paper Digest: ICLR 2021 Highlights。 我比较关注的 topic 包括 transfer learning 下的 few-shot learning、domain adaptation、domain generalizat">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-online-contextualized-few-shot-learning.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-universal-representation-transformer.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-concept-learners-for-FSL.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-instance-level-and-episode-level-pretext-tasks.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ConstellationNet.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-MixStyle.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-randconv.png">
@@ -36,7 +40,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ordered-memory-policy-network.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-lifelong-compositional-learning.png">
 <meta property="article:published_time" content="2021-07-16T02:52:22.000Z">
-<meta property="article:modified_time" content="2021-07-16T03:14:52.053Z">
+<meta property="article:modified_time" content="2021-07-27T09:40:52.043Z">
 <meta property="article:author" content="Kyon Huang">
 <meta property="article:tag" content="ICLR 2021">
 <meta name="twitter:card" content="summary">
@@ -273,10 +277,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-07-16 10:52:22 / 修改时间：11:14:52" itemprop="dateCreated datePublished" datetime="2021-07-16T10:52:22+08:00">2021-07-16</time>
+      <time title="创建时间：2021-07-16 10:52:22" itemprop="dateCreated datePublished" datetime="2021-07-16T10:52:22+08:00">2021-07-16</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-27 17:40:52" itemprop="dateModified" datetime="2021-07-27T17:40:52+08:00">2021-07-27</time>
+      </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-folder"></i>
@@ -309,10 +319,35 @@
 <span id="more"></span>
 
 <h2 id="Few-shot-Learning"><a href="#Few-shot-Learning" class="headerlink" title="Few-shot Learning"></a>Few-shot Learning</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=oZIvHV04XgC">Wandering Within A World: Online Contextualized Few-shot Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=oZIvHV04XgC">Wandering Within A World: Online Contextualized Few-shot Learning</a><br>#continual learning  #lifelong learning</li>
 </ul>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-online-contextualized-few-shot-learning.png"></p>
-<p>本文提出了一种新的学习范式 online contextualized few-shot learning。同时，本文提出 contextual prototypical memory（CPM）模型，通过集成 RNN 来编码上下文信息，并且有一个独立的原型存储（prototype memory）来记住已经学过的类别。该模型在本文构建的三个数据集上能够比扩展到 online 设置下的经典 FSL 算法表现更好。</p>
+<p>本文提出了一种新的学习范式 online contextualized few-shot learning，要求模型考虑上下文切换来进行在线的小样本学习。同时，本文提出 contextual prototypical memory（CPM）模型，通过集成 RNN 来编码上下文信息，并且有一个独立的原型存储（prototype memory）来记住已经学过的类别，在所有原型半径外的样本会被预测为新类。该模型在本文构建的三个数据集上能够比扩展后的经典 FSL 算法表现更好。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=JWOiYxMG92s">Free Lunch for Few-shot Learning: Distribution Calibration</a><br>#data augmentation</li>
+</ul>
+<p>对于每个 support sample，寻找 base classes 中原型与其最相似的 k 个类别，用这些类的均值和协方差来同该 support sample 一起得到新的均值和协方差作为分布的参数，从而通过从该分布中采样来进行特征级别的数据增强。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=04cII6MumYV">A Universal Representation Transformer Layer for Few-Shot Image Classification</a><br>#cross-domain  #self-attention  #metric-based</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-universal-representation-transformer.png"></p>
+<p>本文提出了多头的泛用表征转换层（multi-head universal representation transformer layer），在 Meta-Dataset 上表现良好。在单头 URT 层中，对于每个域有一个预训练好的特征提取器，模型对各类原型进行自注意力计算。query 是每个类 $c$ 的原型经线性层的产物 $q_c$，key 是每个域 $i$ 的特征提取器得到的每个类 $c$ 的原型经线性层的产物 $k_{i, c}$。计算得到的权重求平均得到每个域的权重，和对应特征提取器的特征得到调整后的表征。多头 URT 层将单头 URT 层得到的表征拼接，以用于原型分类等。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=eJIJF3-LoZO">Concept Learners for Few-Shot Learning</a><br>#compositionality  #auxiliary semantic  #metric-based</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-concept-learners-for-FSL.png"></p>
+<p>本文使用了额外的辅助模态，以向量的形式来表现图像中包含的概念。每个概念有一个对应的特征提取器（即卷积骨干网络，实验中分为参数共享和不共享两种），概念向量与样本进行点积后过该特征提取器来得到概念特定的特征，最后进行原型分类的距离就是查询样本的概念特定特征和支持样本的概念特定原型间的欧氏距离对于所有概念的总和。这些概念也可以通过已有的 landmark discovery 方法来无监督式地得到。</p>
+<p>提供了特征提取器共享参数的实验结果可以部分消除对参数量大幅增加的质疑，但是在提供有监督概念时只和只用视觉信息的 baselines 比较，我认为是不公平的。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=xzqLpqRzxLq">IEPT: Instance-Level and Episode-Level Pretext Tasks for Few-Shot Learning</a><br>#self-supervised</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-instance-level-and-episode-level-pretext-tasks.png"></p>
+<p>引入旋转预测的自监督任务后，该方法对于每个旋转角度将 episode 内所有支持和查询样本进行对应旋转来得到一个扩展任务。总 loss 由四部分组成：(1) 预测每个旋转后的样本的旋转角度的 loss；(2) 在每个旋转角度对应的扩展任务中，查询样本分类的 loss；(3) 跨所有扩展任务中，同一查询样本对应的预测概率分布的一致性 loss，具体做法是将该样本的各扩展任务中的预测概率分布与所有扩展任务的预测概率分布均值求 KL 散度；(4) 将同一样本在不同旋转角度后得到的特征视为同一序列中的不同 token，进行自注意力计算后拼接来用于分类得到 loss。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=vujTf_I8Kmc">Constellation Nets for Few-Shot Learning</a><br>#metric-based  #self-attention  #compositionality  #clustering</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ConstellationNet.png"></p>
+<p>本文将特征图上每个位置的局部特征 $u \in R^C$ 进行软聚类，将所有局部特征到所有聚类中心的距离组织为一张距离图 $D \in R^{B \times H \times W \times K}$，之后再将 $D$ 和一个位置编码 $P \in R^{B \times H \times W \times K}$ 相加来作为 query 和 key、$D$ 作为 value 进行多头自注意力运算。上述运算结果和特征图拼接后过 1x1 卷积，从而在骨干网络的每个卷积层后无缝接入 constellation 模型，以结合隐式和显式的 part-based representations。</p>
 <h2 id="DA-DG"><a href="#DA-DG" class="headerlink" title="DA / DG"></a>DA / DG</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=b9PoimzZFJ">Systematic generalisation with group invariant predictions</a><br>#systematic generalisation  #invariance penalty  #semantic anomaly detection  #domain generalization</li>
 </ul>
