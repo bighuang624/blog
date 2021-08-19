@@ -32,6 +32,8 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-concept-learners-for-FSL.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-instance-level-and-episode-level-pretext-tasks.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ConstellationNet.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-latent-space-interpolation-unsupervised-meta-learning.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-zero-shot-voice-style-transfer.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-MixStyle.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-randconv.png">
@@ -40,7 +42,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ordered-memory-policy-network.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-lifelong-compositional-learning.png">
 <meta property="article:published_time" content="2021-07-16T02:52:22.000Z">
-<meta property="article:modified_time" content="2021-07-27T09:40:52.043Z">
+<meta property="article:modified_time" content="2021-08-19T07:48:31.930Z">
 <meta property="article:author" content="Kyon Huang">
 <meta property="article:tag" content="ICLR 2021">
 <meta name="twitter:card" content="summary">
@@ -163,7 +165,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Few-shot-Learning"><span class="nav-number">1.</span> <span class="nav-text">Few-shot Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DA-DG"><span class="nav-number">2.</span> <span class="nav-text">DA &#x2F; DG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VQA"><span class="nav-number">3.</span> <span class="nav-text">VQA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RL"><span class="nav-number">4.</span> <span class="nav-text">RL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NLP"><span class="nav-number">5.</span> <span class="nav-text">NLP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Continual-Learning"><span class="nav-number">6.</span> <span class="nav-text">Continual Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#generative-models"><span class="nav-number">7.</span> <span class="nav-text">generative models</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Few-shot-Learning"><span class="nav-number">1.</span> <span class="nav-text">Few-shot Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Meta-Learning"><span class="nav-number">2.</span> <span class="nav-text">Meta Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zero-shot-Learning"><span class="nav-number">3.</span> <span class="nav-text">Zero-shot Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DA-DG"><span class="nav-number">4.</span> <span class="nav-text">DA &#x2F; DG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VQA"><span class="nav-number">5.</span> <span class="nav-text">VQA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RL"><span class="nav-number">6.</span> <span class="nav-text">RL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NLP"><span class="nav-number">7.</span> <span class="nav-text">NLP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Continual-Learning"><span class="nav-number">8.</span> <span class="nav-text">Continual Learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#generative-models"><span class="nav-number">9.</span> <span class="nav-text">generative models</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -285,7 +287,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-07-27 17:40:52" itemprop="dateModified" datetime="2021-07-27T17:40:52+08:00">2021-07-27</time>
+        <time title="修改时间：2021-08-19 15:48:31" itemprop="dateModified" datetime="2021-08-19T15:48:31+08:00">2021-08-19</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -348,15 +350,26 @@
 </ul>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ConstellationNet.png"></p>
 <p>本文将特征图上每个位置的局部特征 $u \in R^C$ 进行软聚类，将所有局部特征到所有聚类中心的距离组织为一张距离图 $D \in R^{B \times H \times W \times K}$，之后再将 $D$ 和一个位置编码 $P \in R^{B \times H \times W \times K}$ 相加来作为 query 和 key、$D$ 作为 value 进行多头自注意力运算。上述运算结果和特征图拼接后过 1x1 卷积，从而在骨干网络的每个卷积层后无缝接入 constellation 模型，以结合隐式和显式的 part-based representations。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=9z_dNsC4B5t">MetaNorm: Learning to Normalize Few-Shot Batches Across Domains</a><br>#meta-learning  #normalization</li>
+</ul>
+<p>本文认为当 batch size 较小或者 distribution shift 较大（训练集的统计数据不适用于测试集）时，batch 的统计数据是不可靠的。因此本文提出一种基于原学习的 batch normaliztion 方法，旨在利用一个神经网络来根据输入的样本生成统计数据来最小化不同 domain 或者 support 和 query 间的 KL 散度。该方法在小样本分类、domain generalization 以及提出的 few-shot domain generalization（meta-train 和 meta-test 每个 episode 中类别不同，每个 episode 内部 support 和 query 的 domain 不同）等任务上普遍优于现有的 normalization 方法。</p>
+<h2 id="Meta-Learning"><a href="#Meta-Learning" class="headerlink" title="Meta Learning"></a>Meta Learning</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=XOjv2HxIF6i">Unsupervised Meta-Learning through Latent-Space Interpolation in Generative Models</a><br>#unsupervised learning  #generative adversarial networks </li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-latent-space-interpolation-unsupervised-meta-learning.png"></p>
+<p>现有的无监督元学习方法主要依靠包含聚类、数据增强、随机采样等方法来生成合成任务，这些方法的缺点是根据领域的不同，它们需要较大的调整。本文提出使用现成的、预训练好的生成模型，通过在隐式空间在进行插值来生成合成任务。该方法的优点在于基本不需要根据特定领域进行调整，仅有的一些超参数调整也具有可理解性。</p>
+<h2 id="Zero-shot-Learning"><a href="#Zero-shot-Learning" class="headerlink" title="Zero-shot Learning"></a>Zero-shot Learning</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=TgSVWXw22FQ">Improving Zero-Shot Voice Style Transfer via Disentangled Representation Learning</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-zero-shot-voice-style-transfer.png"></p>
+<p>本文针对在不重新训练模型的情况下迁移到训练期间不可见的发声者风格的任务，认为现有的基于预训练分割编码器或者 AdaIN 的方法都无法较好地分离风格和内容编码。因此，本文最小化风格和内容编码间基于样本的互信息上界，并且最大化两个新的多组互信息下界来增强编码的表示能力。</p>
 <h2 id="DA-DG"><a href="#DA-DG" class="headerlink" title="DA / DG"></a>DA / DG</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=b9PoimzZFJ">Systematic generalisation with group invariant predictions</a><br>#systematic generalisation  #invariance penalty  #semantic anomaly detection  #domain generalization</li>
 </ul>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png"></p>
 <p>本文提出，数据集通常存在和目标变量相关的简单特征（但不健壮）以及更加复杂但是健壮的特征。在三个合成的数据集 coloured-MNIST、COCO-on-colours 和 COCO-on-places 上的实验结果表明，用一个 soft-partition predicting network 来将数据集划分为 majority and minority groups，并且对不同 group 同类样本的特征施加不变性惩罚（例如 KL 散度）有助于模型关注这些更加健壮的特征。</p>
 <p>Spotlight。本文对不同类型的 shift 的划分还是挺有意思的，感觉和一些在视觉上做因果学习的工作在思路上有共通之处。方法上比较简单，可能这就是大巧不工吧。然后我比较关心的问题包括能否在真实数据集上使用这个方法，效果如何？Reviewer 3 也提出了相同的问题，举例问能否在 ImageNet 上找到一个合适的划分。作者的回答是像 ImageNet 这种数据来源丰富、相对杂乱的数据集可能难度比较大，而像医学图像这种数据来源相对单一的就要好一些。</p>
-<!-- (2) 能否在视觉的其他问题上应用该方法，例如目标检测或者语义分割？这个好像还没有评审提出来。 【那我们能不能用呢w】 -->
-
-
 <ul>
 <li><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=lQdXeXDoWtI">In Search of Lost Domain Generalization</a><br>#domain generalization  #benchmark</li>
 </ul>

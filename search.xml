@@ -253,6 +253,63 @@
       </tags>
   </entry>
   <entry>
+    <title>【译】理解 LSTM</title>
+    <url>/blog/Understanding-LSTMs/</url>
+    <content><![CDATA[<p>一直以来感觉自己对 LSTM 的理解缺了点什么。这次看到一篇不错的博客 <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding LSTM Networks</a>，对 LSTM 的机制和公式有逐条的解释。正好最近手头的工作也和门机制有一定联系，因此决定翻译一下，帮助自己理解和记忆公式。主要靠意译，省略了一点无关紧要的内容，有条件可以自己看看原文。</p>
+<span id="more"></span>
+
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>人类不是每分每秒都从头开始思考，而是基于所学所想进一步思考，有一定的持续性。RNN 可以通过前一个单元将消息传递给后一个单元，一定程度上模拟这个过程。</p>
+<p>使用 RNN 面临着一个问题，有时候我们需要非常长的上下文，例如通过非常靠前的相关信息来预测下一个词。在实践中，RNN 难以处理这种“<strong>长期依赖</strong>”，原因和梯度爆炸（exploding gradient）/梯度消失（vanishing gradient）有关。不过，LSTM 可以解决这个问题，它会默认地长时间记忆信息。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-SimpleRNN.png"></p>
+<p>上图展示了包含了单个层的标准 RNN 单元组成的链式结构。LSTM 有着同样的链式结构，但是重复的组件结构不同，它有着四个交互的层：</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-chain.png"></p>
+<h2 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h2><p>LSTM 的核心是 <strong>cell state（单元状态）</strong>，即贯穿图顶部的水平线。cell state 有点像传送带，沿着整个链向后，只有一些小的线形相互作用。因此，信息很容易不加改动地沿着它流动。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-C-line.png"></p>
+<p>而向 cell state 删除或者添加的信息通过<strong>门（gates）</strong>结构精心控制。门结构能够选择性地让信息通过，它有一个 sigmoid 层和一个 pointwise 乘积操作组成：</p>
+<img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-gate.png" style="width:20%; margin-top=10px; margin-bottom=10px;">
+
+<p>sigmoid 层输出一个 0 到 1 之间的实数，来描述允许多少信息通过，0 代表不允许任何信息通过，而 1 代表让全部信息通过。LSTM 有三个类似的门机构，用来保护和控制 cell state。</p>
+<h2 id="一步一步看公式"><a href="#一步一步看公式" class="headerlink" title="一步一步看公式"></a>一步一步看公式</h2><p>LSTM 的第一步是决定从 cell state 中丢弃什么信息，这个决定通过称为“<strong>忘记门（forget gate）</strong>”的 sigmoid 层作出。输入是 $h_{t-1}$ 和 $x_t$，并为 cell state $C_{t-1}$ 中的每个数字输出一个 0 到 1 之间的值，1 表示完全保留，而 0 表示完全遗忘。</p>
+<p>举一个基于前面所有单词来预测下一个单词的例子，在这个问题中，cell state 可能包括当前主语的性别，以便使用正确的代词。当我们看到一个新的主语时，我们想要忘记旧主语的性别。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-f.png"></p>
+<p>第二步我们决定将在 cell state 中存储什么新信息。首先，一个称为<strong>输入门（input gate）</strong>的 sigmoid 层决定我们将要更新的值。然后，一个 tanh 层创建一个候选的 $\tilde C_i$，准备加到 cell state 中。在下一步，我们将这两个值合并，来为 cell state 做一个更新。</p>
+<p>继续之前的例子，我们想要将新主语的性别加入到 cell state，以取代我们遗忘的内容。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-i.png"></p>
+<p>接下来我们将旧的 cell state $C_{t-1}$ 更新为新的 cell state $C_t$。在例子中，我们在这一步中正式地丢弃关于旧主语性别的信息并添加新信息。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-C.png"></p>
+<p>最后，我们决定要输出的内容。输出取决于我们的 cell state，不过要经过一层过滤。首先，我们还是通过一个 sigmoid 层来决定 cell state 中哪些部分要被输出。之后，我们将 state cell 通过 tanh 来将值缩放到 -1 与 1 之间，并用 sigmoid 门的输出做乘法，决定输出的部分。</p>
+<p>对于语言模型示例，由于它只看到了一个主语，因此可能希望输出与谓词相关的信息，以防接下来会出现与谓词相关的信息。例如，它可以输出主语是单数还是复数，这样我们就知道如果接下来是动词，动词应该用什么形式。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-o.png"></p>
+<h2 id="LSTM-的变体"><a href="#LSTM-的变体" class="headerlink" title="LSTM 的变体"></a>LSTM 的变体</h2><p>以上所述就是一个标准的 LSTM。但是，几乎所有的论文使用的 LSTM 都有或多或少的修改。虽然差异不大，但其中有些版本值得一提。</p>
+<p><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a> 中的版本增加了<strong>窥视孔连接（peephole connections）</strong>，使得门层可以观察 cell state。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-peepholes.png"></p>
+<p>上图在所有的门上都加了窥视孔。也有些论文只给一些门增加窥视孔。</p>
+<p>另一种变体是将遗忘门和输入门耦合。我们不再单独决定要忘记什么或者应该添加什么新信息，而是共同做出这些决定，并且只在准备遗忘旧信息时添加新信息作为替代。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-tied.png"></p>
+<p>一个变化稍大的变体是 <a href="arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a> 提出的<strong>门控循环单元（Gated Recurrent Unit, GRU）</strong>。它将遗忘和输入合并到一个单独的“更新门”，并将 cell state 和 hidden state 合并到一块。GRU 比标准的 LSTM 更简单，并且也得到广泛的应用。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-GRU.png"></p>
+<p>除了几个最值得注意的变体，还有很多版本。<a href="jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a> 测试了超过一万种 RNN 架构，发现一部分会在特定任务上比 LSTM 表现更好。</p>
+<h2 id="推荐资料"><a href="#推荐资料" class="headerlink" title="推荐资料"></a>推荐资料</h2><ul>
+<li><a href="http://www.bioinf.jku.at/publications/older/2604.pdf">Hochreiter S, Schmidhuber J. Long Short-Term Memory[J]. Neural Computation, 1997, 9(8):1735-1780.</a>：提出 LSTM 的 paper。</li>
+<li><a href="https://jalammar.github.io/">Jay Alammar’s Blog</a>：另一个致力于可视化讲解机器学习概念的好博客。最新的两篇讲 NLP 里的 Transformer 和 BERT，可见内容之新。</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+      <categories>
+        <category>自然语言处理笔记</category>
+      </categories>
+      <tags>
+        <tag>LSTM</tag>
+        <tag>自然语言处理</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Word2vec - 最经典的词嵌入学习算法</title>
     <url>/blog/Word2vec-intro/</url>
     <content><![CDATA[<p>如果想要开始研究基于深度学习的自然语言处理，你很难逃开 Word2vec 这一最为经典的词嵌入学习算法。然而，想要透彻理解 Word2vec 又并非易事。因此，我写这篇博文，力图叙述清楚 Word2vec 的原理，以对学到的知识做一个梳理。</p>
@@ -338,68 +395,11 @@ MathJax.Hub.Config({
         <category>自然语言处理笔记</category>
       </categories>
       <tags>
+        <tag>自然语言处理</tag>
         <tag>Word2vec</tag>
         <tag>语言模型</tag>
         <tag>Skip-gram</tag>
         <tag>CBOW</tag>
-        <tag>自然语言处理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>【译】理解 LSTM</title>
-    <url>/blog/Understanding-LSTMs/</url>
-    <content><![CDATA[<p>一直以来感觉自己对 LSTM 的理解缺了点什么。这次看到一篇不错的博客 <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding LSTM Networks</a>，对 LSTM 的机制和公式有逐条的解释。正好最近手头的工作也和门机制有一定联系，因此决定翻译一下，帮助自己理解和记忆公式。主要靠意译，省略了一点无关紧要的内容，有条件可以自己看看原文。</p>
-<span id="more"></span>
-
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>人类不是每分每秒都从头开始思考，而是基于所学所想进一步思考，有一定的持续性。RNN 可以通过前一个单元将消息传递给后一个单元，一定程度上模拟这个过程。</p>
-<p>使用 RNN 面临着一个问题，有时候我们需要非常长的上下文，例如通过非常靠前的相关信息来预测下一个词。在实践中，RNN 难以处理这种“<strong>长期依赖</strong>”，原因和梯度爆炸（exploding gradient）/梯度消失（vanishing gradient）有关。不过，LSTM 可以解决这个问题，它会默认地长时间记忆信息。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-SimpleRNN.png"></p>
-<p>上图展示了包含了单个层的标准 RNN 单元组成的链式结构。LSTM 有着同样的链式结构，但是重复的组件结构不同，它有着四个交互的层：</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-chain.png"></p>
-<h2 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h2><p>LSTM 的核心是 <strong>cell state（单元状态）</strong>，即贯穿图顶部的水平线。cell state 有点像传送带，沿着整个链向后，只有一些小的线形相互作用。因此，信息很容易不加改动地沿着它流动。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-C-line.png"></p>
-<p>而向 cell state 删除或者添加的信息通过<strong>门（gates）</strong>结构精心控制。门结构能够选择性地让信息通过，它有一个 sigmoid 层和一个 pointwise 乘积操作组成：</p>
-<img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-gate.png" style="width:20%; margin-top=10px; margin-bottom=10px;">
-
-<p>sigmoid 层输出一个 0 到 1 之间的实数，来描述允许多少信息通过，0 代表不允许任何信息通过，而 1 代表让全部信息通过。LSTM 有三个类似的门机构，用来保护和控制 cell state。</p>
-<h2 id="一步一步看公式"><a href="#一步一步看公式" class="headerlink" title="一步一步看公式"></a>一步一步看公式</h2><p>LSTM 的第一步是决定从 cell state 中丢弃什么信息，这个决定通过称为“<strong>忘记门（forget gate）</strong>”的 sigmoid 层作出。输入是 $h_{t-1}$ 和 $x_t$，并为 cell state $C_{t-1}$ 中的每个数字输出一个 0 到 1 之间的值，1 表示完全保留，而 0 表示完全遗忘。</p>
-<p>举一个基于前面所有单词来预测下一个单词的例子，在这个问题中，cell state 可能包括当前主语的性别，以便使用正确的代词。当我们看到一个新的主语时，我们想要忘记旧主语的性别。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-f.png"></p>
-<p>第二步我们决定将在 cell state 中存储什么新信息。首先，一个称为<strong>输入门（input gate）</strong>的 sigmoid 层决定我们将要更新的值。然后，一个 tanh 层创建一个候选的 $\tilde C_i$，准备加到 cell state 中。在下一步，我们将这两个值合并，来为 cell state 做一个更新。</p>
-<p>继续之前的例子，我们想要将新主语的性别加入到 cell state，以取代我们遗忘的内容。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-i.png"></p>
-<p>接下来我们将旧的 cell state $C_{t-1}$ 更新为新的 cell state $C_t$。在例子中，我们在这一步中正式地丢弃关于旧主语性别的信息并添加新信息。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-C.png"></p>
-<p>最后，我们决定要输出的内容。输出取决于我们的 cell state，不过要经过一层过滤。首先，我们还是通过一个 sigmoid 层来决定 cell state 中哪些部分要被输出。之后，我们将 state cell 通过 tanh 来将值缩放到 -1 与 1 之间，并用 sigmoid 门的输出做乘法，决定输出的部分。</p>
-<p>对于语言模型示例，由于它只看到了一个主语，因此可能希望输出与谓词相关的信息，以防接下来会出现与谓词相关的信息。例如，它可以输出主语是单数还是复数，这样我们就知道如果接下来是动词，动词应该用什么形式。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-o.png"></p>
-<h2 id="LSTM-的变体"><a href="#LSTM-的变体" class="headerlink" title="LSTM 的变体"></a>LSTM 的变体</h2><p>以上所述就是一个标准的 LSTM。但是，几乎所有的论文使用的 LSTM 都有或多或少的修改。虽然差异不大，但其中有些版本值得一提。</p>
-<p><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a> 中的版本增加了<strong>窥视孔连接（peephole connections）</strong>，使得门层可以观察 cell state。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-peepholes.png"></p>
-<p>上图在所有的门上都加了窥视孔。也有些论文只给一些门增加窥视孔。</p>
-<p>另一种变体是将遗忘门和输入门耦合。我们不再单独决定要忘记什么或者应该添加什么新信息，而是共同做出这些决定，并且只在准备遗忘旧信息时添加新信息作为替代。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-tied.png"></p>
-<p>一个变化稍大的变体是 <a href="arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a> 提出的<strong>门控循环单元（Gated Recurrent Unit, GRU）</strong>。它将遗忘和输入合并到一个单独的“更新门”，并将 cell state 和 hidden state 合并到一块。GRU 比标准的 LSTM 更简单，并且也得到广泛的应用。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-GRU.png"></p>
-<p>除了几个最值得注意的变体，还有很多版本。<a href="jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a> 测试了超过一万种 RNN 架构，发现一部分会在特定任务上比 LSTM 表现更好。</p>
-<h2 id="推荐资料"><a href="#推荐资料" class="headerlink" title="推荐资料"></a>推荐资料</h2><ul>
-<li><a href="http://www.bioinf.jku.at/publications/older/2604.pdf">Hochreiter S, Schmidhuber J. Long Short-Term Memory[J]. Neural Computation, 1997, 9(8):1735-1780.</a>：提出 LSTM 的 paper。</li>
-<li><a href="https://jalammar.github.io/">Jay Alammar’s Blog</a>：另一个致力于可视化讲解机器学习概念的好博客。最新的两篇讲 NLP 里的 Transformer 和 BERT，可见内容之新。</li>
-</ul>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  tex2jax: {inlineMath: [ ['$', '$'] ],
-        displayMath: [ ['$$', '$$']]}
-});
-</script>
-
-<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
-      <categories>
-        <category>自然语言处理笔记</category>
-      </categories>
-      <tags>
-        <tag>自然语言处理</tag>
-        <tag>LSTM</tag>
       </tags>
   </entry>
   <entry>
@@ -663,202 +663,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>【paper reading】Adaptive Cross-Modal Few-Shot Learning</title>
-    <url>/blog/AM3-notes/</url>
-    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png"></p>
-<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。</p>
-<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
-<li>作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro</li>
-<li>出处：NeurIPS 2019</li>
-<li>机构：Element AI, Montreal, Canada; Nankai University</li>
-<li>关键词：few-shot learning, metric learning, multimodal</li>
-<li><a href="https://arxiv.org/pdf/1902.07104.pdf">论文链接</a></li>
-<li>开源代码：<a href="https://github.com/ElementAI/am3">ElementAI/am3</a></li>
-<li>其他资料：<ul>
-<li><a href="https://www.semanticscholar.org/paper/Adaptive-Cross-Modal-Few-Shot-Learning-Xing-Rostamzadeh/7d113621ab50a8b875a12cea3ad5b0263e9520ac">Semantic Scholar</a></li>
-</ul>
-</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>当来自视觉模态的数据有限时，利用辅助模态（例如，属性，未标记的文本语料库）来帮助图像分类主要由无样本学习（Zero-Shot Learning, ZSL）驱动。与少样本学习（Few-Shot Learning, FSL）对比，无样本学习没有少量标记样本来帮助识别新类别。大多数方法在训练阶段将两种模态对齐，以此迫使模态被映射在一起并具有相同的语义结构。这样，来自辅助模态的知识在测试时被迁移到视觉方面用于识别新类别。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-Figure-1.png"></p>
-<p>然而，视觉和自然语言语义特征根据定义具有不同的结构。对于不同的概念，视觉特征可能比文本特征更丰富和更具辨识度；而对于另一些概念，可能情况是相反的。此外，当图像数量非常少时，从视觉模态提供的信息往往是嘈杂和局部的，而（从无监督的文本语料库中学习的）语义表示可以提供强大的先验知识和上下文以帮助学习。在无样本学习中，测试阶段没有给视觉信息，因此算法只能完全依靠辅助模态（例如，文本）；而当有标记的图像样本数量很多时，神经网络倾向于忽略辅助模态，因为它已经有能力通过大量样本学会泛化。小样本学处于在这两个极端情况的中间态，因此我们可以假设视觉和语义信息都可用于小样本学习。</p>
-<p>因此，比起将两种模态对齐并进行知识迁移，在测试阶段进行从两种模态获得信息的小样本学习时，最好<strong>将各模态视为独立的知识来源，并根据不同的场景自适应地利用不同的模态</strong>。</p>
-<p>根据上述分析，本文提出<strong>自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）</strong>，可以根据要学习的新图像类别自适应地组合来自两种模态的信息，用于小样本学习。</p>
-<p>实验表明，效果超过当前的单模态小样本学习方法和模态对齐方法。另外，试验还表明，该模型可以有效调整其对两种模态的关注。当镜头数量非常小时，性能的提升特别高。</p>
-<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/5-Figure2-1.png"></p>
-<p>本文提出的自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）可以应用于任何基于度量的方法。本文选用原型网络（Prototypical Networks）和 TADAM。对于类别 $c$，新的原型（prototype）计算如下：</p>
-<p>$$<br>\mathbf{p}_{c}^{\prime}=\lambda_{c} \cdot \mathbf{p}_{c}+\left(1-\lambda_{c}\right) \cdot \mathbf{w}_{c}<br>$$</p>
-<p>其中，$\mathbf{w}_{c}=g\left(\mathbf{e}_{c}\right)$ 是一个对于类别 $c$ 的标签嵌入的转换版本，$\mathbf{e}_{c}$ 是对于类别 $c$ 标签的预训练词向量，而转换 $g : \mathbb{R}^{n_{w}} \rightarrow \mathbb{R}^{n_{p}}$ 让两个模态处于同一空间并可以合并。$\lambda_{c}$ 是自适应混合系数（adaptive mixture coefficient）：</p>
-<p>$$<br>\lambda_{c}=\frac{1}{1+\exp \left(-h\left(\mathbf{w}_{c}\right)\right)}<br>$$</p>
-<p>$h$ 是自适应混合网络（adaptive mixing network）。自适应混合系数 $\lambda_{c}$ 可以根据不同的变量进行控制。</p>
-<p>训练过程与原始的原型网络相似，只是距离度量变为</p>
-<p>$$<br>p_{\theta}\left(y=c | q_{t}, S_{e}, \mathcal{W}\right)=\frac{\exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{c}^{\prime}\right)\right)}{\sum_{k} \exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{k}^{\prime}\right)\right)}<br>$$</p>
-<p>损失是每个查询集样本的真类的负对数似然（the negative loglikelihood of the true class of each query sample）：</p>
-<p>$$<br>\mathcal{L}(\theta)=\underset{\left(\mathcal{S}_{e}, \mathcal{Q}_{e}\right)}{\mathbb{E}}-\sum_{t=1}^{Q_{e}} \log p_{\theta}\left(y_{t} | q_{t}, \mathcal{S}_{e}\right)<br>$$</p>
-<p>其中，$\mathcal{S}_{e}$ 是支撑集，$\mathcal{Q}_{e}$ 是查询集。</p>
-<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>数据集：</p>
-<ul>
-<li>miniImageNet [2]</li>
-<li>tieredImageNet [3]</li>
-<li>CUB-200 [4]：这是一个无样本学习数据集。考虑到大多数模态对齐方法没有在小样本学习数据集上有公开的实验结果，这个数据集用于将 AM3 与模态对齐方法进行对比</li>
-</ul>
-<p>本文在  和 tieredImageNet [3]，将 AM3 与三种基线进行对比：单模态 FSL 方法，模态对齐方法，模态对齐方法的基于度量的扩展。</p>
-<p>baselines：</p>
-<ul>
-<li>单模态 FSL 方法：MAML、LEO [6]、原型网络、TADAM [5] 等；</li>
-<li>模态对齐方法：CADA-VAE [7] 等；</li>
-<li>模态对齐方法的基于度量的扩展：使用了基于度量的损失以及原型网络的训练方式（episode training）。</li>
-</ul>
-<p>在 miniImageNet 数据集上的分类结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table1-1.png"></p>
-<p>在 tieredImageNet 数据集上的分类结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table2-1.png"></p>
-<p>结论：</p>
-<ol>
-<li>在所有数据集上，AM3 的表现都优于其主干方法。说明在正确使用时，文本模态可以帮助提高基于度量的 FSL 学习框架的性能；</li>
-<li>AM3（主干方法选用 TADAM）取得 SOTA，且当 shot 数（即样本数）越少时，效果提升越多。说明当视觉模态提供的信息越少时，语义信息对分类的帮助越大；</li>
-<li>当扩展到基于度量、episodic、FSL 框架时时，所有模态对齐方法的表现都显著提升。然而扩展前后这些模态对齐方法都比单模态 FSL 方法的 SOTA 要差。说明尽管模态对齐方法对于 ZSL 中的跨模态是有效的，但并不适合 FSL。<strong>一个可能的原因是，两个不同的结构被迫对齐导致双方的一些信息可能损失</strong>。</li>
-</ol>
-<p>在 CUB-200 数据集上的分类结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/14-Table3-1.png"></p>
-<p>结论：对于无样本学习场景，AM3 降级为最简单的模态对齐方法，将文本语义空间映射到视觉空间。因此，在没有自适应机制的情况下，AM3 的表现与 DeViSE 大致相同。说明自适应机制在 FSL 场景中观察到的性能提升中起主要作用。</p>
-<h4 id="自适应机制分析"><a href="#自适应机制分析" class="headerlink" title="自适应机制分析"></a>自适应机制分析</h4><p>对本文提出的自适应机制进行定量分析：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/8-Figure3-1.png"></p>
-<p>结论：</p>
-<ol>
-<li>当 shot 数（即样本数）增加时，AM3 与其主干方法的表现差距减小；</li>
-<li>自适应混合系数 $\lambda_{c}$ 的平均值与 shot 数有关，当 shot 数减小时，AM3 在文本模态上的权重更大（在视觉模态上更小）。这种趋势表明，当视觉信息非常少时，AM3 可以自动将焦点更多地调整到文本模态以帮助分类；</li>
-<li>当 $\lambda_{c}$ 的方差随着 shot 数增加而减小时，AM3 与其主干方法的性能差距也会缩小。这表明 AM3 在类别级别的适应性对性能提升有非常重要的作用（？？？觉得有点牵强）。</li>
-</ol>
-<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/15-Table4-1.png"></p>
-<p>所以选用变换后的语义特征来做自适应机制是实验得到的最好选择。</p>
-<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>我个人认为，转换 $g$ 本质上还是一种表示空间的强行对齐，会破坏模态本身的自然结构。因此，可能可以考虑一种更好的特征组合与自适应调整方式。</p>
-<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
-<li>[1] Zero-shot learning-the good, the bad and the ugly, CVPR 2017.</li>
-<li>[2] Matching networks for one shot learning, NIPS 2016.</li>
-<li>[3] Meta-learning for semi-supervised few-shot classification, ICLR 2018.</li>
-<li>[4] Caltech-UCSD Birds 200, Technical Report CNS-TR-2010-001, 2010.</li>
-<li>[5] Tadam: Task dependent adaptive metric for improved few-shot learning, NeurIPS 2018.</li>
-<li>[6] Meta-learning with latent embedding optimization, ICML 2016.</li>
-<li>[7] Generalized zero-and few-shot learning via aligned variational autoencoders, CVPR 2019.</li>
-</ul>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  tex2jax: {inlineMath: [ ['$', '$'] ],
-        displayMath: [ ['$$', '$$']]}
-});
-</script>
-
-<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
-      <categories>
-        <category>论文阅读笔记</category>
-      </categories>
-      <tags>
-        <tag>few-shot learning</tag>
-        <tag>小样本学习</tag>
-        <tag>multimodal</tag>
-        <tag>metric learning</tag>
-        <tag>多模态</tag>
-        <tag>度量学习</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>【paper reading】基于 Web 的问答系统综述</title>
-    <url>/blog/survey-on-web-based-question-answering-notes/</url>
-    <content><![CDATA[<p>原文链接：<a href="http://www.jsjkx.com/jsjkx/ch/reader/create_pdf.aspx?file_no=20170601&flag=&journal_id=jsjkx&year_id=2017">基于 Web 的问答系统综述</a></p>
-<p>作者：李舟军，李水华</p>
-<p>简介：详细介绍了基于 Web 的问答系统的研究背景、架构及其问题分析、信息检索、答案抽取这三大关键技术的研究进展，并分析了基于 Web 的问答系统所面临的问题。</p>
-<p>选读原因：选了一篇中文的基于 Web 的问答系统综述，和手头上工作比较贴近，来对接下来的研究方向有个大致的了解和思考，因此记录也比较详细。</p>
-<span id="more"></span>
-
-<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p><strong>问答系统（Question Answering, QA）</strong>以自然语言为输入与输出，理解用户的查询意图后，通过一系列的检索、分析与处理，返回精确、简练的答案。</p>
-<p>根据问答系统知识来源的不同，该文将问答系统分为 3 类：</p>
-<ol>
-<li><strong>基于知识库的问答系统（Qustion Answering over Knowledge Bases, KBQA）</strong>：主要以知识库作为问答系统的知识来源；</li>
-<li><strong>基于社区的问答系统（Community-based Question Answering, CQA）</strong>：主要以问答社区（如知乎、百度知道等）作为问答系统的知识来源；</li>
-<li><strong>基于 Web 的问答系统（Web-based Question Answering, WQA）</strong>：以开放的互联网上的 Web 文档作为问答系统的知识来源，从搜索引擎上返回的相关网页片段中抽取出用户所提问题的答案。</li>
-</ol>
-<p>其中，WQA 系统同时具有搜索引擎和问答系统的优点，与时俱进，不断更新。</p>
-<h3 id="WQA-系统"><a href="#WQA-系统" class="headerlink" title="WQA 系统"></a>WQA 系统</h3><p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Architecture-of-question-answering-system.png" alt="Architecture-of-question-answering-system"></p>
-<p>经典的 WQA 系统通常由以下 3 个模块构成（其他 QA 系统各模块大体一致，功能有所不同。上图来源[1]）：</p>
-<ol>
-<li><strong>问题分析模块</strong>：根据用户的查询意图生成相应的查询语句，可能包含对问题的分类、提取问题的关键词或者生成一些其他描述用户查询意图的中间数据；</li>
-<li><strong>信息检索模块</strong>：将问题分析模块得到的查询语句或关键词提交给搜索引擎，并整理返回的搜索结果来得到可能包含正确答案的网页片段（性能瓶颈）；</li>
-<li><strong>答案抽取模块</strong>：利用信息抽取技术，从网页片段中抽取答案，可能需要用到问题分析模块得到的问题类别、关键词等数据。</li>
-</ol>
-<h4 id="问题分析模块"><a href="#问题分析模块" class="headerlink" title="问题分析模块"></a>问题分析模块</h4><p>流程：</p>
-<ol>
-<li>分词</li>
-<li>问题分类：问题的类别是反应用户提问意图的重要信息</li>
-<li>问题重写：便于搜索引擎理解问题语义</li>
-</ol>
-<h5 id="问题分类"><a href="#问题分类" class="headerlink" title="问题分类"></a>问题分类</h5><p>问题分类的作用体现在：</p>
-<ul>
-<li><strong>能够有效减少候选答案空间，提高系统返回答案的准确性</strong>。例如，一个问句被分类为时间类，则在答案抽取阶段，系统把不含时间的候选句子过滤掉；</li>
-<li><strong>决定答案喧杂策略，根据不同的问句类型调节对不同问题的答案选择策略</strong>。例如，对于“安徽省的简称是什么”，分析出其询问地点类别，抽取文档库中地点类的文档作为候选答案。</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/question-classifier.png" alt="问题分类体系"></p>
-<p>表一为国际权威的 UIUC 问句分类体系，针对英文分类。表二是哈工大定义的中文问句分类体系。</p>
-<p>很多 WQA 系统采用规则分类器对问题进行分类。最简单的规则可以是通过问题是否包含某个词来分类，而比较复杂的规则包括基于语义模式匹配的问题分类[2]。如果没有一条规则能够与问题匹配成功，则借助一些统计机器学习的方法分类，例如 SVM、RNN 等。</p>
-<h5 id="关键词提取和扩展"><a href="#关键词提取和扩展" class="headerlink" title="关键词提取和扩展"></a>关键词提取和扩展</h5><p>关键词既可作为搜索引擎的输入，也可辅助答案的抽取过程。WQA 系统通常在分词、取出停用词之后进行关键词的提取，并将名词、动词、形容词等作为关键词。因此可以用一些简单规则提取，例如“所有带形容词的名词都是关键词”等。也可以分析问题的语法结构，抽取主语、宾语作为关键词[3]。</p>
-<p>关键词的扩展主要用于解决关键词的同义词的匹配问题，通常需要一些同义词词库进行辅助。</p>
-<h5 id="问题重写"><a href="#问题重写" class="headerlink" title="问题重写"></a>问题重写</h5><p>当问题本身（而非关键词）作为搜索引擎的输入时，可能较难领会语义，此时需要对问题进行重写。一些启发式的方法依靠简单的字符串操作（替换、拼接、删除）来实现问题重写，也有较为复杂的优化方法，例如定义一个针对问题的操作集合，然后利用概率模型选择最合适的操作来重写问题[4]。</p>
-<h4 id="信息检索模块"><a href="#信息检索模块" class="headerlink" title="信息检索模块"></a>信息检索模块</h4><p>信息检索模块的实现可以调用搜索引擎提供的接口，也可以利用爬虫技术。搜索引擎所具有的高质量摘要技术能过滤原始网页的噪音数据，因此无需抓取解析原始网页。</p>
-<h4 id="答案抽取模块"><a href="#答案抽取模块" class="headerlink" title="答案抽取模块"></a>答案抽取模块</h4><p>答案抽取模块是 WQA 系统中的重点和难点，通常包括两个步骤：</p>
-<ol>
-<li>候选答案抽取：从网页片段中抽取出候选答案；</li>
-<li>候选答案排序：对候选答案进行排序，得到最佳答案。</li>
-</ol>
-<h5 id="候选答案抽取"><a href="#候选答案抽取" class="headerlink" title="候选答案抽取"></a>候选答案抽取</h5><p>抽取候选答案的几种典型方法：</p>
-<ol>
-<li>手工编辑或自动生成名词词典，将词典中的所有名词都作为候选答案。这种做法的候选答案集非常大，因此候选答案排序以及维护难度很大，难以更新以应对新的领域和新的概念；</li>
-<li>利用<strong>命名实体识别（Named Entity Recognition, NER）</strong>工具，抽取命名实体作为候选答案。具体效果受问题分类算法和命名实体识别算法效果的影响；</li>
-<li>根据手工编辑或自动生成的文本模式抽取候选答案。准确率较高，但匹配较为死板，无法适应新的数据。</li>
-</ol>
-<h5 id="候选答案排序"><a href="#候选答案排序" class="headerlink" title="候选答案排序"></a>候选答案排序</h5><p>候选答案排序及最佳答案选择的几种典型方法：</p>
-<ol>
-<li>采用<strong>向量空间模型（Vector Space Model, VSM）</strong>计算候选答案与问题的相似度，并以此进行排序[5]；</li>
-<li>根据语法结构判断候选答案与问题的匹配度，并以此进行排序；</li>
-<li>根据词汇特征、相似度特征、统计特征等多种特征进行综合排序。</li>
-</ol>
-<h3 id="WQA-面临的主要问题"><a href="#WQA-面临的主要问题" class="headerlink" title="WQA 面临的主要问题"></a>WQA 面临的主要问题</h3><ol>
-<li>问题分类有待改善：问题分类的本质是短文本分类，受限于特征稀缺，分类器效果有待提升；</li>
-<li>同义句子的理解需要解决：同义词的使用和句法结构的变化使得 WQA 系统难以准确抽取答案；</li>
-<li>高质量的 QA 对难以获取：缺少相关数据；</li>
-<li>利用跨语言语料能力较差：网页片段可能存在多种语言，WQA 系统难以利用多种语言的文本数据来回答某一种特定语言的问题；</li>
-<li>通用型不足：回答通用领域问题的能力尚有待进一步增强；</li>
-<li>处理复杂问题的能力不足：对于定义型、原因型、关系型、比较型、方法型等问题难以给出满意的回答。</li>
-</ol>
-<h3 id="WQA-的发展趋势"><a href="#WQA-的发展趋势" class="headerlink" title="WQA 的发展趋势"></a>WQA 的发展趋势</h3><ol>
-<li>与其他问答系统的融合；</li>
-<li>通过答案摘要生成答案；</li>
-<li>自动生成高质量问答对数据；</li>
-<li>提升 WQA 系统处理复杂问题的能力；</li>
-<li>跨语言能力、跨领域能力的进一步增强；</li>
-<li>与语音识别、语音生成等工具的进一步结合；</li>
-<li>辅助机器人。</li>
-</ol>
-<h3 id="文献"><a href="#文献" class="headerlink" title="文献"></a>文献</h3><p>[1] 镇丽华, 王小林, 杨思春. 自动问答系统中问句分类研究综述[J]. 安徽工业大学学报(自科版), 2015, 32(1):48-54.</p>
-<p>[2] LI X, HU D, LI H, et al. Automatic question answering from Web documents[J]. Wuhan University Journal of Natural Sciences, 2007, 12(5):875 880.</p>
-<p>[3] LIU Z J, WANG X L, CHEN Q C, et al. A Chinese question answering system based on Web search [C]. International Conference on Machine Learning and Cybernetics, Lanzhou: IEEE, 2014:816-820.</p>
-<p>[4] CHALI Y, HASAN S A, MOJAHID M. A reinforcement learning formulation to the complex question answering problem<br>[J]. Information Processing &amp; Management, 2015, 51(3):252 272.</p>
-<p>[5] 余正涛，樊孝忠，郭剑毅，等. 基于潜在语义分析的汉语问答系统答案提取[J]. 计算机学报，2006，29(10):1889—1893.</p>
-]]></content>
-      <categories>
-        <category>论文阅读笔记</category>
-      </categories>
-      <tags>
-        <tag>自然语言处理</tag>
-        <tag>问答系统</tag>
-        <tag>信息检索</tag>
-        <tag>答案抽取</tag>
-        <tag>问题分析</tag>
-        <tag>综述</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>【paper reading】Composing Text and Image for Image Retrieval - An Empirical Odyssey</title>
     <url>/blog/TIRG-notes/</url>
     <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TIRG-paper-title.png"></p>
@@ -965,14 +769,187 @@ MathJax.Hub.Config({
         <category>论文阅读笔记</category>
       </categories>
       <tags>
+        <tag>image retrieval</tag>
         <tag>multimodal</tag>
         <tag>metric learning</tag>
-        <tag>多模态</tag>
-        <tag>度量学习</tag>
-        <tag>image retrieval</tag>
         <tag>feature composition</tag>
         <tag>图像检索</tag>
+        <tag>多模态</tag>
+        <tag>度量学习</tag>
         <tag>特征组合</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning</title>
+    <url>/blog/1605-05101-notes/</url>
+    <content><![CDATA[<p>原文链接：<a href="http://www.ijcai.org/Proceedings/16/Papers/408.pdf">Recurrent Neural Network for Text Classification with Multi-Task Learning</a></p>
+<p>作者：Pengfei Liu, Xipeng Qiu, Xuanjing Huang</p>
+<p>单位：复旦大学 自然语言处理与深度学习组</p>
+<p>文章来源：IJCAI 2016</p>
+<p>简介：本文针对文本多分类任务，提出了基于 RNN 的三种不同的共享信息机制，在四个基准的文本分类任务中取得了较好的结果。</p>
+<h2 id="研究概况"><a href="#研究概况" class="headerlink" title="研究概况"></a>研究概况</h2><h3 id="研究背景"><a href="#研究背景" class="headerlink" title="研究背景"></a>研究背景</h3><p>假设多个任务之间具有相关性，**<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/#/Structuring_Machine_Learning_Projects/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5%EF%BC%882%EF%BC%89?id=%e5%a4%9a%e4%bb%bb%e5%8a%a1%e5%ad%a6%e4%b9%a0">多任务学习</a>**利用任务之间的相关性相互促进，通过并行学习任务来提高分类效果。这些模型的基本的多任务架构将共享一些较低的层以确定共同的特性。在共享层之后，每个特定任务单独使用一个输出层。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/Andrew-Ng-Deep-Learning-notes/master/docs/Structuring_Machine_Learning_Projects/Shared-Representation.png" alt="Shared-Representation"></p>
+<h3 id="前人工作和不足"><a href="#前人工作和不足" class="headerlink" title="前人工作和不足"></a>前人工作和不足</h3><p>基于神经网络的多任务学习已被用于解决 NLP 的各类任务。例如：</p>
+<ul>
+<li>使用一个对于输入单词的共享表示：用途是解决词性标注、语义角色标注等传统 NLP 任务。缺点是只有一张查找表是共享的、其他查找表和层是任务特定的，并且需要用基于窗口的方法处理长度不定的文本序列；</li>
+<li>多任务 DNN 来学习表示：用途是解决查询分类和网络搜索排名任务。缺点是模型输入为词袋表示，损失了词序信息。</li>
+</ul>
+<p>不同于以上两种方法，本文的模型基于 RNN，对于建模变长文本序列更友好。</p>
+<h3 id="本文工作"><a href="#本文工作" class="headerlink" title="本文工作"></a>本文工作</h3><p>基于 RNN，提出了三种不同的共享信息机制，可以将信息共享到特定任务层的共享层。整个网络都是在所有这些任务上共同训练的。模型在四个基准的文本分类任务上展示了很好的效果，超过了大多数的 state-of-the-art。</p>
+<!--### 意义和创新点-->
+
+<span id="more"></span>
+
+<h2 id="具体细节"><a href="#具体细节" class="headerlink" title="具体细节"></a>具体细节</h2><h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/three-architectures.png"></p>
+<ul>
+<li>模型一（Uniform-layer Architecture）：对于每个分类任务，在每个输入 character 的 embedding vector 后拼上一个随机生成的可训练向量，表示该特定任务，所有任务共享 LSTM 层，最后一个 时刻的 hidden state 则作为输入传入 softmax；</li>
+<li>模型二（Coupled-layer Architecture）：每个任务具有自己独立的 LSTM 层，但是每一时刻所有任务的 hidden state 则会和下一时刻的 character 一起作为输入，最后一个时刻的 hidden state 进行分类；</li>
+<li>模型三（Shared-layer Architecture）：除了一个共享的 Bi-LSTM 层用于获取共享信息，每个任务有自己独立的 LSTM 层，LSTM 的输入包括每一时刻的 character 和 Bi-LSTM 的 hidden state。</li>
+</ul>
+<!--大概可以加公式？-->
+
+<h3 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h3><p>对于模型一和模型三，具有一个共享层。在联合学习阶段之后可以进行<strong>微调（Fine Tuning）</strong>来进一步优化每个任务的性能。</p>
+<p>对于模型三，共享层可以由无监督的预训练阶段初始化，用四个任务数据集进行语言模型的训练。</p>
+<p>训练方法：</p>
+<ol>
+<li>随机选择一项任务；</li>
+<li>从该任务中随机选择一个训练样本；</li>
+<li>根据基于梯度的优化（paper 中使用 Adagrad update rule）来更新参数；</li>
+<li>重复 1-3 步。</li>
+</ol>
+<h3 id="数据集"><a href="#数据集" class="headerlink" title="数据集"></a>数据集</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/datasets.png"></p>
+<ul>
+<li>SST-1：5 个情绪类别的电影影评，来自斯坦福情感数据库</li>
+<li>SST-2：二分类电影影评，来自斯坦福数据库</li>
+<li>SUBJ：主观性数据集，任务目的是将句子分为主观和客观</li>
+<li>IMDB：二分类的电影影评，大多数评价为长句子</li>
+</ul>
+<h3 id="超参数与训练"><a href="#超参数与训练" class="headerlink" title="超参数与训练"></a>超参数与训练</h3><p>使用 word2vec 在维基语料获得词向量，字典规模约 500,000。词嵌入在训练过程中被微调以提高性能；其他参数在 [-0.1, 0.1] 的范围随机采样，超参数将选择在验证集上性能最好的一组。对于没有验证集的数据集使用 10 折交叉验证。</p>
+<p>特定任务和共享层的嵌入大小为 64。对于模型一，每个单词有两个嵌入，大小都为 64。LSTM 的隐藏层大小为 50。初始学习率为 0.1。参数的正则化权值为 10^-5。</p>
+<h3 id="结果比较"><a href="#结果比较" class="headerlink" title="结果比较"></a>结果比较</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-i.png"></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-ii.png"></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-iii.png"></p>
+<h3 id="与-state-of-the-art-相比较"><a href="#与-state-of-the-art-相比较" class="headerlink" title="与 state-of-the-art 相比较"></a>与 state-of-the-art 相比较</h3><p>将模型三和下列模型进行比较：</p>
+<!--* NBOW：对词向量求和，并应用一个非线性项，之后一个 softmax 分类层；
+* MV-RNN：
+* RNTN：
+* DCNN：
+* PV：
+* Tree-LSTM：-->
+
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/compare-to-state-of-the-art.png"></p>
+<p>paper 中的多任务模型和其他基于 RNN 的模型（例如 Tree-LSTM）是兼容的，可以合并以扩展。</p>
+<h3 id="了解模型"><a href="#了解模型" class="headerlink" title="了解模型"></a>了解模型</h3><p>从 SST-2 的测试集中采样，看在单个 LSTM 和含共享层的 LSTM 中，句子中每个单词对预测的情绪分数的影响。具体方式是观察全局门（global gates）的激活值，这个值控制一个 LSTM 分享层到一个特定任务层的信号流，使我们能够了解神经元的行为。</p>
+<p>例如，“marry”一词使得激活值升高，说明特定任务层从共享层得到很多信息，从而使预测更准确。</p>
+<p>通过分析，单个 LSTM 无法捕捉到“but … higher than”的结构，但是 paper 中的模型对其敏感，说明共享层不仅增强了特定词的意义，并且帮助特定任务学到结构信息。</p>
+<h3 id="错误分析"><a href="#错误分析" class="headerlink" title="错误分析"></a>错误分析</h3><p>该模型的错误案例可分为两种：</p>
+<ol>
+<li>一些含有非常复杂的结构的句子不能被适当处理，例如二次否定、虚拟语气。对于这些情况，在结构上可以做一些改进，比如基于树的 LSTM；</li>
+<li>某些句子难以从书面意思判断其情绪，例如“I tried to read the time on my watch.”</li>
+</ol>
+]]></content>
+      <categories>
+        <category>论文阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>自然语言处理</tag>
+        <tag>多任务学习</tag>
+        <tag>文本分类</tag>
+        <tag>RNN</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【paper reading】基于 Web 的问答系统综述</title>
+    <url>/blog/survey-on-web-based-question-answering-notes/</url>
+    <content><![CDATA[<p>原文链接：<a href="http://www.jsjkx.com/jsjkx/ch/reader/create_pdf.aspx?file_no=20170601&flag=&journal_id=jsjkx&year_id=2017">基于 Web 的问答系统综述</a></p>
+<p>作者：李舟军，李水华</p>
+<p>简介：详细介绍了基于 Web 的问答系统的研究背景、架构及其问题分析、信息检索、答案抽取这三大关键技术的研究进展，并分析了基于 Web 的问答系统所面临的问题。</p>
+<p>选读原因：选了一篇中文的基于 Web 的问答系统综述，和手头上工作比较贴近，来对接下来的研究方向有个大致的了解和思考，因此记录也比较详细。</p>
+<span id="more"></span>
+
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p><strong>问答系统（Question Answering, QA）</strong>以自然语言为输入与输出，理解用户的查询意图后，通过一系列的检索、分析与处理，返回精确、简练的答案。</p>
+<p>根据问答系统知识来源的不同，该文将问答系统分为 3 类：</p>
+<ol>
+<li><strong>基于知识库的问答系统（Qustion Answering over Knowledge Bases, KBQA）</strong>：主要以知识库作为问答系统的知识来源；</li>
+<li><strong>基于社区的问答系统（Community-based Question Answering, CQA）</strong>：主要以问答社区（如知乎、百度知道等）作为问答系统的知识来源；</li>
+<li><strong>基于 Web 的问答系统（Web-based Question Answering, WQA）</strong>：以开放的互联网上的 Web 文档作为问答系统的知识来源，从搜索引擎上返回的相关网页片段中抽取出用户所提问题的答案。</li>
+</ol>
+<p>其中，WQA 系统同时具有搜索引擎和问答系统的优点，与时俱进，不断更新。</p>
+<h3 id="WQA-系统"><a href="#WQA-系统" class="headerlink" title="WQA 系统"></a>WQA 系统</h3><p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Architecture-of-question-answering-system.png" alt="Architecture-of-question-answering-system"></p>
+<p>经典的 WQA 系统通常由以下 3 个模块构成（其他 QA 系统各模块大体一致，功能有所不同。上图来源[1]）：</p>
+<ol>
+<li><strong>问题分析模块</strong>：根据用户的查询意图生成相应的查询语句，可能包含对问题的分类、提取问题的关键词或者生成一些其他描述用户查询意图的中间数据；</li>
+<li><strong>信息检索模块</strong>：将问题分析模块得到的查询语句或关键词提交给搜索引擎，并整理返回的搜索结果来得到可能包含正确答案的网页片段（性能瓶颈）；</li>
+<li><strong>答案抽取模块</strong>：利用信息抽取技术，从网页片段中抽取答案，可能需要用到问题分析模块得到的问题类别、关键词等数据。</li>
+</ol>
+<h4 id="问题分析模块"><a href="#问题分析模块" class="headerlink" title="问题分析模块"></a>问题分析模块</h4><p>流程：</p>
+<ol>
+<li>分词</li>
+<li>问题分类：问题的类别是反应用户提问意图的重要信息</li>
+<li>问题重写：便于搜索引擎理解问题语义</li>
+</ol>
+<h5 id="问题分类"><a href="#问题分类" class="headerlink" title="问题分类"></a>问题分类</h5><p>问题分类的作用体现在：</p>
+<ul>
+<li><strong>能够有效减少候选答案空间，提高系统返回答案的准确性</strong>。例如，一个问句被分类为时间类，则在答案抽取阶段，系统把不含时间的候选句子过滤掉；</li>
+<li><strong>决定答案喧杂策略，根据不同的问句类型调节对不同问题的答案选择策略</strong>。例如，对于“安徽省的简称是什么”，分析出其询问地点类别，抽取文档库中地点类的文档作为候选答案。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/question-classifier.png" alt="问题分类体系"></p>
+<p>表一为国际权威的 UIUC 问句分类体系，针对英文分类。表二是哈工大定义的中文问句分类体系。</p>
+<p>很多 WQA 系统采用规则分类器对问题进行分类。最简单的规则可以是通过问题是否包含某个词来分类，而比较复杂的规则包括基于语义模式匹配的问题分类[2]。如果没有一条规则能够与问题匹配成功，则借助一些统计机器学习的方法分类，例如 SVM、RNN 等。</p>
+<h5 id="关键词提取和扩展"><a href="#关键词提取和扩展" class="headerlink" title="关键词提取和扩展"></a>关键词提取和扩展</h5><p>关键词既可作为搜索引擎的输入，也可辅助答案的抽取过程。WQA 系统通常在分词、取出停用词之后进行关键词的提取，并将名词、动词、形容词等作为关键词。因此可以用一些简单规则提取，例如“所有带形容词的名词都是关键词”等。也可以分析问题的语法结构，抽取主语、宾语作为关键词[3]。</p>
+<p>关键词的扩展主要用于解决关键词的同义词的匹配问题，通常需要一些同义词词库进行辅助。</p>
+<h5 id="问题重写"><a href="#问题重写" class="headerlink" title="问题重写"></a>问题重写</h5><p>当问题本身（而非关键词）作为搜索引擎的输入时，可能较难领会语义，此时需要对问题进行重写。一些启发式的方法依靠简单的字符串操作（替换、拼接、删除）来实现问题重写，也有较为复杂的优化方法，例如定义一个针对问题的操作集合，然后利用概率模型选择最合适的操作来重写问题[4]。</p>
+<h4 id="信息检索模块"><a href="#信息检索模块" class="headerlink" title="信息检索模块"></a>信息检索模块</h4><p>信息检索模块的实现可以调用搜索引擎提供的接口，也可以利用爬虫技术。搜索引擎所具有的高质量摘要技术能过滤原始网页的噪音数据，因此无需抓取解析原始网页。</p>
+<h4 id="答案抽取模块"><a href="#答案抽取模块" class="headerlink" title="答案抽取模块"></a>答案抽取模块</h4><p>答案抽取模块是 WQA 系统中的重点和难点，通常包括两个步骤：</p>
+<ol>
+<li>候选答案抽取：从网页片段中抽取出候选答案；</li>
+<li>候选答案排序：对候选答案进行排序，得到最佳答案。</li>
+</ol>
+<h5 id="候选答案抽取"><a href="#候选答案抽取" class="headerlink" title="候选答案抽取"></a>候选答案抽取</h5><p>抽取候选答案的几种典型方法：</p>
+<ol>
+<li>手工编辑或自动生成名词词典，将词典中的所有名词都作为候选答案。这种做法的候选答案集非常大，因此候选答案排序以及维护难度很大，难以更新以应对新的领域和新的概念；</li>
+<li>利用<strong>命名实体识别（Named Entity Recognition, NER）</strong>工具，抽取命名实体作为候选答案。具体效果受问题分类算法和命名实体识别算法效果的影响；</li>
+<li>根据手工编辑或自动生成的文本模式抽取候选答案。准确率较高，但匹配较为死板，无法适应新的数据。</li>
+</ol>
+<h5 id="候选答案排序"><a href="#候选答案排序" class="headerlink" title="候选答案排序"></a>候选答案排序</h5><p>候选答案排序及最佳答案选择的几种典型方法：</p>
+<ol>
+<li>采用<strong>向量空间模型（Vector Space Model, VSM）</strong>计算候选答案与问题的相似度，并以此进行排序[5]；</li>
+<li>根据语法结构判断候选答案与问题的匹配度，并以此进行排序；</li>
+<li>根据词汇特征、相似度特征、统计特征等多种特征进行综合排序。</li>
+</ol>
+<h3 id="WQA-面临的主要问题"><a href="#WQA-面临的主要问题" class="headerlink" title="WQA 面临的主要问题"></a>WQA 面临的主要问题</h3><ol>
+<li>问题分类有待改善：问题分类的本质是短文本分类，受限于特征稀缺，分类器效果有待提升；</li>
+<li>同义句子的理解需要解决：同义词的使用和句法结构的变化使得 WQA 系统难以准确抽取答案；</li>
+<li>高质量的 QA 对难以获取：缺少相关数据；</li>
+<li>利用跨语言语料能力较差：网页片段可能存在多种语言，WQA 系统难以利用多种语言的文本数据来回答某一种特定语言的问题；</li>
+<li>通用型不足：回答通用领域问题的能力尚有待进一步增强；</li>
+<li>处理复杂问题的能力不足：对于定义型、原因型、关系型、比较型、方法型等问题难以给出满意的回答。</li>
+</ol>
+<h3 id="WQA-的发展趋势"><a href="#WQA-的发展趋势" class="headerlink" title="WQA 的发展趋势"></a>WQA 的发展趋势</h3><ol>
+<li>与其他问答系统的融合；</li>
+<li>通过答案摘要生成答案；</li>
+<li>自动生成高质量问答对数据；</li>
+<li>提升 WQA 系统处理复杂问题的能力；</li>
+<li>跨语言能力、跨领域能力的进一步增强；</li>
+<li>与语音识别、语音生成等工具的进一步结合；</li>
+<li>辅助机器人。</li>
+</ol>
+<h3 id="文献"><a href="#文献" class="headerlink" title="文献"></a>文献</h3><p>[1] 镇丽华, 王小林, 杨思春. 自动问答系统中问句分类研究综述[J]. 安徽工业大学学报(自科版), 2015, 32(1):48-54.</p>
+<p>[2] LI X, HU D, LI H, et al. Automatic question answering from Web documents[J]. Wuhan University Journal of Natural Sciences, 2007, 12(5):875 880.</p>
+<p>[3] LIU Z J, WANG X L, CHEN Q C, et al. A Chinese question answering system based on Web search [C]. International Conference on Machine Learning and Cybernetics, Lanzhou: IEEE, 2014:816-820.</p>
+<p>[4] CHALI Y, HASAN S A, MOJAHID M. A reinforcement learning formulation to the complex question answering problem<br>[J]. Information Processing &amp; Management, 2015, 51(3):252 272.</p>
+<p>[5] 余正涛，樊孝忠，郭剑毅，等. 基于潜在语义分析的汉语问答系统答案提取[J]. 计算机学报，2006，29(10):1889—1893.</p>
+]]></content>
+      <categories>
+        <category>论文阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>自然语言处理</tag>
+        <tag>问答系统</tag>
+        <tag>信息检索</tag>
+        <tag>答案抽取</tag>
+        <tag>问题分析</tag>
+        <tag>综述</tag>
       </tags>
   </entry>
   <entry>
@@ -1066,6 +1043,108 @@ MathJax.Hub.Config({
         <tag>综述</tag>
         <tag>情感分析</tag>
         <tag>意见挖掘</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【paper reading】Adaptive Cross-Modal Few-Shot Learning</title>
+    <url>/blog/AM3-notes/</url>
+    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-paper-title.png"></p>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文提出了一种自适应模态混合机制，可以根据要学习的新图像类别自适应地组合来自视觉和语言两种模态的信息，比模态对齐方法更适用于小样本学习。</p>
+<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
+<li>作者：Chen Xing, Negar Rostamzadeh, Boris N. Oreshkin, Pedro H. O. Pinheiro</li>
+<li>出处：NeurIPS 2019</li>
+<li>机构：Element AI, Montreal, Canada; Nankai University</li>
+<li>关键词：few-shot learning, metric learning, multimodal</li>
+<li><a href="https://arxiv.org/pdf/1902.07104.pdf">论文链接</a></li>
+<li>开源代码：<a href="https://github.com/ElementAI/am3">ElementAI/am3</a></li>
+<li>其他资料：<ul>
+<li><a href="https://www.semanticscholar.org/paper/Adaptive-Cross-Modal-Few-Shot-Learning-Xing-Rostamzadeh/7d113621ab50a8b875a12cea3ad5b0263e9520ac">Semantic Scholar</a></li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>当来自视觉模态的数据有限时，利用辅助模态（例如，属性，未标记的文本语料库）来帮助图像分类主要由无样本学习（Zero-Shot Learning, ZSL）驱动。与少样本学习（Few-Shot Learning, FSL）对比，无样本学习没有少量标记样本来帮助识别新类别。大多数方法在训练阶段将两种模态对齐，以此迫使模态被映射在一起并具有相同的语义结构。这样，来自辅助模态的知识在测试时被迁移到视觉方面用于识别新类别。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/AM3-Figure-1.png"></p>
+<p>然而，视觉和自然语言语义特征根据定义具有不同的结构。对于不同的概念，视觉特征可能比文本特征更丰富和更具辨识度；而对于另一些概念，可能情况是相反的。此外，当图像数量非常少时，从视觉模态提供的信息往往是嘈杂和局部的，而（从无监督的文本语料库中学习的）语义表示可以提供强大的先验知识和上下文以帮助学习。在无样本学习中，测试阶段没有给视觉信息，因此算法只能完全依靠辅助模态（例如，文本）；而当有标记的图像样本数量很多时，神经网络倾向于忽略辅助模态，因为它已经有能力通过大量样本学会泛化。小样本学处于在这两个极端情况的中间态，因此我们可以假设视觉和语义信息都可用于小样本学习。</p>
+<p>因此，比起将两种模态对齐并进行知识迁移，在测试阶段进行从两种模态获得信息的小样本学习时，最好<strong>将各模态视为独立的知识来源，并根据不同的场景自适应地利用不同的模态</strong>。</p>
+<p>根据上述分析，本文提出<strong>自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）</strong>，可以根据要学习的新图像类别自适应地组合来自两种模态的信息，用于小样本学习。</p>
+<p>实验表明，效果超过当前的单模态小样本学习方法和模态对齐方法。另外，试验还表明，该模型可以有效调整其对两种模态的关注。当镜头数量非常小时，性能的提升特别高。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/5-Figure2-1.png"></p>
+<p>本文提出的自适应模态混合机制（Adaptive Modality Mixture Mechanism, AM3）可以应用于任何基于度量的方法。本文选用原型网络（Prototypical Networks）和 TADAM。对于类别 $c$，新的原型（prototype）计算如下：</p>
+<p>$$<br>\mathbf{p}_{c}^{\prime}=\lambda_{c} \cdot \mathbf{p}_{c}+\left(1-\lambda_{c}\right) \cdot \mathbf{w}_{c}<br>$$</p>
+<p>其中，$\mathbf{w}_{c}=g\left(\mathbf{e}_{c}\right)$ 是一个对于类别 $c$ 的标签嵌入的转换版本，$\mathbf{e}_{c}$ 是对于类别 $c$ 标签的预训练词向量，而转换 $g : \mathbb{R}^{n_{w}} \rightarrow \mathbb{R}^{n_{p}}$ 让两个模态处于同一空间并可以合并。$\lambda_{c}$ 是自适应混合系数（adaptive mixture coefficient）：</p>
+<p>$$<br>\lambda_{c}=\frac{1}{1+\exp \left(-h\left(\mathbf{w}_{c}\right)\right)}<br>$$</p>
+<p>$h$ 是自适应混合网络（adaptive mixing network）。自适应混合系数 $\lambda_{c}$ 可以根据不同的变量进行控制。</p>
+<p>训练过程与原始的原型网络相似，只是距离度量变为</p>
+<p>$$<br>p_{\theta}\left(y=c | q_{t}, S_{e}, \mathcal{W}\right)=\frac{\exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{c}^{\prime}\right)\right)}{\sum_{k} \exp \left(-d\left(f\left(q_{t}\right), \mathbf{p}_{k}^{\prime}\right)\right)}<br>$$</p>
+<p>损失是每个查询集样本的真类的负对数似然（the negative loglikelihood of the true class of each query sample）：</p>
+<p>$$<br>\mathcal{L}(\theta)=\underset{\left(\mathcal{S}_{e}, \mathcal{Q}_{e}\right)}{\mathbb{E}}-\sum_{t=1}^{Q_{e}} \log p_{\theta}\left(y_{t} | q_{t}, \mathcal{S}_{e}\right)<br>$$</p>
+<p>其中，$\mathcal{S}_{e}$ 是支撑集，$\mathcal{Q}_{e}$ 是查询集。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>数据集：</p>
+<ul>
+<li>miniImageNet [2]</li>
+<li>tieredImageNet [3]</li>
+<li>CUB-200 [4]：这是一个无样本学习数据集。考虑到大多数模态对齐方法没有在小样本学习数据集上有公开的实验结果，这个数据集用于将 AM3 与模态对齐方法进行对比</li>
+</ul>
+<p>本文在  和 tieredImageNet [3]，将 AM3 与三种基线进行对比：单模态 FSL 方法，模态对齐方法，模态对齐方法的基于度量的扩展。</p>
+<p>baselines：</p>
+<ul>
+<li>单模态 FSL 方法：MAML、LEO [6]、原型网络、TADAM [5] 等；</li>
+<li>模态对齐方法：CADA-VAE [7] 等；</li>
+<li>模态对齐方法的基于度量的扩展：使用了基于度量的损失以及原型网络的训练方式（episode training）。</li>
+</ul>
+<p>在 miniImageNet 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table1-1.png"></p>
+<p>在 tieredImageNet 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/7-Table2-1.png"></p>
+<p>结论：</p>
+<ol>
+<li>在所有数据集上，AM3 的表现都优于其主干方法。说明在正确使用时，文本模态可以帮助提高基于度量的 FSL 学习框架的性能；</li>
+<li>AM3（主干方法选用 TADAM）取得 SOTA，且当 shot 数（即样本数）越少时，效果提升越多。说明当视觉模态提供的信息越少时，语义信息对分类的帮助越大；</li>
+<li>当扩展到基于度量、episodic、FSL 框架时时，所有模态对齐方法的表现都显著提升。然而扩展前后这些模态对齐方法都比单模态 FSL 方法的 SOTA 要差。说明尽管模态对齐方法对于 ZSL 中的跨模态是有效的，但并不适合 FSL。<strong>一个可能的原因是，两个不同的结构被迫对齐导致双方的一些信息可能损失</strong>。</li>
+</ol>
+<p>在 CUB-200 数据集上的分类结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/14-Table3-1.png"></p>
+<p>结论：对于无样本学习场景，AM3 降级为最简单的模态对齐方法，将文本语义空间映射到视觉空间。因此，在没有自适应机制的情况下，AM3 的表现与 DeViSE 大致相同。说明自适应机制在 FSL 场景中观察到的性能提升中起主要作用。</p>
+<h4 id="自适应机制分析"><a href="#自适应机制分析" class="headerlink" title="自适应机制分析"></a>自适应机制分析</h4><p>对本文提出的自适应机制进行定量分析：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/8-Figure3-1.png"></p>
+<p>结论：</p>
+<ol>
+<li>当 shot 数（即样本数）增加时，AM3 与其主干方法的表现差距减小；</li>
+<li>自适应混合系数 $\lambda_{c}$ 的平均值与 shot 数有关，当 shot 数减小时，AM3 在文本模态上的权重更大（在视觉模态上更小）。这种趋势表明，当视觉信息非常少时，AM3 可以自动将焦点更多地调整到文本模态以帮助分类；</li>
+<li>当 $\lambda_{c}$ 的方差随着 shot 数增加而减小时，AM3 与其主干方法的性能差距也会缩小。这表明 AM3 在类别级别的适应性对性能提升有非常重要的作用（？？？觉得有点牵强）。</li>
+</ol>
+<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="https://d3i71xaburhd42.cloudfront.net/7d113621ab50a8b875a12cea3ad5b0263e9520ac/15-Table4-1.png"></p>
+<p>所以选用变换后的语义特征来做自适应机制是实验得到的最好选择。</p>
+<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>我个人认为，转换 $g$ 本质上还是一种表示空间的强行对齐，会破坏模态本身的自然结构。因此，可能可以考虑一种更好的特征组合与自适应调整方式。</p>
+<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
+<li>[1] Zero-shot learning-the good, the bad and the ugly, CVPR 2017.</li>
+<li>[2] Matching networks for one shot learning, NIPS 2016.</li>
+<li>[3] Meta-learning for semi-supervised few-shot classification, ICLR 2018.</li>
+<li>[4] Caltech-UCSD Birds 200, Technical Report CNS-TR-2010-001, 2010.</li>
+<li>[5] Tadam: Task dependent adaptive metric for improved few-shot learning, NeurIPS 2018.</li>
+<li>[6] Meta-learning with latent embedding optimization, ICML 2016.</li>
+<li>[7] Generalized zero-and few-shot learning via aligned variational autoencoders, CVPR 2019.</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+      <categories>
+        <category>论文阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>few-shot learning</tag>
+        <tag>小样本学习</tag>
+        <tag>multimodal</tag>
+        <tag>metric learning</tag>
+        <tag>多模态</tag>
+        <tag>度量学习</tag>
       </tags>
   </entry>
   <entry>
@@ -1242,85 +1321,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>【paper reading】Recurrent Neural Network for Text Classification with Multi-Task Learning</title>
-    <url>/blog/1605-05101-notes/</url>
-    <content><![CDATA[<p>原文链接：<a href="http://www.ijcai.org/Proceedings/16/Papers/408.pdf">Recurrent Neural Network for Text Classification with Multi-Task Learning</a></p>
-<p>作者：Pengfei Liu, Xipeng Qiu, Xuanjing Huang</p>
-<p>单位：复旦大学 自然语言处理与深度学习组</p>
-<p>文章来源：IJCAI 2016</p>
-<p>简介：本文针对文本多分类任务，提出了基于 RNN 的三种不同的共享信息机制，在四个基准的文本分类任务中取得了较好的结果。</p>
-<h2 id="研究概况"><a href="#研究概况" class="headerlink" title="研究概况"></a>研究概况</h2><h3 id="研究背景"><a href="#研究背景" class="headerlink" title="研究背景"></a>研究背景</h3><p>假设多个任务之间具有相关性，**<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/#/Structuring_Machine_Learning_Projects/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5%EF%BC%882%EF%BC%89?id=%e5%a4%9a%e4%bb%bb%e5%8a%a1%e5%ad%a6%e4%b9%a0">多任务学习</a>**利用任务之间的相关性相互促进，通过并行学习任务来提高分类效果。这些模型的基本的多任务架构将共享一些较低的层以确定共同的特性。在共享层之后，每个特定任务单独使用一个输出层。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/Andrew-Ng-Deep-Learning-notes/master/docs/Structuring_Machine_Learning_Projects/Shared-Representation.png" alt="Shared-Representation"></p>
-<h3 id="前人工作和不足"><a href="#前人工作和不足" class="headerlink" title="前人工作和不足"></a>前人工作和不足</h3><p>基于神经网络的多任务学习已被用于解决 NLP 的各类任务。例如：</p>
-<ul>
-<li>使用一个对于输入单词的共享表示：用途是解决词性标注、语义角色标注等传统 NLP 任务。缺点是只有一张查找表是共享的、其他查找表和层是任务特定的，并且需要用基于窗口的方法处理长度不定的文本序列；</li>
-<li>多任务 DNN 来学习表示：用途是解决查询分类和网络搜索排名任务。缺点是模型输入为词袋表示，损失了词序信息。</li>
-</ul>
-<p>不同于以上两种方法，本文的模型基于 RNN，对于建模变长文本序列更友好。</p>
-<h3 id="本文工作"><a href="#本文工作" class="headerlink" title="本文工作"></a>本文工作</h3><p>基于 RNN，提出了三种不同的共享信息机制，可以将信息共享到特定任务层的共享层。整个网络都是在所有这些任务上共同训练的。模型在四个基准的文本分类任务上展示了很好的效果，超过了大多数的 state-of-the-art。</p>
-<!--### 意义和创新点-->
-
-<span id="more"></span>
-
-<h2 id="具体细节"><a href="#具体细节" class="headerlink" title="具体细节"></a>具体细节</h2><h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/three-architectures.png"></p>
-<ul>
-<li>模型一（Uniform-layer Architecture）：对于每个分类任务，在每个输入 character 的 embedding vector 后拼上一个随机生成的可训练向量，表示该特定任务，所有任务共享 LSTM 层，最后一个 时刻的 hidden state 则作为输入传入 softmax；</li>
-<li>模型二（Coupled-layer Architecture）：每个任务具有自己独立的 LSTM 层，但是每一时刻所有任务的 hidden state 则会和下一时刻的 character 一起作为输入，最后一个时刻的 hidden state 进行分类；</li>
-<li>模型三（Shared-layer Architecture）：除了一个共享的 Bi-LSTM 层用于获取共享信息，每个任务有自己独立的 LSTM 层，LSTM 的输入包括每一时刻的 character 和 Bi-LSTM 的 hidden state。</li>
-</ul>
-<!--大概可以加公式？-->
-
-<h3 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h3><p>对于模型一和模型三，具有一个共享层。在联合学习阶段之后可以进行<strong>微调（Fine Tuning）</strong>来进一步优化每个任务的性能。</p>
-<p>对于模型三，共享层可以由无监督的预训练阶段初始化，用四个任务数据集进行语言模型的训练。</p>
-<p>训练方法：</p>
-<ol>
-<li>随机选择一项任务；</li>
-<li>从该任务中随机选择一个训练样本；</li>
-<li>根据基于梯度的优化（paper 中使用 Adagrad update rule）来更新参数；</li>
-<li>重复 1-3 步。</li>
-</ol>
-<h3 id="数据集"><a href="#数据集" class="headerlink" title="数据集"></a>数据集</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/datasets.png"></p>
-<ul>
-<li>SST-1：5 个情绪类别的电影影评，来自斯坦福情感数据库</li>
-<li>SST-2：二分类电影影评，来自斯坦福数据库</li>
-<li>SUBJ：主观性数据集，任务目的是将句子分为主观和客观</li>
-<li>IMDB：二分类的电影影评，大多数评价为长句子</li>
-</ul>
-<h3 id="超参数与训练"><a href="#超参数与训练" class="headerlink" title="超参数与训练"></a>超参数与训练</h3><p>使用 word2vec 在维基语料获得词向量，字典规模约 500,000。词嵌入在训练过程中被微调以提高性能；其他参数在 [-0.1, 0.1] 的范围随机采样，超参数将选择在验证集上性能最好的一组。对于没有验证集的数据集使用 10 折交叉验证。</p>
-<p>特定任务和共享层的嵌入大小为 64。对于模型一，每个单词有两个嵌入，大小都为 64。LSTM 的隐藏层大小为 50。初始学习率为 0.1。参数的正则化权值为 10^-5。</p>
-<h3 id="结果比较"><a href="#结果比较" class="headerlink" title="结果比较"></a>结果比较</h3><p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-i.png"></p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-ii.png"></p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/results-of-model-iii.png"></p>
-<h3 id="与-state-of-the-art-相比较"><a href="#与-state-of-the-art-相比较" class="headerlink" title="与 state-of-the-art 相比较"></a>与 state-of-the-art 相比较</h3><p>将模型三和下列模型进行比较：</p>
-<!--* NBOW：对词向量求和，并应用一个非线性项，之后一个 softmax 分类层；
-* MV-RNN：
-* RNTN：
-* DCNN：
-* PV：
-* Tree-LSTM：-->
-
-<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/1605-05101/compare-to-state-of-the-art.png"></p>
-<p>paper 中的多任务模型和其他基于 RNN 的模型（例如 Tree-LSTM）是兼容的，可以合并以扩展。</p>
-<h3 id="了解模型"><a href="#了解模型" class="headerlink" title="了解模型"></a>了解模型</h3><p>从 SST-2 的测试集中采样，看在单个 LSTM 和含共享层的 LSTM 中，句子中每个单词对预测的情绪分数的影响。具体方式是观察全局门（global gates）的激活值，这个值控制一个 LSTM 分享层到一个特定任务层的信号流，使我们能够了解神经元的行为。</p>
-<p>例如，“marry”一词使得激活值升高，说明特定任务层从共享层得到很多信息，从而使预测更准确。</p>
-<p>通过分析，单个 LSTM 无法捕捉到“but … higher than”的结构，但是 paper 中的模型对其敏感，说明共享层不仅增强了特定词的意义，并且帮助特定任务学到结构信息。</p>
-<h3 id="错误分析"><a href="#错误分析" class="headerlink" title="错误分析"></a>错误分析</h3><p>该模型的错误案例可分为两种：</p>
-<ol>
-<li>一些含有非常复杂的结构的句子不能被适当处理，例如二次否定、虚拟语气。对于这些情况，在结构上可以做一些改进，比如基于树的 LSTM；</li>
-<li>某些句子难以从书面意思判断其情绪，例如“I tried to read the time on my watch.”</li>
-</ol>
-]]></content>
-      <categories>
-        <category>论文阅读笔记</category>
-      </categories>
-      <tags>
-        <tag>自然语言处理</tag>
-        <tag>多任务学习</tag>
-        <tag>文本分类</tag>
-        <tag>RNN</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>再探前端自动化－持续集成</title>
     <url>/blog/start-CI/</url>
     <content><![CDATA[<p>本篇博文承接前端工程自动化入门系列的第一篇：<a href="http://kyonhuang.top/start-front-end-test/">《初探前端自动化测试–以 Vue 为例》</a>。</p>
@@ -1378,124 +1378,6 @@ MathJax.Hub.Config({
         <tag>前端</tag>
         <tag>前端工程</tag>
         <tag>持续集成</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>对几个前端相关概念的理解——OO CSS、语义化、CSS hack</title>
-    <url>/blog/some-FE-concepts/</url>
-    <content><![CDATA[<p>极客学院的视频《CSS 在工程中改变》中讲到了OO CSS这个概念，而在知乎上看到别人的回答中提到了语义化和CSS hack这两个概念。在查找了相关资料后，我对这几个概念有了一些自己的理解。</p>
-  <span id="more"></span>
-
-<h2 id="OO-CSS"><a href="#OO-CSS" class="headerlink" title="OO CSS"></a>OO CSS</h2><p>OO CSS，全称为Object Oriented CSS，意为“面向对象的CSS”。</p>
-<p>OO CSS是一种书写规则，看重代码的重用性、可维护性和可扩展性。OO CSS将页面可重用元素抽象成一个类，用Class加以描述，而与其对应的HTML即可看成是此类的一个实例。</p>
-<p>OO CSS更加适合大型网站的开发，因为大型网站用到更多的可重用组件。为了更好地维护，最好给每个组件写一份说明文档。</p>
-<p>作用：</p>
-<ol>
-<li>加强代码复用以便方便维护。</li>
-<li>减小CSS体积。</li>
-<li>提升渲染效率。</li>
-<li>组件库思想、栅格布局可共用、减少选择器、方便扩展。</li>
-</ol>
-<p>注意事项：</p>
-<ol>
-<li><strong>不要直接定义子节点，应把共性声明放在父类。</strong></li>
-<li><strong>结构与样式相互独立。</strong></li>
-<li><strong>容器和内容相互独立。</strong></li>
-<li>抽象出可重用的元素，建好组件库，在组件库内寻找可用的元素组装页面。</li>
-<li>往你想要扩展的对象本身增加class而不是他的父节点。</li>
-<li><strong>对象应保持独立性。</strong></li>
-<li>避免使用ID选择器，权重太高，无法重用。（ID选择器大多数为JS服务）</li>
-<li><strong>避免位置相关的样式。</strong></li>
-<li>保证选择器相同的权重。</li>
-<li>类名应简短、清晰并保有语义。OOCSS的名字并不影响HTML语义化。</li>
-</ol>
-<p>参考资料：</p>
-<p><a href="http://www.w3cplus.com/css/oocss-concept">OOCSS——概念篇</a></p>
-<h2 id="语义化"><a href="#语义化" class="headerlink" title="语义化"></a>语义化</h2><p><strong>语义化</strong>就是对数据和信息进行处理，使得机器可以理解。</p>
-<p>如何在开放的网络、庞大的信息资源中找到需要的信息？我们当然需要借助包括搜索引擎、爬虫在内的智能程序的力量。而为了让这些程序能够理解内容、推演逻辑、建立索引并给予较高的权值，语义化变得越来越重要。SEO最有效的一种方法就是对网页的HTML结构进行重构，实质上就是语义化。</p>
-<p>为了使机器能够尽可能理解内容，规范是必须的。程序肯定只会关注那些约定俗成的东西。某种规范被认可的程度越高，就越会成为机器算法的目标，人们就越可以根据它来实现各种功能。</p>
-<p>HTML本身也是机器可读的语义信息，但由于HTML被设计的目的并不是为了机器可读，所以不尽完美。也因此，HTML规范一直在往语义化的方向上发展。HTML5更是在之前规范的基础上，将所有表现层的语义描述都进行了修改或者删除，增加了不少可以表达更丰富语义的元素。</p>
-<p>当然，HTML5并非Web语义化唯一的规范。有很多组织都提出了有浏览器和搜索引擎支持的规范，为扩展、标准化Web语义做着自己的贡献。关于HTML5各个元素语义的描述，可参考 <a href="http://justineo.github.io/slideshows/semantic-html/#/">Semantic HTML</a>。</p>
-<p>参考资料：</p>
-<p><a href="https://www.zhihu.com/question/20455165">如何理解 Web 语义化？- 知乎</a></p>
-<h2 id="CSS-hack"><a href="#CSS-hack" class="headerlink" title="CSS hack"></a>CSS hack</h2><p>由于不同厂商的浏览器和浏览器的不同版本对CSS有不一样的支持和解析结果，导致我们需要针对不同的浏览器及同一浏览器的不同版本写特定的样式，以获得统一的页面效果。这个过程叫做<strong>CSS hack</strong>。</p>
-<p>使用CSS hack虽然有助于实现页面表现的一致性，但滥用会造成编码过于复杂、文档混乱不堪，增加管理和维护的负担。因此，hack要少用、慎用。等到未来浏览器厂商的标准能够完全统一时，就是hack退出历史舞台的时候了。</p>
-<p>参考资料：</p>
-<p><a href="http://blog.csdn.net/freshlover/article/details/12132801">史上最全的CSS hack方式一览</a></p>
-]]></content>
-      <categories>
-        <category>前端学习笔记</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>概念理解</tag>
-        <tag>OO CSS</tag>
-        <tag>语义化</tag>
-        <tag>CSS hack</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>初探前端自动化测试--以 Vue 为例</title>
-    <url>/blog/start-front-end-test/</url>
-    <content><![CDATA[<p>随着前端项目规模日益膨胀，自动化测试显得越来越重要。在开发过程中就进行测试，可以保障代码质量和功能实现完整度，提升后期开发效率，也便于项目维护。当然，对于需求变更频繁、复用度低的内容，维护测试用例的成本就显得过高；但对于稳定、多次复用以及需要长期维护的项目，自动化测试就尤为重要。</p>
-<p>现在优秀的开源项目大多都经过了各种测试。最近我也想码一个规范性要求严格的小项目，于是兵马未动粮草先行，先对前端自动化测试进行学习，总结记录一下学习成果，以在之后项目上进行实践。</p>
-<p>前端的测试类型分为<strong>单元测试（unit testing）</strong>、<strong>集成测试（integration testing）</strong>和<strong>端到端测试（e2e testing）</strong>。</p>
-<ul>
-<li><strong>单元测试</strong>将应用拆分为细小的组件（JS 中的一个函数/对象/模块等）方法，然后针对这些方法进行单独的测试工作；</li>
-<li><strong>集成测试</strong>是针对产品的某个功能的测试，又称功能测试；</li>
-<li><strong>e2e 测试</strong>则是从用户界面直达数据库的全链路测试，模拟用户进行页面操作，通过判断页面状态的变化来检查功能是否运行正常，需要用到浏览器环境。</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="开发模式"><a href="#开发模式" class="headerlink" title="开发模式"></a>开发模式</h2><p>先绕点路，了解一下 TDD、BDD等<strong>以测试为导向的开发模式</strong>，有助于我们更深入地理解自动化测试。</p>
-<h3 id="TDD"><a href="#TDD" class="headerlink" title="TDD"></a>TDD</h3><p>TDD（Test Driven Development），即<strong>测试驱动开发</strong>。其先针对每个功能点抽象出接口代码，然后编写单元测试用例代码。之后实现接口，运行单元测试代码进行测试，循环往复直至所有单元测试通过。</p>
-<p>TDD 要求测试先于编写功能代码。测试用例不仅是对于代码的验证，更成为对代码的规范与约束，确保在开发以及未来进行修改时能够极大程度地保证该模块行为仍然是正确的。</p>
-<h3 id="BDD"><a href="#BDD" class="headerlink" title="BDD"></a>BDD</h3><p>BDD（Behavior Driven Development），即<strong>行为驱动开发</strong>。BDD 和 TDD 一样，都要求先写测试，再写代码。可以认为 BDD 是 TDD 的一个子集或分支，是测试驱动开发的扩展。</p>
-<p>TDD 基于开发者角度，重点测试函数的输入输出；而 BDD 更侧重于使用者角度，重点测试对用户行为的反应。</p>
-<p>BDD 测试中，客户与开发者共同考虑系统该如何运行，然后用通用的语言抽象描述系统的行为，使得双方从技术层面和业务需求都能理解，避免沟通障碍。</p>
-<h2 id="测试工具"><a href="#测试工具" class="headerlink" title="测试工具"></a>测试工具</h2><h3 id="测试管理工具"><a href="#测试管理工具" class="headerlink" title="测试管理工具"></a>测试管理工具</h3><p>用来组织和运行整个测试的工具，它能够将测试框架、断言库、测试浏览器、测试代码和被测试代码组织起来，并运行被测试代码进行测试。</p>
-<p>可选择的有 Karma、Selenium、Mocha（Mocha既是测试工具，也是测试框架）。</p>
-<h3 id="测试框架"><a href="#测试框架" class="headerlink" title="测试框架"></a>测试框架</h3><p>测试框架是单元测试的核心，提供了单元测试所需的各种API，并对测试用例分组。测试框架会抓取到代码抛出的 AssertionError 并提供附加信息。</p>
-<p>选择较多，有名的有 Mocha、Jasmine等。不过 Mocha 既支持 TDD 也支持 BDD 的测试语法，Jasmine 只支持 BDD。</p>
-<h3 id="断言库"><a href="#断言库" class="headerlink" title="断言库"></a>断言库</h3><p>断言库提供了很多语义化的方法来对值做各种判断。当然也可以不用断言库，Node.js 中也可以直接使用原生 assert 库。</p>
-<p>可供选择的断言库也很多，包括 should.js、expect.js、chai.js等。</p>
-<h3 id="测试浏览器"><a href="#测试浏览器" class="headerlink" title="测试浏览器"></a>测试浏览器</h3><p>前端代码是运行在浏览器中的，要对其进行单元测试，只能将其运行在浏览器上。目前大部分测试工具都支持调用和运行本地浏览器来进行测试，但如果测试仅仅是针对函数和模块的单元测试，则完全可以使用一款无界面的 webkit 内核浏览器：PhantomJS。</p>
-<h3 id="测试覆盖率统计工具"><a href="#测试覆盖率统计工具" class="headerlink" title="测试覆盖率统计工具"></a>测试覆盖率统计工具</h3><p>测试覆盖率工具为代码在语法级分支上打点，之后运行代码，并在运行结束后根据收集到的信息统计出当前测试用例对源码的覆盖情况。</p>
-<p>一般情况下你的测试管理工具会提供相关的覆盖率统计工具，但是有些情况下它们提供的工具未必是你想要的。比如当被测试的代码是经过了某些打包工具打包完了且被压缩和混淆了，同时打包工具还混入了很多自己的代码，这时覆盖率的统计就容易不准确。所以为了避免这种情况，测试覆盖率统计工具需要谨慎选择，至少你得确认它支持你的打包工具已经打包好的代码。</p>
-<h2 id="vue-cli-的配置"><a href="#vue-cli-的配置" class="headerlink" title="vue-cli 的配置"></a>vue-cli 的配置</h2><p>vue-cli 的 webpack 模版内置了开箱即用的 Karma + Jasmine 单元测试配置，以及 Nightwatch + Selenium E2E 测试配置，<code>npm run test</code>即可测试自带的一个初始测试用例。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-50166ab65032fdd5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-unit-test.jpg"></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-298692df753ab061.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-e2e-test.jpg"></p>
-<p>有坑请注意：</p>
-<ol>
-<li>建议使用 cnpm 对 vue-cli 项目进行依赖安装，否则可能有些东西装不上。</li>
-<li>自带的 e2e 测试要求装有 chrome 浏览器，否则报错<code>Error retrieving a new session from the selenium server</code>。我被这个坑折腾了半天…</li>
-</ol>
-<h2 id="开始编写测试代码"><a href="#开始编写测试代码" class="headerlink" title="开始编写测试代码"></a>开始编写测试代码</h2><p><a href="https://github.com/bighuang624/resume">我的简历项目</a> 是我花了一天时间写的一个 vue-cli 初始化、只用了 Vue 的一个小项目，我们拿这个简单的小项目来入门测试代码的编写。我们直接利用 vue-cli 的初始配置，即用 Karma + Jasmine 进行单元测试，Nightwatch + Selenium 进行 E2E 测试。</p>
-<p>你可以将我的项目 clone 下来进行测试代码的编写练习，不过项目里的测试代码可能已经因为更新而何下面的示例不一样了。</p>
-<h3 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h3><p><code>/test/unit/index.js</code>中可以看到，单元测试的测试代码是<code>/specs</code>文件夹下以<code>.spec.js</code>结尾的文件。将自带的<code>Hello.spec.js</code>改写为<code>LeftNav.spec.js</code>：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> LeftNav <span class="keyword">from</span> <span class="string">&#x27;@/components/LeftNav&#x27;</span>;</span><br><span class="line"></span><br><span class="line">describe(<span class="string">&#x27;LeftNav.vue&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> Constructor = Vue.extend(LeftNav);</span><br><span class="line">  <span class="keyword">const</span> vm = <span class="keyword">new</span> Constructor().$mount();</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct name&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h1&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Kyon Huang&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct title&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h3&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Web 开发工程师&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="E2E-测试"><a href="#E2E-测试" class="headerlink" title="E2E 测试"></a>E2E 测试</h3><p>同理，将<code>/test/e2e/specs/test.js</code>改写为</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// For authoring Nightwatch tests, see</span></span><br><span class="line"><span class="comment">// http://nightwatchjs.org/guide#usage</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="string">&#x27;default e2e tests&#x27;</span>: <span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params">browser</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// automatically uses dev Server port from /config.index.js</span></span><br><span class="line">    <span class="comment">// default: http://localhost:8080</span></span><br><span class="line">    <span class="comment">// see nightwatch.conf.js</span></span><br><span class="line">    <span class="keyword">const</span> devServer = browser.globals.devServerURL;</span><br><span class="line"></span><br><span class="line">    browser</span><br><span class="line">      .url(devServer)</span><br><span class="line">      .waitForElementVisible(<span class="string">&#x27;#app&#x27;</span>, <span class="number">5000</span>)</span><br><span class="line">      .assert.elementPresent(<span class="string">&#x27;.leftNav&#x27;</span>)</span><br><span class="line">      .assert.containsText(<span class="string">&#x27;h1&#x27;</span>, <span class="string">&#x27;Kyon Huang&#x27;</span>)</span><br><span class="line">      .assert.elementCount(<span class="string">&#x27;img&#x27;</span>, <span class="number">1</span>)</span><br><span class="line">      .end();</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>测试结果：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-bd0c6382e613c281.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="unit-test-result.png"></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-dbd1bfcc046e28fd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="e2e-test-result.png"></p>
-<p>可以看到，我们的单元测试和 e2e 测试都通过了。不过单元测试的覆盖率有点低，只有 25%。如何写好测试代码，需要进一步的学习。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>前端工程自动化入门系列下一篇：<a href="http://kyonhuang.top/start-CI/">《再探前端自动化－持续集成》</a></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="写作资料"><a href="#写作资料" class="headerlink" title="写作资料"></a>写作资料</h3><p><a href="http://www.cnblogs.com/bigdataZJ/p/AutoTesting1.html">开发人员看测试之TDD和BDD - JackieZheng - 博客园</a></p>
-<p><a href="http://www.jianshu.com/p/6726c0410650">前端自动化单元测试初探 - 简书</a></p>
-<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><p><a href="http://www.infoq.com/cn/articles/virtual-panel-tdd-bdd#">虚拟座谈会：代码测试比率、测试驱动开发及行为驱动开发</a></p>
-<p><a href="https://www.qcloud.com/community/article/743451001489391682">PhantomJS 基础及示例 - 腾云阁 - 腾讯云</a></p>
-]]></content>
-      <categories>
-        <category>前端工程</category>
-      </categories>
-      <tags>
-        <tag>JavaScipt</tag>
-        <tag>前端</tag>
-        <tag>前端工程</tag>
-        <tag>测试</tag>
       </tags>
   </entry>
   <entry>
@@ -1578,6 +1460,124 @@ MathJax.Hub.Config({
         <tag>SPA</tag>
         <tag>单页面程序</tag>
         <tag>组件化</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>初探前端自动化测试--以 Vue 为例</title>
+    <url>/blog/start-front-end-test/</url>
+    <content><![CDATA[<p>随着前端项目规模日益膨胀，自动化测试显得越来越重要。在开发过程中就进行测试，可以保障代码质量和功能实现完整度，提升后期开发效率，也便于项目维护。当然，对于需求变更频繁、复用度低的内容，维护测试用例的成本就显得过高；但对于稳定、多次复用以及需要长期维护的项目，自动化测试就尤为重要。</p>
+<p>现在优秀的开源项目大多都经过了各种测试。最近我也想码一个规范性要求严格的小项目，于是兵马未动粮草先行，先对前端自动化测试进行学习，总结记录一下学习成果，以在之后项目上进行实践。</p>
+<p>前端的测试类型分为<strong>单元测试（unit testing）</strong>、<strong>集成测试（integration testing）</strong>和<strong>端到端测试（e2e testing）</strong>。</p>
+<ul>
+<li><strong>单元测试</strong>将应用拆分为细小的组件（JS 中的一个函数/对象/模块等）方法，然后针对这些方法进行单独的测试工作；</li>
+<li><strong>集成测试</strong>是针对产品的某个功能的测试，又称功能测试；</li>
+<li><strong>e2e 测试</strong>则是从用户界面直达数据库的全链路测试，模拟用户进行页面操作，通过判断页面状态的变化来检查功能是否运行正常，需要用到浏览器环境。</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="开发模式"><a href="#开发模式" class="headerlink" title="开发模式"></a>开发模式</h2><p>先绕点路，了解一下 TDD、BDD等<strong>以测试为导向的开发模式</strong>，有助于我们更深入地理解自动化测试。</p>
+<h3 id="TDD"><a href="#TDD" class="headerlink" title="TDD"></a>TDD</h3><p>TDD（Test Driven Development），即<strong>测试驱动开发</strong>。其先针对每个功能点抽象出接口代码，然后编写单元测试用例代码。之后实现接口，运行单元测试代码进行测试，循环往复直至所有单元测试通过。</p>
+<p>TDD 要求测试先于编写功能代码。测试用例不仅是对于代码的验证，更成为对代码的规范与约束，确保在开发以及未来进行修改时能够极大程度地保证该模块行为仍然是正确的。</p>
+<h3 id="BDD"><a href="#BDD" class="headerlink" title="BDD"></a>BDD</h3><p>BDD（Behavior Driven Development），即<strong>行为驱动开发</strong>。BDD 和 TDD 一样，都要求先写测试，再写代码。可以认为 BDD 是 TDD 的一个子集或分支，是测试驱动开发的扩展。</p>
+<p>TDD 基于开发者角度，重点测试函数的输入输出；而 BDD 更侧重于使用者角度，重点测试对用户行为的反应。</p>
+<p>BDD 测试中，客户与开发者共同考虑系统该如何运行，然后用通用的语言抽象描述系统的行为，使得双方从技术层面和业务需求都能理解，避免沟通障碍。</p>
+<h2 id="测试工具"><a href="#测试工具" class="headerlink" title="测试工具"></a>测试工具</h2><h3 id="测试管理工具"><a href="#测试管理工具" class="headerlink" title="测试管理工具"></a>测试管理工具</h3><p>用来组织和运行整个测试的工具，它能够将测试框架、断言库、测试浏览器、测试代码和被测试代码组织起来，并运行被测试代码进行测试。</p>
+<p>可选择的有 Karma、Selenium、Mocha（Mocha既是测试工具，也是测试框架）。</p>
+<h3 id="测试框架"><a href="#测试框架" class="headerlink" title="测试框架"></a>测试框架</h3><p>测试框架是单元测试的核心，提供了单元测试所需的各种API，并对测试用例分组。测试框架会抓取到代码抛出的 AssertionError 并提供附加信息。</p>
+<p>选择较多，有名的有 Mocha、Jasmine等。不过 Mocha 既支持 TDD 也支持 BDD 的测试语法，Jasmine 只支持 BDD。</p>
+<h3 id="断言库"><a href="#断言库" class="headerlink" title="断言库"></a>断言库</h3><p>断言库提供了很多语义化的方法来对值做各种判断。当然也可以不用断言库，Node.js 中也可以直接使用原生 assert 库。</p>
+<p>可供选择的断言库也很多，包括 should.js、expect.js、chai.js等。</p>
+<h3 id="测试浏览器"><a href="#测试浏览器" class="headerlink" title="测试浏览器"></a>测试浏览器</h3><p>前端代码是运行在浏览器中的，要对其进行单元测试，只能将其运行在浏览器上。目前大部分测试工具都支持调用和运行本地浏览器来进行测试，但如果测试仅仅是针对函数和模块的单元测试，则完全可以使用一款无界面的 webkit 内核浏览器：PhantomJS。</p>
+<h3 id="测试覆盖率统计工具"><a href="#测试覆盖率统计工具" class="headerlink" title="测试覆盖率统计工具"></a>测试覆盖率统计工具</h3><p>测试覆盖率工具为代码在语法级分支上打点，之后运行代码，并在运行结束后根据收集到的信息统计出当前测试用例对源码的覆盖情况。</p>
+<p>一般情况下你的测试管理工具会提供相关的覆盖率统计工具，但是有些情况下它们提供的工具未必是你想要的。比如当被测试的代码是经过了某些打包工具打包完了且被压缩和混淆了，同时打包工具还混入了很多自己的代码，这时覆盖率的统计就容易不准确。所以为了避免这种情况，测试覆盖率统计工具需要谨慎选择，至少你得确认它支持你的打包工具已经打包好的代码。</p>
+<h2 id="vue-cli-的配置"><a href="#vue-cli-的配置" class="headerlink" title="vue-cli 的配置"></a>vue-cli 的配置</h2><p>vue-cli 的 webpack 模版内置了开箱即用的 Karma + Jasmine 单元测试配置，以及 Nightwatch + Selenium E2E 测试配置，<code>npm run test</code>即可测试自带的一个初始测试用例。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-50166ab65032fdd5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-unit-test.jpg"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-298692df753ab061.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-e2e-test.jpg"></p>
+<p>有坑请注意：</p>
+<ol>
+<li>建议使用 cnpm 对 vue-cli 项目进行依赖安装，否则可能有些东西装不上。</li>
+<li>自带的 e2e 测试要求装有 chrome 浏览器，否则报错<code>Error retrieving a new session from the selenium server</code>。我被这个坑折腾了半天…</li>
+</ol>
+<h2 id="开始编写测试代码"><a href="#开始编写测试代码" class="headerlink" title="开始编写测试代码"></a>开始编写测试代码</h2><p><a href="https://github.com/bighuang624/resume">我的简历项目</a> 是我花了一天时间写的一个 vue-cli 初始化、只用了 Vue 的一个小项目，我们拿这个简单的小项目来入门测试代码的编写。我们直接利用 vue-cli 的初始配置，即用 Karma + Jasmine 进行单元测试，Nightwatch + Selenium 进行 E2E 测试。</p>
+<p>你可以将我的项目 clone 下来进行测试代码的编写练习，不过项目里的测试代码可能已经因为更新而何下面的示例不一样了。</p>
+<h3 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h3><p><code>/test/unit/index.js</code>中可以看到，单元测试的测试代码是<code>/specs</code>文件夹下以<code>.spec.js</code>结尾的文件。将自带的<code>Hello.spec.js</code>改写为<code>LeftNav.spec.js</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> LeftNav <span class="keyword">from</span> <span class="string">&#x27;@/components/LeftNav&#x27;</span>;</span><br><span class="line"></span><br><span class="line">describe(<span class="string">&#x27;LeftNav.vue&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> Constructor = Vue.extend(LeftNav);</span><br><span class="line">  <span class="keyword">const</span> vm = <span class="keyword">new</span> Constructor().$mount();</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct name&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h1&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Kyon Huang&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct title&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h3&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Web 开发工程师&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="E2E-测试"><a href="#E2E-测试" class="headerlink" title="E2E 测试"></a>E2E 测试</h3><p>同理，将<code>/test/e2e/specs/test.js</code>改写为</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// For authoring Nightwatch tests, see</span></span><br><span class="line"><span class="comment">// http://nightwatchjs.org/guide#usage</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="string">&#x27;default e2e tests&#x27;</span>: <span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params">browser</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// automatically uses dev Server port from /config.index.js</span></span><br><span class="line">    <span class="comment">// default: http://localhost:8080</span></span><br><span class="line">    <span class="comment">// see nightwatch.conf.js</span></span><br><span class="line">    <span class="keyword">const</span> devServer = browser.globals.devServerURL;</span><br><span class="line"></span><br><span class="line">    browser</span><br><span class="line">      .url(devServer)</span><br><span class="line">      .waitForElementVisible(<span class="string">&#x27;#app&#x27;</span>, <span class="number">5000</span>)</span><br><span class="line">      .assert.elementPresent(<span class="string">&#x27;.leftNav&#x27;</span>)</span><br><span class="line">      .assert.containsText(<span class="string">&#x27;h1&#x27;</span>, <span class="string">&#x27;Kyon Huang&#x27;</span>)</span><br><span class="line">      .assert.elementCount(<span class="string">&#x27;img&#x27;</span>, <span class="number">1</span>)</span><br><span class="line">      .end();</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>测试结果：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-bd0c6382e613c281.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="unit-test-result.png"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-dbd1bfcc046e28fd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="e2e-test-result.png"></p>
+<p>可以看到，我们的单元测试和 e2e 测试都通过了。不过单元测试的覆盖率有点低，只有 25%。如何写好测试代码，需要进一步的学习。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>前端工程自动化入门系列下一篇：<a href="http://kyonhuang.top/start-CI/">《再探前端自动化－持续集成》</a></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="写作资料"><a href="#写作资料" class="headerlink" title="写作资料"></a>写作资料</h3><p><a href="http://www.cnblogs.com/bigdataZJ/p/AutoTesting1.html">开发人员看测试之TDD和BDD - JackieZheng - 博客园</a></p>
+<p><a href="http://www.jianshu.com/p/6726c0410650">前端自动化单元测试初探 - 简书</a></p>
+<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><p><a href="http://www.infoq.com/cn/articles/virtual-panel-tdd-bdd#">虚拟座谈会：代码测试比率、测试驱动开发及行为驱动开发</a></p>
+<p><a href="https://www.qcloud.com/community/article/743451001489391682">PhantomJS 基础及示例 - 腾云阁 - 腾讯云</a></p>
+]]></content>
+      <categories>
+        <category>前端工程</category>
+      </categories>
+      <tags>
+        <tag>JavaScipt</tag>
+        <tag>前端</tag>
+        <tag>前端工程</tag>
+        <tag>测试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>对几个前端相关概念的理解——OO CSS、语义化、CSS hack</title>
+    <url>/blog/some-FE-concepts/</url>
+    <content><![CDATA[<p>极客学院的视频《CSS 在工程中改变》中讲到了OO CSS这个概念，而在知乎上看到别人的回答中提到了语义化和CSS hack这两个概念。在查找了相关资料后，我对这几个概念有了一些自己的理解。</p>
+  <span id="more"></span>
+
+<h2 id="OO-CSS"><a href="#OO-CSS" class="headerlink" title="OO CSS"></a>OO CSS</h2><p>OO CSS，全称为Object Oriented CSS，意为“面向对象的CSS”。</p>
+<p>OO CSS是一种书写规则，看重代码的重用性、可维护性和可扩展性。OO CSS将页面可重用元素抽象成一个类，用Class加以描述，而与其对应的HTML即可看成是此类的一个实例。</p>
+<p>OO CSS更加适合大型网站的开发，因为大型网站用到更多的可重用组件。为了更好地维护，最好给每个组件写一份说明文档。</p>
+<p>作用：</p>
+<ol>
+<li>加强代码复用以便方便维护。</li>
+<li>减小CSS体积。</li>
+<li>提升渲染效率。</li>
+<li>组件库思想、栅格布局可共用、减少选择器、方便扩展。</li>
+</ol>
+<p>注意事项：</p>
+<ol>
+<li><strong>不要直接定义子节点，应把共性声明放在父类。</strong></li>
+<li><strong>结构与样式相互独立。</strong></li>
+<li><strong>容器和内容相互独立。</strong></li>
+<li>抽象出可重用的元素，建好组件库，在组件库内寻找可用的元素组装页面。</li>
+<li>往你想要扩展的对象本身增加class而不是他的父节点。</li>
+<li><strong>对象应保持独立性。</strong></li>
+<li>避免使用ID选择器，权重太高，无法重用。（ID选择器大多数为JS服务）</li>
+<li><strong>避免位置相关的样式。</strong></li>
+<li>保证选择器相同的权重。</li>
+<li>类名应简短、清晰并保有语义。OOCSS的名字并不影响HTML语义化。</li>
+</ol>
+<p>参考资料：</p>
+<p><a href="http://www.w3cplus.com/css/oocss-concept">OOCSS——概念篇</a></p>
+<h2 id="语义化"><a href="#语义化" class="headerlink" title="语义化"></a>语义化</h2><p><strong>语义化</strong>就是对数据和信息进行处理，使得机器可以理解。</p>
+<p>如何在开放的网络、庞大的信息资源中找到需要的信息？我们当然需要借助包括搜索引擎、爬虫在内的智能程序的力量。而为了让这些程序能够理解内容、推演逻辑、建立索引并给予较高的权值，语义化变得越来越重要。SEO最有效的一种方法就是对网页的HTML结构进行重构，实质上就是语义化。</p>
+<p>为了使机器能够尽可能理解内容，规范是必须的。程序肯定只会关注那些约定俗成的东西。某种规范被认可的程度越高，就越会成为机器算法的目标，人们就越可以根据它来实现各种功能。</p>
+<p>HTML本身也是机器可读的语义信息，但由于HTML被设计的目的并不是为了机器可读，所以不尽完美。也因此，HTML规范一直在往语义化的方向上发展。HTML5更是在之前规范的基础上，将所有表现层的语义描述都进行了修改或者删除，增加了不少可以表达更丰富语义的元素。</p>
+<p>当然，HTML5并非Web语义化唯一的规范。有很多组织都提出了有浏览器和搜索引擎支持的规范，为扩展、标准化Web语义做着自己的贡献。关于HTML5各个元素语义的描述，可参考 <a href="http://justineo.github.io/slideshows/semantic-html/#/">Semantic HTML</a>。</p>
+<p>参考资料：</p>
+<p><a href="https://www.zhihu.com/question/20455165">如何理解 Web 语义化？- 知乎</a></p>
+<h2 id="CSS-hack"><a href="#CSS-hack" class="headerlink" title="CSS hack"></a>CSS hack</h2><p>由于不同厂商的浏览器和浏览器的不同版本对CSS有不一样的支持和解析结果，导致我们需要针对不同的浏览器及同一浏览器的不同版本写特定的样式，以获得统一的页面效果。这个过程叫做<strong>CSS hack</strong>。</p>
+<p>使用CSS hack虽然有助于实现页面表现的一致性，但滥用会造成编码过于复杂、文档混乱不堪，增加管理和维护的负担。因此，hack要少用、慎用。等到未来浏览器厂商的标准能够完全统一时，就是hack退出历史舞台的时候了。</p>
+<p>参考资料：</p>
+<p><a href="http://blog.csdn.net/freshlover/article/details/12132801">史上最全的CSS hack方式一览</a></p>
+]]></content>
+      <categories>
+        <category>前端学习笔记</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>概念理解</tag>
+        <tag>OO CSS</tag>
+        <tag>语义化</tag>
+        <tag>CSS hack</tag>
       </tags>
   </entry>
   <entry>
@@ -2334,36 +2334,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>Bye,2016 and Hello,2017</title>
-    <url>/blog/bye2016hello2017/</url>
-    <content><![CDATA[<p>开始写的时候是 12 月 30 日晚上，刚刚考完的大物感觉还不错。然后马上就到了 2016 年的最后一天。希望能在2016年内写完这篇博文，给自己的这一年做一个回顾。更重要的是，认真地考虑一下，2017 年应该去做些什么。</p>
-  <span id="more"></span>
-
-<h2 id="Goodbye-2016"><a href="#Goodbye-2016" class="headerlink" title="Goodbye, 2016"></a>Goodbye, 2016</h2><ol>
-<li>从软件工程的萌新变成半萌新。感觉算是摸到了大门，往内斗胆一窥，发现这个世界广阔无垠。东瞧西瞥，还没有考虑好自己今后的发展方向，目前还是打算先以 java 的进阶为主，向 web 开发方面学习。</li>
-<li>今年的学期感觉除了课业上按部就班外，在技术自学上没有激情。倒是暑假自学 java 有很大的收获。希望自己能够不忽视小块的时间去学习技术。当然，首先找到至少短期内的一个学习目标。</li>
-<li>大一下学期进了院长实验室，但是总觉得项目安排上有点难受。外包任务让自己没什么长进。下学期看看怎么协调一下，当然也有可能下学期会参加花旗杯。</li>
-<li>拿了一些院级活动的奖（而且基本都是产品&amp;设计方面的工作）。希望自己能做一些负责技术方面的、有价值的项目。</li>
-<li>体测比去年同期略瘦，50米快了整整一秒。希望自己能保持锻炼，还能在院队有个位置。</li>
-</ol>
-<h2 id="Hello-2017"><a href="#Hello-2017" class="headerlink" title="Hello, 2017"></a>Hello, 2017</h2><ol>
-<li>先顺利地过了上学期所有期末考。希望自己的绩点还能保持在3.5以上。认真复习，少浪，别懒！</li>
-<li>寒假先定个小目标，比如啃啃 javascript，啃啃java 的高级特性，啃啃 lintcode，写几篇有用的技术博客，顺便把博客再折腾一下，最好买个域名。总之，要让 27 天的寒假过的有意义。寒假开始时再列个日程表。</li>
-<li>早睡早起，勤奋刻苦，下学期尽量不翘课。都是专业课，认真听。还要在课余时间继续学技术。</li>
-<li>希望能做一个真正意义上的大项目（比如花旗杯）。为了这个目标，学技术。</li>
-<li>在自己真正的兴趣上利用时间，而不是无所事事地浪费。</li>
-<li>每天过得健康、充实、开心！</li>
-</ol>
-<img src="https://raw.githubusercontent.com/bighuang624/blog/master/images/2017bignews.gif" />]]></content>
-      <categories>
-        <category>年终总结</category>
-      </categories>
-      <tags>
-        <tag>总结</tag>
-        <tag>未来展望</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>用 Vue 撸一份线上简历有哪些坑</title>
     <url>/blog/make-a-resume/</url>
     <content><![CDATA[<p>昨天花了一天时间，用 Vue 给自己撸了一份线上简历，并借助 Github Pages 实现了在线预览的效果。</p>
@@ -2417,6 +2387,36 @@ MathJax.Hub.Config({
         <tag>简历</tag>
         <tag>Vue</tag>
         <tag>github 预览</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Bye,2016 and Hello,2017</title>
+    <url>/blog/bye2016hello2017/</url>
+    <content><![CDATA[<p>开始写的时候是 12 月 30 日晚上，刚刚考完的大物感觉还不错。然后马上就到了 2016 年的最后一天。希望能在2016年内写完这篇博文，给自己的这一年做一个回顾。更重要的是，认真地考虑一下，2017 年应该去做些什么。</p>
+  <span id="more"></span>
+
+<h2 id="Goodbye-2016"><a href="#Goodbye-2016" class="headerlink" title="Goodbye, 2016"></a>Goodbye, 2016</h2><ol>
+<li>从软件工程的萌新变成半萌新。感觉算是摸到了大门，往内斗胆一窥，发现这个世界广阔无垠。东瞧西瞥，还没有考虑好自己今后的发展方向，目前还是打算先以 java 的进阶为主，向 web 开发方面学习。</li>
+<li>今年的学期感觉除了课业上按部就班外，在技术自学上没有激情。倒是暑假自学 java 有很大的收获。希望自己能够不忽视小块的时间去学习技术。当然，首先找到至少短期内的一个学习目标。</li>
+<li>大一下学期进了院长实验室，但是总觉得项目安排上有点难受。外包任务让自己没什么长进。下学期看看怎么协调一下，当然也有可能下学期会参加花旗杯。</li>
+<li>拿了一些院级活动的奖（而且基本都是产品&amp;设计方面的工作）。希望自己能做一些负责技术方面的、有价值的项目。</li>
+<li>体测比去年同期略瘦，50米快了整整一秒。希望自己能保持锻炼，还能在院队有个位置。</li>
+</ol>
+<h2 id="Hello-2017"><a href="#Hello-2017" class="headerlink" title="Hello, 2017"></a>Hello, 2017</h2><ol>
+<li>先顺利地过了上学期所有期末考。希望自己的绩点还能保持在3.5以上。认真复习，少浪，别懒！</li>
+<li>寒假先定个小目标，比如啃啃 javascript，啃啃java 的高级特性，啃啃 lintcode，写几篇有用的技术博客，顺便把博客再折腾一下，最好买个域名。总之，要让 27 天的寒假过的有意义。寒假开始时再列个日程表。</li>
+<li>早睡早起，勤奋刻苦，下学期尽量不翘课。都是专业课，认真听。还要在课余时间继续学技术。</li>
+<li>希望能做一个真正意义上的大项目（比如花旗杯）。为了这个目标，学技术。</li>
+<li>在自己真正的兴趣上利用时间，而不是无所事事地浪费。</li>
+<li>每天过得健康、充实、开心！</li>
+</ol>
+<img src="https://raw.githubusercontent.com/bighuang624/blog/master/images/2017bignews.gif" />]]></content>
+      <categories>
+        <category>年终总结</category>
+      </categories>
+      <tags>
+        <tag>总结</tag>
+        <tag>未来展望</tag>
       </tags>
   </entry>
   <entry>
@@ -2688,72 +2688,6 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
-    <title>分布式系统演进简述</title>
-    <url>/blog/evolution-of-distributed-systems/</url>
-    <content><![CDATA[<p>“网络与分布式计算”课程布置了一个作业，要求写一篇题目为“构建分布式系统技术发展历史”的小论文。我个人以为“历史”二字应该是要我们去了解每项技术诞生的时间点，然而踏破铁鞋无处可觅。最后写成的文章主题，我个人认为比起“历史”来说，“演进过程”可能更为恰当。</p>
-<p>事实上我们可能也更为注重演进过程，因为分布式系统的演进过程，就是一代代工程师们对抗随时代和应用自身发展而逐渐升高的访问量的一部血泪史。这个过程是每一个健康发展的网站都要经历的。</p>
-<p>这次作业也给了我一个机会，去大致了解网站在发展过程中为了提升性能、简化部署、弹性扩展而做出的种种措施，受益匪浅。因此将文章放到博客上。</p>
-<span id="more"></span>
-
-<h2 id="单体应用架构"><a href="#单体应用架构" class="headerlink" title="单体应用架构"></a>单体应用架构</h2><p>在应用诞生初始，用户量、数据量规模都比较小。因此应用程序、数据库、文件等所有的资源都部署在同一台服务器上即可。这样的架构既简单实用、便于维护，成本又低，成为了这个时代的主流架构方式。在 2003 年淘宝最初上线的时候，就是以一套当时十分风靡的 LAMP 架构（Linux+Apache+MySQL+PHP）实现并部署的。</p>
-<p>单体应用架构的特点就是功能和代码集中、一个发布包部署后运行在一个进程内的应用程序。</p>
-<h2 id="垂直应用架构"><a href="#垂直应用架构" class="headerlink" title="垂直应用架构"></a>垂直应用架构</h2><p>随着应用的发展，用户访问量逐渐增加，单台服务器性能及存储空间不足，因此服务器的压力在访问高峰期会上升到比较高，响应时间逐渐变长。这时，工程师们考虑增加几台服务器，将应用程序、数据库、文件分别部署在独立的资源上。一个大的单体应用被拆分成若干个小的单体应用，这就是垂直应用架构。这种拆分方法内含分治的思想，即将一个大的问题按一定业务规则分成若干个小的问题，逐个解决。</p>
-<p>通过采用垂直应用架构，应用服务和数据服务得以分离，并发处理能力和数据存储空间得到了很大改善。</p>
-<h2 id="使用缓存改善性能"><a href="#使用缓存改善性能" class="headerlink" title="使用缓存改善性能"></a>使用缓存改善性能</h2><p>将大的单体应用拆分后，对业务有所了解和调查的工程师们发现，系统访问的特点遵循二八定律，即 80% 的业务访问集中在 20% 的数据上。那么，使用缓存技术将这 20% 访问较集中的数据缓存下来，就有助于减少数据库的访问次数，降低数据库的访问压力。同时，引入缓存也有助于降低存储成本，因为缓存+数据库服务器可以承担原本需要多台数据库服务器才能承担的请求量，因此节省了机器成本。</p>
-<p>缓存分为本地缓存（Local Cache）和远程分布式缓存（Remote Distributed Cache）。本地缓存访问速度更快，但内存资源以及承载能力有限，存在与应用程序争用内存的情况。因此，分布式缓存在如今的大型网站中得到广泛的使用。</p>
-<h2 id="使用应用服务器集群-amp-负载均衡"><a href="#使用应用服务器集群-amp-负载均衡" class="headerlink" title="使用应用服务器集群 &amp; 负载均衡"></a>使用应用服务器集群 &amp; 负载均衡</h2><p>虽然做了这么多工作，但是请求量还是水涨船高。当请求量达到需要排队等待的规模时，即使单台应用服务器性能强大，处理请求速度很快，响应速度也依然会变慢。这时，工程师们就要考虑使用多台服务器所组成的集群，通过向集群中追加资源，提升系统的并发处理能力，解决单台服务器处理能力和存储空间上限的问题。</p>
-<p>在数据中心内部，外部请求首先被定向到<strong>负载均衡器</strong>，以主机当前的负载作为函数来在主机之间负载均衡。其作为中继站向外部提供服务，使得服务器的负载压力不再成为整个系统的瓶颈。负载均衡器同时也进行外部 IP 地址和内部适当主机 IP 地址的互相转换，防止客户直接接触主机，从而具有隐藏网络内部结构和防止客户直接与主机交互等安全性益处。</p>
-<p>负载均衡的策略包括：</p>
-<ul>
-<li><p>轮询：每一次来自网络的请求轮流分配给内部中的服务器，从 1 至 N 然后重新开始。此种均衡算法适合于服务器组中的所有服务器都有相同的软硬件配置并且平均服务请求相对均衡的情况。实现简单，但存在服务器的处理能力不同的情况；</p>
-</li>
-<li><p>权重：根据服务器的不同处理能力，给每个服务器分配不同的权值，使其能够接受相应权值数的服务请求。此种均衡算法能确保高性能的服务器得到更多的使用率，避免低性能的服务器负载过重。考虑了服务器处理能力的不足；</p>
-</li>
-<li><p>随机均衡：把来自网络的请求随机分配给内部中的多个服务器。</p>
-</li>
-</ul>
-<p>反向代理也是负载均衡的一种方法。反向代理指隐藏了真实的服务端，帮用户把请求转发到真实的服务器那里去。Nginx 就是性能非常好的反向代理服务器，可以用来做负载均衡。它会将请求在读取完整之前缓冲，这样交给后端的就是一个完整的 HTTP 请求，而不是断断续续的传递（互联网上连接速度一般比较慢），以此减少网络 IO 次数，从而提高后端的效率。</p>
-<h2 id="数据库读写分离"><a href="#数据库读写分离" class="headerlink" title="数据库读写分离"></a>数据库读写分离</h2><p>在一系列架构的增强后，用户量增加所带来的系统瓶颈可能转移到数据库上。每次读和写的操作都要经过同一个数据库服务器，在大量用户访问的情况下，资源竞争激烈。数据库的并发量有限，在保证数据库事务的 ACID 特性（原子性、一致性、隔离性和持久性）时难免发生阻塞。</p>
-<p>为了保证数据库的高可用性，工程师们将数据库进行读写分离，写操作全部引入主库，读操作引入从库。这种做法极大程度地缓解了数据库锁之间的竞争，提高了并发吞吐量和负载能力。当然，读写分离架构适用的应用中，由于读库需要不断做批量的更新操作，读操作不应要求数据强一致，即对数据的实时性要求并没有那么高。</p>
-<h2 id="CDN-加速和反向代理"><a href="#CDN-加速和反向代理" class="headerlink" title="CDN 加速和反向代理"></a>CDN 加速和反向代理</h2><p>鉴于网站的访问速度基于页面包含的内容传输到用户电脑的速度，如果用户到服务器的链路之间有一段比较缓慢的话，整体访问速度会受到很大的影响。因此，让用户从就近的服务器获取网页内容是一个理想的选择。</p>
-<p>对于业务加载需要的一些不经常改变的静态数据（一般是 css 和 js 文件），可以考虑将其缓存到 CDN 服务器上，而不是每次都到应用服务器进行获取。CDN（内容分发网络）是运营商提供的服务，服务器部署在机房，可以根据用户访问的链路直接选择最近的 CDN 服务器，将已缓存的静态数据返回，以加快静态数据加载速度。这样可以减少服务器的压力，并解决不同地区访问速度差距较大的问题。</p>
-<h2 id="分布式数据库"><a href="#分布式数据库" class="headerlink" title="分布式数据库"></a>分布式数据库</h2><p>就在工程师们忙碌的时候，数据量仍然随着业务的发展在悄无声息地增长。数据库读写分离最终也将无法满足业务需求，因此需要将数据库再次拆分。比较常用的数据库拆分手段是<strong>业务垂直分库</strong>，因为不同业务中表和表之间的数据大多没有关联，因此可以将不同的业务数据库部署在不同的物理服务器上。</p>
-<p>如果单表数据规模非常庞大，还需要使用分布式数据库来支撑，即对这些表进行水平拆分，将同一个表中的数据拆分到两个甚至多个数据库中。</p>
-<h2 id="使用-NoSQL-和搜索引擎"><a href="#使用-NoSQL-和搜索引擎" class="headerlink" title="使用 NoSQL 和搜索引擎"></a>使用 NoSQL 和搜索引擎</h2><p>随着业务越来越复杂，对数据存储和检索的需求也越来越复杂，系统需要采用一些非关系型数据库如 NoSQL 和分数据库查询技术如搜索引擎。应用服务器通过统一数据访问模块访问各种数据，减轻应用程序管理诸多数据源的麻烦。</p>
-<h2 id="业务拆分"><a href="#业务拆分" class="headerlink" title="业务拆分"></a>业务拆分</h2><p>为了应对日益复杂的业务场景，通常使用分而治之的手段将整个系统业务分成不同的产品线，应用之间通过超链接建立关系，也可以通过消息队列进行数据分发，当然更多的还是通过访问同一个数据存储系统来构成一个关联的完整系统。</p>
-<p>业务拆分包括纵向拆分和横向拆分：</p>
-<ul>
-<li><p>纵向拆分：将一个大应用拆分为多个小应用，如果新业务较为独立，那么就直接将其设计部署为一个独立的 Web 应用系统。纵向拆分相对较为简单，通过梳理业务，将较少相关的业务剥离即可。</p>
-</li>
-<li><p>横向拆分：将复用的业务拆分出来，独立部署为分布式服务，新增业务只需要调用这些分布式服务。横向拆分需要识别可复用的业务，设计服务接口，规范服务依赖关系。</p>
-</li>
-</ul>
-<h2 id="其他问题：异步、冗余、自动化"><a href="#其他问题：异步、冗余、自动化" class="headerlink" title="其他问题：异步、冗余、自动化"></a>其他问题：异步、冗余、自动化</h2><p>在漫长的演变过程中，除开以上，分布式系统的构建还有一些值得考虑的问题：</p>
-<ul>
-<li><p>异步：将一个复杂的业务操作转换为多个阶段操作，每个阶段的操作通过消息队列进行异步处理。可以理解为生产者-消费者模式，好处是加快系统响应速度和消除并发高峰。Node.js 正是因为其为异步而生，才逐渐成为服务端开发的选择之一。</p>
-</li>
-<li><p>冗余：为抵抗一些不可控因素，如自然灾害（火灾、地震）等因素导致系统不可用，应考虑异地建立容灾中心，实时备份数据。</p>
-</li>
-<li><p>自动化：自动化包括监控、告警、失效转移恢复、降级等功能，这些功能让系统在无人值守的情况下仍可以正常运行。</p>
-</li>
-</ul>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>每个小节看似容易理解，真正想要实现起来都是学问，更别谈考虑每个细节，选择最好的方式。之前看《淘宝技术这十年》，里面谈到淘宝作为中国互联网前几个称得上是超大规模的互联网系统，其发展历程中遇到了很多前人根本没有遇到过的问题。淘宝的一代代工程师们或主动或被动的开始进行一次次技术变革，这才造就了如今双十一每秒巨额的并发量。也因此，大麦、12306 等短时间要接受大量访问的网站时常瘫痪，也情有可原。架构是一门学问，想真正将每个环节都研究透彻，不是简简单单看几篇文章，做一个总结就够了的，需要和业务紧密结合。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://blog.csdn.net/yuxin6866/article/details/53038840">分布式架构的演进，分析的很详细，很到位 - CSDN博客</a></li>
-<li><a href="https://blog.csdn.net/world6/article/details/72803089?locationNum=12&fps=1">All-In-One到SOA的分布式架构演进 - CSDN博客</a></li>
-<li><a href="https://blog.csdn.net/xinzun/article/details/79412150">分布式系统漫谈【壹】_发展历程 - CSDN博客</a></li>
-<li><a href="https://www.zhihu.com/question/60199333">为什么数据库读写分离能提高数据库的性能？ - 知乎</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>架构笔记</category>
-      </categories>
-      <tags>
-        <tag>分布式系统</tag>
-        <tag>分布式架构</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>如何给终端安上炫酷的皮神黄皮肤？</title>
     <url>/blog/pikachu-iterm/</url>
     <content><![CDATA[<p>昨天看 Trending repositories on GitHub today 时，发现了一个不得了的东西：</p>
@@ -2820,6 +2754,72 @@ filename@function    //定位至具体函数
       </categories>
       <tags>
         <tag>终端</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式系统演进简述</title>
+    <url>/blog/evolution-of-distributed-systems/</url>
+    <content><![CDATA[<p>“网络与分布式计算”课程布置了一个作业，要求写一篇题目为“构建分布式系统技术发展历史”的小论文。我个人以为“历史”二字应该是要我们去了解每项技术诞生的时间点，然而踏破铁鞋无处可觅。最后写成的文章主题，我个人认为比起“历史”来说，“演进过程”可能更为恰当。</p>
+<p>事实上我们可能也更为注重演进过程，因为分布式系统的演进过程，就是一代代工程师们对抗随时代和应用自身发展而逐渐升高的访问量的一部血泪史。这个过程是每一个健康发展的网站都要经历的。</p>
+<p>这次作业也给了我一个机会，去大致了解网站在发展过程中为了提升性能、简化部署、弹性扩展而做出的种种措施，受益匪浅。因此将文章放到博客上。</p>
+<span id="more"></span>
+
+<h2 id="单体应用架构"><a href="#单体应用架构" class="headerlink" title="单体应用架构"></a>单体应用架构</h2><p>在应用诞生初始，用户量、数据量规模都比较小。因此应用程序、数据库、文件等所有的资源都部署在同一台服务器上即可。这样的架构既简单实用、便于维护，成本又低，成为了这个时代的主流架构方式。在 2003 年淘宝最初上线的时候，就是以一套当时十分风靡的 LAMP 架构（Linux+Apache+MySQL+PHP）实现并部署的。</p>
+<p>单体应用架构的特点就是功能和代码集中、一个发布包部署后运行在一个进程内的应用程序。</p>
+<h2 id="垂直应用架构"><a href="#垂直应用架构" class="headerlink" title="垂直应用架构"></a>垂直应用架构</h2><p>随着应用的发展，用户访问量逐渐增加，单台服务器性能及存储空间不足，因此服务器的压力在访问高峰期会上升到比较高，响应时间逐渐变长。这时，工程师们考虑增加几台服务器，将应用程序、数据库、文件分别部署在独立的资源上。一个大的单体应用被拆分成若干个小的单体应用，这就是垂直应用架构。这种拆分方法内含分治的思想，即将一个大的问题按一定业务规则分成若干个小的问题，逐个解决。</p>
+<p>通过采用垂直应用架构，应用服务和数据服务得以分离，并发处理能力和数据存储空间得到了很大改善。</p>
+<h2 id="使用缓存改善性能"><a href="#使用缓存改善性能" class="headerlink" title="使用缓存改善性能"></a>使用缓存改善性能</h2><p>将大的单体应用拆分后，对业务有所了解和调查的工程师们发现，系统访问的特点遵循二八定律，即 80% 的业务访问集中在 20% 的数据上。那么，使用缓存技术将这 20% 访问较集中的数据缓存下来，就有助于减少数据库的访问次数，降低数据库的访问压力。同时，引入缓存也有助于降低存储成本，因为缓存+数据库服务器可以承担原本需要多台数据库服务器才能承担的请求量，因此节省了机器成本。</p>
+<p>缓存分为本地缓存（Local Cache）和远程分布式缓存（Remote Distributed Cache）。本地缓存访问速度更快，但内存资源以及承载能力有限，存在与应用程序争用内存的情况。因此，分布式缓存在如今的大型网站中得到广泛的使用。</p>
+<h2 id="使用应用服务器集群-amp-负载均衡"><a href="#使用应用服务器集群-amp-负载均衡" class="headerlink" title="使用应用服务器集群 &amp; 负载均衡"></a>使用应用服务器集群 &amp; 负载均衡</h2><p>虽然做了这么多工作，但是请求量还是水涨船高。当请求量达到需要排队等待的规模时，即使单台应用服务器性能强大，处理请求速度很快，响应速度也依然会变慢。这时，工程师们就要考虑使用多台服务器所组成的集群，通过向集群中追加资源，提升系统的并发处理能力，解决单台服务器处理能力和存储空间上限的问题。</p>
+<p>在数据中心内部，外部请求首先被定向到<strong>负载均衡器</strong>，以主机当前的负载作为函数来在主机之间负载均衡。其作为中继站向外部提供服务，使得服务器的负载压力不再成为整个系统的瓶颈。负载均衡器同时也进行外部 IP 地址和内部适当主机 IP 地址的互相转换，防止客户直接接触主机，从而具有隐藏网络内部结构和防止客户直接与主机交互等安全性益处。</p>
+<p>负载均衡的策略包括：</p>
+<ul>
+<li><p>轮询：每一次来自网络的请求轮流分配给内部中的服务器，从 1 至 N 然后重新开始。此种均衡算法适合于服务器组中的所有服务器都有相同的软硬件配置并且平均服务请求相对均衡的情况。实现简单，但存在服务器的处理能力不同的情况；</p>
+</li>
+<li><p>权重：根据服务器的不同处理能力，给每个服务器分配不同的权值，使其能够接受相应权值数的服务请求。此种均衡算法能确保高性能的服务器得到更多的使用率，避免低性能的服务器负载过重。考虑了服务器处理能力的不足；</p>
+</li>
+<li><p>随机均衡：把来自网络的请求随机分配给内部中的多个服务器。</p>
+</li>
+</ul>
+<p>反向代理也是负载均衡的一种方法。反向代理指隐藏了真实的服务端，帮用户把请求转发到真实的服务器那里去。Nginx 就是性能非常好的反向代理服务器，可以用来做负载均衡。它会将请求在读取完整之前缓冲，这样交给后端的就是一个完整的 HTTP 请求，而不是断断续续的传递（互联网上连接速度一般比较慢），以此减少网络 IO 次数，从而提高后端的效率。</p>
+<h2 id="数据库读写分离"><a href="#数据库读写分离" class="headerlink" title="数据库读写分离"></a>数据库读写分离</h2><p>在一系列架构的增强后，用户量增加所带来的系统瓶颈可能转移到数据库上。每次读和写的操作都要经过同一个数据库服务器，在大量用户访问的情况下，资源竞争激烈。数据库的并发量有限，在保证数据库事务的 ACID 特性（原子性、一致性、隔离性和持久性）时难免发生阻塞。</p>
+<p>为了保证数据库的高可用性，工程师们将数据库进行读写分离，写操作全部引入主库，读操作引入从库。这种做法极大程度地缓解了数据库锁之间的竞争，提高了并发吞吐量和负载能力。当然，读写分离架构适用的应用中，由于读库需要不断做批量的更新操作，读操作不应要求数据强一致，即对数据的实时性要求并没有那么高。</p>
+<h2 id="CDN-加速和反向代理"><a href="#CDN-加速和反向代理" class="headerlink" title="CDN 加速和反向代理"></a>CDN 加速和反向代理</h2><p>鉴于网站的访问速度基于页面包含的内容传输到用户电脑的速度，如果用户到服务器的链路之间有一段比较缓慢的话，整体访问速度会受到很大的影响。因此，让用户从就近的服务器获取网页内容是一个理想的选择。</p>
+<p>对于业务加载需要的一些不经常改变的静态数据（一般是 css 和 js 文件），可以考虑将其缓存到 CDN 服务器上，而不是每次都到应用服务器进行获取。CDN（内容分发网络）是运营商提供的服务，服务器部署在机房，可以根据用户访问的链路直接选择最近的 CDN 服务器，将已缓存的静态数据返回，以加快静态数据加载速度。这样可以减少服务器的压力，并解决不同地区访问速度差距较大的问题。</p>
+<h2 id="分布式数据库"><a href="#分布式数据库" class="headerlink" title="分布式数据库"></a>分布式数据库</h2><p>就在工程师们忙碌的时候，数据量仍然随着业务的发展在悄无声息地增长。数据库读写分离最终也将无法满足业务需求，因此需要将数据库再次拆分。比较常用的数据库拆分手段是<strong>业务垂直分库</strong>，因为不同业务中表和表之间的数据大多没有关联，因此可以将不同的业务数据库部署在不同的物理服务器上。</p>
+<p>如果单表数据规模非常庞大，还需要使用分布式数据库来支撑，即对这些表进行水平拆分，将同一个表中的数据拆分到两个甚至多个数据库中。</p>
+<h2 id="使用-NoSQL-和搜索引擎"><a href="#使用-NoSQL-和搜索引擎" class="headerlink" title="使用 NoSQL 和搜索引擎"></a>使用 NoSQL 和搜索引擎</h2><p>随着业务越来越复杂，对数据存储和检索的需求也越来越复杂，系统需要采用一些非关系型数据库如 NoSQL 和分数据库查询技术如搜索引擎。应用服务器通过统一数据访问模块访问各种数据，减轻应用程序管理诸多数据源的麻烦。</p>
+<h2 id="业务拆分"><a href="#业务拆分" class="headerlink" title="业务拆分"></a>业务拆分</h2><p>为了应对日益复杂的业务场景，通常使用分而治之的手段将整个系统业务分成不同的产品线，应用之间通过超链接建立关系，也可以通过消息队列进行数据分发，当然更多的还是通过访问同一个数据存储系统来构成一个关联的完整系统。</p>
+<p>业务拆分包括纵向拆分和横向拆分：</p>
+<ul>
+<li><p>纵向拆分：将一个大应用拆分为多个小应用，如果新业务较为独立，那么就直接将其设计部署为一个独立的 Web 应用系统。纵向拆分相对较为简单，通过梳理业务，将较少相关的业务剥离即可。</p>
+</li>
+<li><p>横向拆分：将复用的业务拆分出来，独立部署为分布式服务，新增业务只需要调用这些分布式服务。横向拆分需要识别可复用的业务，设计服务接口，规范服务依赖关系。</p>
+</li>
+</ul>
+<h2 id="其他问题：异步、冗余、自动化"><a href="#其他问题：异步、冗余、自动化" class="headerlink" title="其他问题：异步、冗余、自动化"></a>其他问题：异步、冗余、自动化</h2><p>在漫长的演变过程中，除开以上，分布式系统的构建还有一些值得考虑的问题：</p>
+<ul>
+<li><p>异步：将一个复杂的业务操作转换为多个阶段操作，每个阶段的操作通过消息队列进行异步处理。可以理解为生产者-消费者模式，好处是加快系统响应速度和消除并发高峰。Node.js 正是因为其为异步而生，才逐渐成为服务端开发的选择之一。</p>
+</li>
+<li><p>冗余：为抵抗一些不可控因素，如自然灾害（火灾、地震）等因素导致系统不可用，应考虑异地建立容灾中心，实时备份数据。</p>
+</li>
+<li><p>自动化：自动化包括监控、告警、失效转移恢复、降级等功能，这些功能让系统在无人值守的情况下仍可以正常运行。</p>
+</li>
+</ul>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>每个小节看似容易理解，真正想要实现起来都是学问，更别谈考虑每个细节，选择最好的方式。之前看《淘宝技术这十年》，里面谈到淘宝作为中国互联网前几个称得上是超大规模的互联网系统，其发展历程中遇到了很多前人根本没有遇到过的问题。淘宝的一代代工程师们或主动或被动的开始进行一次次技术变革，这才造就了如今双十一每秒巨额的并发量。也因此，大麦、12306 等短时间要接受大量访问的网站时常瘫痪，也情有可原。架构是一门学问，想真正将每个环节都研究透彻，不是简简单单看几篇文章，做一个总结就够了的，需要和业务紧密结合。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://blog.csdn.net/yuxin6866/article/details/53038840">分布式架构的演进，分析的很详细，很到位 - CSDN博客</a></li>
+<li><a href="https://blog.csdn.net/world6/article/details/72803089?locationNum=12&fps=1">All-In-One到SOA的分布式架构演进 - CSDN博客</a></li>
+<li><a href="https://blog.csdn.net/xinzun/article/details/79412150">分布式系统漫谈【壹】_发展历程 - CSDN博客</a></li>
+<li><a href="https://www.zhihu.com/question/60199333">为什么数据库读写分离能提高数据库的性能？ - 知乎</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>架构笔记</category>
+      </categories>
+      <tags>
+        <tag>分布式系统</tag>
+        <tag>分布式架构</tag>
       </tags>
   </entry>
   <entry>
@@ -2913,6 +2913,83 @@ filename@function    //定位至具体函数
       <tags>
         <tag>深度学习</tag>
         <tag>吴恩达</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>自动编码器一览（二）</title>
+    <url>/blog/autoencoder-intro-2/</url>
+    <content><![CDATA[<p>这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。</p>
+<p>本文中包含以下内容：</p>
+<ul>
+<li>递归自动编码器（Recursive Autoencoder）</li>
+<li>Additional Stacked Denoising Autoencoder（aSDAE）</li>
+</ul>
+<p>“自动编码器一览”系列：</p>
+<ul>
+<li><a href="http://kyonhuang.top/autoencoder-intro-1/">自动编码器一览（一）</a></li>
+<li><a href="http://kyonhuang.top/autoencoder-intro-2/">自动编码器一览（二）</a></li>
+<li><a href="http://kyonhuang.top/autoencoder-intro-3/">自动编码器一览（三）</a></li>
+</ul>
+<span id="more"></span>
+
+<h2 id="递归自动编码器"><a href="#递归自动编码器" class="headerlink" title="递归自动编码器"></a>递归自动编码器</h2><p>我们首先介绍论文 “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”[1] 提出的<strong>递归自动编码器（Recursive Autoencoder）</strong>。在这篇论文中，递归自动编码器被用于通过无监督或半监督的训练方式，学习不定长句子的表征向量。这样学习到的表征可以被用于下游任务。在情感预测任务上，递归自动编码器达到了当时的 state-of-the-art。递归自动编码器最大的创新之处是加入了独特的层次结构，并使用语义的组合来理解情感。递归自动编码器既可以在没有标签的领域数据上，也可以在有标签的情感数据上进行训练。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png"></p>
+<h3 id="传统递归自动编码器"><a href="#传统递归自动编码器" class="headerlink" title="传统递归自动编码器"></a>传统递归自动编码器</h3><p>传统递归自动编码器要求在以一组词向量的形式给出要输入的句子 $(x_1, x_2, \dots, x_m)$ 的同时，给出句子的二叉树形结构，这个树形结构通过一组父节点和两个子节点的三元组表示：$(p \rightarrow c_{1} c_{2})$。例如在图中，我们有 $((y_{1} \rightarrow x_{1} x_{2}), (y_{2} \rightarrow y_{1} x_{3}), \dots)$ 等三元组。因为对于每组子节点，我们使用同一个神经网络来处理，因此 $y_i$ 的维度和 $x_i$ 相同。</p>
+<p>对于每个三元组 $(p \rightarrow c_{1} c_{2})$，我们通过公示：</p>
+<p>$$p=f\left(W^{(1)}\left[c_{1} ; c_{2}\right]+b^{(1)}\right),$$</p>
+<p>来得到父节点 $p$ 的表征。注意 $f(\cdot)$ 表示非线性的激活函数。为了评估父节点 $p$ 的表征有多好，我们从父节点的表征重建其两个子节点的表征（图中橙色的节点）：</p>
+<p>$$\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]=W^{(2)} p+b^{(2)}$$</p>
+<p>在训练过程中，我们的目标就是最小化这个重建的误差。对于每个子节点对，我们使用欧式距离来计算误差：</p>
+<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right]\right)=\frac{1}{2}\left|\left[c_{1} ; c_{2}\right]-\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]\right|^{2}$$</p>
+<p>我们只需要自底向上来重复以上步骤即可。</p>
+<h3 id="用于预测结构的无监督递归自动编码器"><a href="#用于预测结构的无监督递归自动编码器" class="headerlink" title="用于预测结构的无监督递归自动编码器"></a>用于预测结构的无监督递归自动编码器</h3><p>我们可以从三个方面来优化传统的递归自动编码器。</p>
+<p>第一点是，对于输入的句子 $x$，不再需要给出其树形结构，而是自己构建。方法是使用贪婪算法在每一步去尝试每个可能选择的子节点，最后选择这一步重构损失最低的方式构建整棵树。</p>
+<p>第二点是，之前采用的重构损失是平均的惩罚所有父节点的子节点重构损失。一个改进是，对于更上层的、包含更多单词的子节点对应的重构损失，给一个更高的权重，因为它对这个句子的表征的影响更大。例如，在重构时，设 $n_1$ 和 $n_2$ 是潜在子节点 $c_1$ 和 $c_2$ 包含的单词数量，则重新定义重构损失为</p>
+<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right] ; \theta\right)= \frac{n_{1}}{n_{1}+n_{2}}\left|c_{1}-c_{1}^{\prime}\right|^{2}+\frac{n_{2}}{n_{1}+n_{2}}| | c_{2}-c_{2}^{\prime}| |^{2}$$</p>
+<p>第三点是，由于每次得到的父节点表征会马上被用于重建，因此为了降低重构误差，机器会倾向于学习值非常小的表征。为了避免这个现象出现，在每次计算得到父节点的表征 $p$ 时，可以做一个正则化 $p = \frac{p}{| p |}$。</p>
+<h3 id="半监督递归自动编码器"><a href="#半监督递归自动编码器" class="headerlink" title="半监督递归自动编码器"></a>半监督递归自动编码器</h3><p>到现在为止，递归自动编码器已经可以无监督地生成捕捉了句子的语义结构的表征。我们将这个表征输入到下游任务的模型中，这样，可以通过下游任务的训练来进行微调，从而使模型学习在表征中包含更多对下游任务更为重要的信息。</p>
+<h2 id="Additional-Stacked-Denoising-Autoencoder"><a href="#Additional-Stacked-Denoising-Autoencoder" class="headerlink" title="Additional Stacked Denoising Autoencoder"></a>Additional Stacked Denoising Autoencoder</h2><p>接下来我们来到推荐系统领域，介绍在论文 “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”[2] 被提出的 <strong>Additional Stacked Denoising Autoencoder（aSDAE）</strong>。如果一定要翻译的话，这个模型应该称为“有附加信息的堆叠去噪自动编码器”，因为这个名字有点太长了，因此我们在接下来的叙述中用 aSDAE 来代指这个自动编码器。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/aDAE-aSDAE.png"></p>
+<p>其实 aSDAE 的思想非常简单，就是在堆叠去噪自动编码器的基础上，受到 Seq2Seq 模型的启发，在每一层接受一个相同的、对应输入的附加信息（side information），然后在自动编码器的最后同时重构输入和附加信息。</p>
+<p>用公式表示 aSDAE 模型。对于 aSDAE 的隐藏层 $l \in { 1, \dots, L-1 }$，其隐藏表征 $h_l$ 的计算方法为</p>
+<p>$$h_{l}=g\left(W_{l} h_{l-1}+V_{l} \tilde{x}+b_{l}\right),$$</p>
+<p>其中，$h_0 = \tilde{s}$ 是用噪声处理过的输入，$\tilde{x}$ 是附加信息，$f(\cdot)$ 和 $g(\cdot)$ 都是激活函数。</p>
+<p>对于 aSDAE 的输出层 $L$，输出的计算为</p>
+<p>$$\begin{aligned} \hat &amp;=f\left({W}_{L} {h}_{L}+{b}_{\hat{s}}\right) \\ \hat &amp;=f\left({V}_{L} {h}_{L}+{b}_{\hat{x}}\right) \end{aligned}$$</p>
+<p>因此，aSDAE 的损失函数为</p>
+<p>$$L = \alpha|{s}-\hat|_{F}^{2}+(1-\alpha)|{x}-\hat|_{F}^{2} + \lambda\left(\sum_{l}\left|{W}_{l}\right|_{F}^{2}+\left|{V}_{l}\right|_{F}^{2}\right),$$</p>
+<p>其中，$\alpha$ 是一个用于保持平衡的超参数，$\lambda$ 是正则化参数。</p>
+<p>aSDAE 本身就介绍完了。在论文 [2] 中，aSDAE 学习用户和商品对应的隐向量矩阵，并将用户的基本个人信息、用户画像信息、物品的基本信息等附加信息引入，从而解决协同过滤中的稀疏性与冷启动问题。这些和推荐系统相关的背景知识就不多讨论了，有兴趣的同学可以看参考资料 [3]。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/hybrid-collaborative-filtering-model-with-aSDAE.png"></p>
+<h2 id="More-Autoencoder"><a href="#More-Autoencoder" class="headerlink" title="More Autoencoder"></a>More Autoencoder</h2><p>随着对自动编码器的深入了解，我们有两个问题可以讨论：</p>
+<ol>
+<li>为什么要最小化重构误差？有没有其他做法？</li>
+<li>怎么让自动编码器学习到的表征更具可解释性？</li>
+</ol>
+<p>从这两个问题引入，李宏毅老师在他的机器学习课程上又对自动编码器的一些最新进展进行了介绍和讨论。有兴趣了解的同学可以查看我的《李宏毅机器学习》课程笔记：<a href="http://kyonhuang.top/Hung-yi-Lee-ML-notes/#/More-Autoencoder">More Autoencoder - 《李宏毅机器学习》课程笔记</a>，在此就不再重复写作了。而在“自动编码器一览”系列的下一篇中，我们会来看看可能是近年来的顶会上出现最多的自动编码器的一种形式——变分自动编码器。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>[1] Richard Socher, Jeffrey Pennington, Eric H.Huang, Andrew Y.Ng, Christopher D.Manning. “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”, EMNLP 2011</li>
+<li>[2] Xin Dong, Lei Yu, Zhonghuo Wu, Yuxia Sun, Lingfeng Yuan, Fangxi Zhang. “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”, AAAI 2017 </li>
+<li>[3] 推荐系统中基于深度学习的混合协同过滤模型. <a href="https://zhuanlan.zhihu.com/p/25234865">https://zhuanlan.zhihu.com/p/25234865</a></li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+      <categories>
+        <category>深度学习笔记</category>
+      </categories>
+      <tags>
+        <tag>深度学习</tag>
+        <tag>自动编码器</tag>
+        <tag>Autoencoder</tag>
+        <tag>表征学习</tag>
+        <tag>Representation Learning</tag>
+        <tag>无监督学习</tag>
       </tags>
   </entry>
   <entry>
@@ -3147,80 +3224,121 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
-    <title>自动编码器一览（二）</title>
-    <url>/blog/autoencoder-intro-2/</url>
-    <content><![CDATA[<p>这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。</p>
-<p>本文中包含以下内容：</p>
-<ul>
-<li>递归自动编码器（Recursive Autoencoder）</li>
-<li>Additional Stacked Denoising Autoencoder（aSDAE）</li>
-</ul>
-<p>“自动编码器一览”系列：</p>
-<ul>
-<li><a href="http://kyonhuang.top/autoencoder-intro-1/">自动编码器一览（一）</a></li>
-<li><a href="http://kyonhuang.top/autoencoder-intro-2/">自动编码器一览（二）</a></li>
-<li><a href="http://kyonhuang.top/autoencoder-intro-3/">自动编码器一览（三）</a></li>
-</ul>
+    <title>记 CIPS 青工委武汉大学系列讲座</title>
+    <url>/blog/whu-CIPS-academic-salon/</url>
+    <content><![CDATA[<p>趁着余兴未尽，来将今天早上参加的讲座记录一下。很幸运周四在教学楼下看到了这次活动的海报。本次系列讲座是 CIPS 青工委（中国中文信息学会青年工作委员会）在武汉大学的一次活动，主持人是武大的李晨亮老师，嘉宾包括清华的刘洋老师、刘知远老师、张敏老师，天津大学的张鹏老师和北大的严睿老师。五名老师在其所关注的细分领域各有建树，全是自然语言处理和信息检索领域的大牛。接下来以老师报告的顺序大概介绍一下各位老师的报告内容，和我对各位老师的感受。因为我忘记带拍照用的手机了，因此没有照片，而且笔记也不完整，部分理解可能有偏差，尽请见谅。</p>
+<p>2018.04.03 更新：更新上周五中科院自动化所刘康老师的讲座笔记。</p>
 <span id="more"></span>
 
-<h2 id="递归自动编码器"><a href="#递归自动编码器" class="headerlink" title="递归自动编码器"></a>递归自动编码器</h2><p>我们首先介绍论文 “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”[1] 提出的<strong>递归自动编码器（Recursive Autoencoder）</strong>。在这篇论文中，递归自动编码器被用于通过无监督或半监督的训练方式，学习不定长句子的表征向量。这样学习到的表征可以被用于下游任务。在情感预测任务上，递归自动编码器达到了当时的 state-of-the-art。递归自动编码器最大的创新之处是加入了独特的层次结构，并使用语义的组合来理解情感。递归自动编码器既可以在没有标签的领域数据上，也可以在有标签的情感数据上进行训练。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png"></p>
-<h3 id="传统递归自动编码器"><a href="#传统递归自动编码器" class="headerlink" title="传统递归自动编码器"></a>传统递归自动编码器</h3><p>传统递归自动编码器要求在以一组词向量的形式给出要输入的句子 $(x_1, x_2, \dots, x_m)$ 的同时，给出句子的二叉树形结构，这个树形结构通过一组父节点和两个子节点的三元组表示：$(p \rightarrow c_{1} c_{2})$。例如在图中，我们有 $((y_{1} \rightarrow x_{1} x_{2}), (y_{2} \rightarrow y_{1} x_{3}), \dots)$ 等三元组。因为对于每组子节点，我们使用同一个神经网络来处理，因此 $y_i$ 的维度和 $x_i$ 相同。</p>
-<p>对于每个三元组 $(p \rightarrow c_{1} c_{2})$，我们通过公示：</p>
-<p>$$p=f\left(W^{(1)}\left[c_{1} ; c_{2}\right]+b^{(1)}\right),$$</p>
-<p>来得到父节点 $p$ 的表征。注意 $f(\cdot)$ 表示非线性的激活函数。为了评估父节点 $p$ 的表征有多好，我们从父节点的表征重建其两个子节点的表征（图中橙色的节点）：</p>
-<p>$$\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]=W^{(2)} p+b^{(2)}$$</p>
-<p>在训练过程中，我们的目标就是最小化这个重建的误差。对于每个子节点对，我们使用欧式距离来计算误差：</p>
-<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right]\right)=\frac{1}{2}\left|\left[c_{1} ; c_{2}\right]-\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]\right|^{2}$$</p>
-<p>我们只需要自底向上来重复以上步骤即可。</p>
-<h3 id="用于预测结构的无监督递归自动编码器"><a href="#用于预测结构的无监督递归自动编码器" class="headerlink" title="用于预测结构的无监督递归自动编码器"></a>用于预测结构的无监督递归自动编码器</h3><p>我们可以从三个方面来优化传统的递归自动编码器。</p>
-<p>第一点是，对于输入的句子 $x$，不再需要给出其树形结构，而是自己构建。方法是使用贪婪算法在每一步去尝试每个可能选择的子节点，最后选择这一步重构损失最低的方式构建整棵树。</p>
-<p>第二点是，之前采用的重构损失是平均的惩罚所有父节点的子节点重构损失。一个改进是，对于更上层的、包含更多单词的子节点对应的重构损失，给一个更高的权重，因为它对这个句子的表征的影响更大。例如，在重构时，设 $n_1$ 和 $n_2$ 是潜在子节点 $c_1$ 和 $c_2$ 包含的单词数量，则重新定义重构损失为</p>
-<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right] ; \theta\right)= \frac{n_{1}}{n_{1}+n_{2}}\left|c_{1}-c_{1}^{\prime}\right|^{2}+\frac{n_{2}}{n_{1}+n_{2}}| | c_{2}-c_{2}^{\prime}| |^{2}$$</p>
-<p>第三点是，由于每次得到的父节点表征会马上被用于重建，因此为了降低重构误差，机器会倾向于学习值非常小的表征。为了避免这个现象出现，在每次计算得到父节点的表征 $p$ 时，可以做一个正则化 $p = \frac{p}{| p |}$。</p>
-<h3 id="半监督递归自动编码器"><a href="#半监督递归自动编码器" class="headerlink" title="半监督递归自动编码器"></a>半监督递归自动编码器</h3><p>到现在为止，递归自动编码器已经可以无监督地生成捕捉了句子的语义结构的表征。我们将这个表征输入到下游任务的模型中，这样，可以通过下游任务的训练来进行微调，从而使模型学习在表征中包含更多对下游任务更为重要的信息。</p>
-<h2 id="Additional-Stacked-Denoising-Autoencoder"><a href="#Additional-Stacked-Denoising-Autoencoder" class="headerlink" title="Additional Stacked Denoising Autoencoder"></a>Additional Stacked Denoising Autoencoder</h2><p>接下来我们来到推荐系统领域，介绍在论文 “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”[2] 被提出的 <strong>Additional Stacked Denoising Autoencoder（aSDAE）</strong>。如果一定要翻译的话，这个模型应该称为“有附加信息的堆叠去噪自动编码器”，因为这个名字有点太长了，因此我们在接下来的叙述中用 aSDAE 来代指这个自动编码器。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/aDAE-aSDAE.png"></p>
-<p>其实 aSDAE 的思想非常简单，就是在堆叠去噪自动编码器的基础上，受到 Seq2Seq 模型的启发，在每一层接受一个相同的、对应输入的附加信息（side information），然后在自动编码器的最后同时重构输入和附加信息。</p>
-<p>用公式表示 aSDAE 模型。对于 aSDAE 的隐藏层 $l \in { 1, \dots, L-1 }$，其隐藏表征 $h_l$ 的计算方法为</p>
-<p>$$h_{l}=g\left(W_{l} h_{l-1}+V_{l} \tilde{x}+b_{l}\right),$$</p>
-<p>其中，$h_0 = \tilde{s}$ 是用噪声处理过的输入，$\tilde{x}$ 是附加信息，$f(\cdot)$ 和 $g(\cdot)$ 都是激活函数。</p>
-<p>对于 aSDAE 的输出层 $L$，输出的计算为</p>
-<p>$$\begin{aligned} \hat &amp;=f\left({W}_{L} {h}_{L}+{b}_{\hat{s}}\right) \\ \hat &amp;=f\left({V}_{L} {h}_{L}+{b}_{\hat{x}}\right) \end{aligned}$$</p>
-<p>因此，aSDAE 的损失函数为</p>
-<p>$$L = \alpha|{s}-\hat|_{F}^{2}+(1-\alpha)|{x}-\hat|_{F}^{2} + \lambda\left(\sum_{l}\left|{W}_{l}\right|_{F}^{2}+\left|{V}_{l}\right|_{F}^{2}\right),$$</p>
-<p>其中，$\alpha$ 是一个用于保持平衡的超参数，$\lambda$ 是正则化参数。</p>
-<p>aSDAE 本身就介绍完了。在论文 [2] 中，aSDAE 学习用户和商品对应的隐向量矩阵，并将用户的基本个人信息、用户画像信息、物品的基本信息等附加信息引入，从而解决协同过滤中的稀疏性与冷启动问题。这些和推荐系统相关的背景知识就不多讨论了，有兴趣的同学可以看参考资料 [3]。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/hybrid-collaborative-filtering-model-with-aSDAE.png"></p>
-<h2 id="More-Autoencoder"><a href="#More-Autoencoder" class="headerlink" title="More Autoencoder"></a>More Autoencoder</h2><p>随着对自动编码器的深入了解，我们有两个问题可以讨论：</p>
-<ol>
-<li>为什么要最小化重构误差？有没有其他做法？</li>
-<li>怎么让自动编码器学习到的表征更具可解释性？</li>
-</ol>
-<p>从这两个问题引入，李宏毅老师在他的机器学习课程上又对自动编码器的一些最新进展进行了介绍和讨论。有兴趣了解的同学可以查看我的《李宏毅机器学习》课程笔记：<a href="http://kyonhuang.top/Hung-yi-Lee-ML-notes/#/More-Autoencoder">More Autoencoder - 《李宏毅机器学习》课程笔记</a>，在此就不再重复写作了。而在“自动编码器一览”系列的下一篇中，我们会来看看可能是近年来的顶会上出现最多的自动编码器的一种形式——变分自动编码器。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>[1] Richard Socher, Jeffrey Pennington, Eric H.Huang, Andrew Y.Ng, Christopher D.Manning. “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”, EMNLP 2011</li>
-<li>[2] Xin Dong, Lei Yu, Zhonghuo Wu, Yuxia Sun, Lingfeng Yuan, Fangxi Zhang. “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”, AAAI 2017 </li>
-<li>[3] 推荐系统中基于深度学习的混合协同过滤模型. <a href="https://zhuanlan.zhihu.com/p/25234865">https://zhuanlan.zhihu.com/p/25234865</a></li>
+<h2 id="刘洋《基于深度学习的机器翻译》"><a href="#刘洋《基于深度学习的机器翻译》" class="headerlink" title="刘洋《基于深度学习的机器翻译》"></a>刘洋《基于深度学习的机器翻译》</h2><p>首先是委员会主任刘洋老师的报告。PPT 与他主页上 <a href="http://nlp.csai.tsinghua.edu.cn/~ly/talks/cwmt2016_ly_v3_160826.pptx">Advances in Neural Machne Translation</a> 的内容有 70% 是一致的，可以据此了解一下。</p>
+<p>刘洋老师主要介绍了机器翻译的发展，从规则机器翻译 -&gt; 统计机器翻译 -&gt; 神经机器翻译，人们关注的重点也从规则到特征，最后变到架构。他认为神经机器翻译的可研究方向还包括架构学习（让机器学习架构来得到表现更好的，而非人类手工调整）、先验知识融合、单词学习、高效算法、可解释性等等。</p>
+<p>总体来说，刘洋老师的报告是五场报告中最容易理解的，他在其中加入了很多例子帮助理解，而非一味堆积 paper 成果。</p>
+<p>有观众提出问题，认为目前的机器翻译还缺少和人的感觉相配的评价指标。例如，如果机器将人名翻译错误，相似度降低很少，但是用户的使用体验就很差。另外，机器翻译用于商业时达成度不够。刘洋老师也认同目前存在这问题。</p>
+<p>刘洋老师真人比主页上的照片看起来帅一些，年轻一些。另外，坐在我前面一排的小朋友应该是刘洋老师的儿子，整个讲座过程中都非常安静，很难得，也显出刘洋老师家教有方。</p>
+<h2 id="严睿《人工智能在人机对话系统中的技术现状与挑战》"><a href="#严睿《人工智能在人机对话系统中的技术现状与挑战》" class="headerlink" title="严睿《人工智能在人机对话系统中的技术现状与挑战》"></a>严睿《人工智能在人机对话系统中的技术现状与挑战》</h2><p>严睿老师主要介绍了人机对话的一些现状，包括：</p>
+<ul>
+<li><p>分类：</p>
+<ul>
+<li>按领域：开放领域 / 垂直领域：医疗、金融、法律…</li>
+<li>按回复方式：检索式（目前业界主流） / 生成式（下一代潮流：深度学习加持） / 综合式</li>
+<li>主动 / 被动</li>
+<li>…</li>
 </ul>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  tex2jax: {inlineMath: [ ['$', '$'] ],
-        displayMath: [ ['$$', '$$']]}
-});
-</script>
+</li>
+<li><p>算法：</p>
+<ul>
+<li>上下文信息</li>
+<li>知识库信息（世界知识）</li>
+<li>语意逻辑信息 </li>
+</ul>
+</li>
+<li><p>挑战：</p>
+<ul>
+<li>源自人类认知直觉的剖析</li>
+<li>相关性、趣味性、信息量、情感化</li>
+</ul>
+</li>
+</ul>
+<p>另外，介绍了较多的 paper 的工作。</p>
+<p>严睿老师语速比较快，给我的感觉是思路很活跃。另外，讲完后不久他就离场了，不知道是不是去看樱花去了，哈哈。</p>
+<h2 id="张敏《用户满意的异质可解释的推荐：THUIR工作进展》"><a href="#张敏《用户满意的异质可解释的推荐：THUIR工作进展》" class="headerlink" title="张敏《用户满意的异质可解释的推荐：THUIR工作进展》"></a>张敏《用户满意的异质可解释的推荐：THUIR工作进展》</h2><p>张敏老师主要介绍了自己所在的 THUIR 研究组对于推荐系统的一些工作，包括：</p>
+<ol>
+<li>可解释推荐。</li>
+<li>时间对推荐的影响（也算是可解释性）：ARIMA 时间序列模型。</li>
+<li>社会关系对推荐的影响（抑制的信息）：不认识不代表负类，而是在之后会认识的概率上在进行标识。并且也使用了迁移学习。</li>
+<li>用户满意度：多样性 vs 满意度。</li>
+<li>用户理解：群体推荐的公平性和满意度。</li>
+</ol>
+<p>张敏老师的工作应该是五场报告中我最感兴趣的。活动后我斗胆去询问她是否还有学硕或者直博的名额，可惜她的名额已经满了（抢手到可怕），让我给她发邮件看研究组里另外两位老师是否还有名额。（更新：张老师课题组名额全满了）</p>
+<h2 id="张鹏《量子力学启发的信息检索和自然语言处理》"><a href="#张鹏《量子力学启发的信息检索和自然语言处理》" class="headerlink" title="张鹏《量子力学启发的信息检索和自然语言处理》"></a>张鹏《量子力学启发的信息检索和自然语言处理》</h2><p>张鹏老师研究的问题比较新颖，将深度学习和量子计算结合起来。他所在的 TJU’s Quantum IR/NLP group 应该在这方面做了不少工作，但是我们可能就对这个方向不是很了解了。讲着讲着薛定谔的猫也出来了，有点懵…唯一一个报告完后没有学生提问的。老师人还是很和蔼的。</p>
+<h2 id="刘知远《知识表示学习及其应用》"><a href="#刘知远《知识表示学习及其应用》" class="headerlink" title="刘知远《知识表示学习及其应用》"></a>刘知远《知识表示学习及其应用》</h2><p>最后是知乎网红刘知远老师。PPT 和他主页上的<a href="http://thunlp.org/~lzy/talks/nrl2017.pdf">社会计算与表示学习</a> 前一半内容基本相同，后一半是介绍自己的近期工作。</p>
+<p>刘老师首先介绍了知识图谱实体与关系。知识图谱的典型表示方案是基于符号表示的三元组（RDF），但是无法有效计算实体间的语义关系，解决方案是将知识映射到低维向量空间。</p>
+<p>之后，介绍了 TransE：将关系表示为从 head 到 tail 的翻译操作，和融合文本和知识进行关系抽取等。具体内容可以看 PPT，个人水平有限，难以总结。</p>
+<p>老师目前主要关注大规模知识图谱的应用，包括关系抽取、实体对齐（不同领域的知识图谱的结合）、实体分类等。介绍了开源平台：<a href="http://openke.thunlp.org/">http://openke.thunlp.org/</a>。顺便一提，刘老师凌晨两点发了一条微博，表示整理了自己的一些工作，开源了相关代码，赞！</p>
+<p>未来工作方向：</p>
+<ul>
+<li>利用表示学习技术将知识图谱用于相关领域（信息检索、推荐系统）</li>
+<li>利用表示学习技术改进知识获取能力（富语境信息抽取、开放关系抽取、开放事件抽取）</li>
+</ul>
+<p>刘知远老师在知乎上对于学术科研写了不少回答，对我很有帮助。个人关注了他的微博和知乎。不过现场感觉刘老师比知乎上给人的感觉要更有威慑力一些…</p>
+<h2 id="刘康《基于弱标注的大规模知识抽取》"><a href="#刘康《基于弱标注的大规模知识抽取》" class="headerlink" title="刘康《基于弱标注的大规模知识抽取》"></a>刘康《基于弱标注的大规模知识抽取》</h2><p>在第一次讲座后一周，中科院自动化所的刘康老师也来到武大，对知识抽取的现状以及研究组在这方面的工作进行了介绍。以下是一个比较抽象的笔记：</p>
+<p>非结构化文本 =&gt; 知识</p>
+<p>知识图谱类型：</p>
+<ol>
+<li>实体 - 实体(三元组) 头实体-关系-尾实体</li>
+<li>事件为中心：可能有一个事件和多个实体</li>
+</ol>
+<p>构建知识图谱：</p>
+<ul>
+<li>关系抽取 / 事件抽取：动词作为触发词    挑战：开放的关系<ol>
+<li>在一句话中确定两个实体的关系（和分类任务相似）</li>
+<li>不给定具体上下文，要求一对实体的关系（方法：在文本中回标）</li>
+</ol>
+</li>
+</ul>
+<p>特征表示：</p>
+<ul>
+<li>用 DL（CNN）</li>
+<li>刘老师的工作：<ul>
+<li>Position Embeddings：记录实体的相对位置 </li>
+<li>Dynamic Multi-Pooling and Piece-wise MaxPooling：每一段做一个最大池化</li>
+</ul>
+</li>
+</ul>
+<p>自动标注大量训练数据：</p>
+<ul>
+<li>回标：将已找到的实体三元组在文本中回找，所有对应的语句都可以当作正样本 =&gt; 问题：关系可能不一样</li>
+<li>以上策略不能用于以事件为中心的知识：找不到事件所具体对应的字符串</li>
+<li>动词作为触发词，找其他实体 =&gt; 问题：在一句话中不会有全部的实体 =&gt; 找关键的 arguments（实体） =&gt; 如何找 key arguments？TF-IDF、相似度…</li>
+</ul>
+<p>训练策略：如何减少噪声的影响？</p>
+<ul>
+<li>Multi-Instance Learning</li>
+<li>Attention </li>
+<li>transE：三元组中，实体为点，关系为向量</li>
+</ul>
+<p>最新的工作：强化学习</p>
+<p>落地：从金融、法律公告中抽取结构化的知识</p>
+<ul>
+<li>文本分类（分析具体是哪种类型的事件 -&gt; Event Identification -&gt; 没记下来…</li>
+</ul>
+<p>老师展示了一个根据以上想法已经成型的 Web 应用。</p>
+<h2 id="总体感受"><a href="#总体感受" class="headerlink" title="总体感受"></a>总体感受</h2><p>各位老师都介绍了各自研究的领域、面临的问题以及目前的一些工作，让我能够在走上学术之路前能够充分了解自然语言处理和信息检索的一些研究方向，对我有很大的启发。</p>
+<p>现场的人数还是比较多的，临时换了一个更大的教室。刘知远老师报告时统计了一下在场的本科生，包括我在内的大约 10 人。让我没有想到的是，在场很多的研究生确实对不同老师的方向各有见解，提出了比较有深度的问题。武大啥时候冒出这么多自然语言处理方向的研究生啊，以前完全不知道，原来计院卧虎藏龙。</p>
+<p>也不知道该怎么结束这篇博文了。给大家欣赏一下我下午摄影实习照的樱花好了。</p>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/1.jpg" />
 
-<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/2.jpg" />
+
+<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/3.jpg" />
+]]></content>
       <categories>
-        <category>深度学习笔记</category>
+        <category>讲座心得记录</category>
       </categories>
       <tags>
-        <tag>深度学习</tag>
-        <tag>自动编码器</tag>
-        <tag>Autoencoder</tag>
-        <tag>表征学习</tag>
-        <tag>Representation Learning</tag>
-        <tag>无监督学习</tag>
+        <tag>自然语言处理</tag>
+        <tag>讲座</tag>
+        <tag>CIPS 青工委</tag>
       </tags>
   </entry>
   <entry>
@@ -3367,51 +3485,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>记杨强老师关于联邦学习的讲座</title>
-    <url>/blog/whu-federated-learning-talk/</url>
-    <content><![CDATA[<p>5 月 6 日刚从杭州回到武大准备毕业答辩，得知赫赫有名的杨强老师第二天将来武大，介绍他带领的微众银行人工智能团队在联邦学习上的一些工作和思考。我们实验室的研究方向包括迁移学习的应用，而杨强老师是迁移学习领域的领头人，因此一定是要前往聆听的。老师的讲座内容没有很多算法模型上的硬核知识，但也非常有宏观上的启发性。下面，我基于讲座的内容笔记及个人思考做一个整理。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/whu-yangqiang.jpg"></p>
-<span id="more"></span>
-
-<h2 id="杨强《人工智能，数据孤岛和联邦学习》"><a href="#杨强《人工智能，数据孤岛和联邦学习》" class="headerlink" title="杨强《人工智能，数据孤岛和联邦学习》"></a>杨强《人工智能，数据孤岛和联邦学习》</h2><p>目前的 AI 系统在包括有偏性、和人类的合作、可解释性、可靠性、可信性、公平性等方面存在很多问题，其中一些问题的根因是数据的缺失和数据量的不足。杨强老师指出，目前的时代是“数据孤岛时代”，以法律、金融、医疗为首的各行业各公司都只拥有小数据。数据共享是一个容易被想到的解决方案，但其存在难度高、不合规、利益相关等问题，使得不但同一行业不同公司之间难以展开合作，甚至连同一公司各部门之间都存在“数据墙”。</p>
-<p>为了解决数据量不足的固有问题，杨强老师在过去的近十年内致力研究大数据迁移到小数据，即<strong>迁移学习（Transfer Learning）</strong>。因此，杨强老师首先简单回顾了迁移学习，其中有这些结论值得注意：1）迁移学习有助于实现鲁棒性（同样的输入对应同样的输出）和边缘计算（模型的计算放在终端进行）。2）迁移学习的本质是找到不同领域数据的不变量。3）在进行模型迁移时，低层特征更通用和可迁移，高层特征更特定和不可迁移。4）当两个领域相距很远时，可以进行传递性迁移学习（[Distant Domain Transfer Learning, AAAI 17], [Transitive Transfer Learning, KDD 15]）。</p>
-<p>在从学校转投工业界，发现上述工业界亟待解决的问题后，杨强老师提出了<strong>联邦学习（Federated Learning）</strong>的概念，致力于将拥有细碎数据的各控制方可以参与联合建立 AI 模型，并协作使用模型来进行决策。在这个过程中，各方数据不出本地，因此互相之间看不到彼此的真实数据，不会违反保护个人数据隐私的相关法案，并且能够保证数据的安全和各方的利益。同时，我们力求模型的效果不会受到损失（LOSSLESS）。</p>
-<p>联邦学习的一个典型流程是<code>终端本地训练 -&gt; 秘钥加密梯度 -&gt; 上传云端 -&gt; 更新模型</code>。例如，将手机终端存储的特征维度相同的用户数据在本地训练，然后将梯度等信息加密后，上传到唯一的中心，在云端中心用所有终端的信息更新模型后，手机终端再下载更新的模型。这个流程的缺点是过程比较漫长。</p>
-<p>除了如上述流程所示的安全模型建立，联邦学习还试图解决很多为了保护用户隐私而导致的问题，例如隐私保护下的样本 ID 匹配，如何能够在各家银行互相不泄露用户信息的前提下，找到同时在多家银行借贷而没有偿还能力的人。</p>
-<p>联邦学习的研究子方向包括但不限于：</p>
-<ul>
-<li><p>系统效率</p>
-<ul>
-<li>模型压缩（Compression）</li>
-<li>算法优化（Optimization algorithms）</li>
-<li>参与方选取（Client selection）</li>
-<li>边缘计算（Resource constraint, IoT, Edge computing）</li>
-</ul>
-</li>
-<li><p>模型效果</p>
-<ul>
-<li>数据分布不均匀（Data distribution and selection）</li>
-<li>个性化（Personalization）</li>
-</ul>
-</li>
-<li><p>数据安全 </p>
-</li>
-</ul>
-<p>可以看到，作为一个工业界实际需求催生的研究方向，联邦学习所涉及的领域实际上不只有机器学习，还包括密码学、网络安全等。例如，联邦学习联盟的激励机制需要用到博弈论，来讨论各方如何合理分配通过联邦学习共同收获的利益。目前，IEEE 正在建立纵向联邦学习标准，相信也有很多不限于人工智能领域的专家会参与到这个过程中。更多有关联邦学习的内容可以访问 <a href="https://www.fedai.org/">https://www.fedai.org</a>。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/federated-learning-ecological-construction.jpg"></p>
-<p>以上是我对杨强老师讲座内容的总结。在提问环节，杨强老师对于科研起步者如何入门的问题做了简单解答。他认为，在研究开始时，应该找一个足够窄的领域中的一个足够清晰的问题，在走完一个完整的科研周期后<strong>成功</strong>发表自己的第一篇论文。他把这个过程比喻为找一个足够弱的敌人，打一场完整的胜仗；之后，就应该开始寻找当研究生毕业时什么领域会热门，而不是盲目投身现在大热的领域。找到未来的热门领域可能很难，需要多和别人交流和分析。在未来热门但现在可能是一片荒地的领域开荒也很难，杨强老师认为需要将在该领域的研究过程划分阶段，在每个小阶段取得成功后，将其变为故事能讲给同行学者、业界专家和普通人群。另外老师提出，能在人工智能行业取得成功的人需要懂人工智能、有商业头脑、有管理能力。</p>
-]]></content>
-      <categories>
-        <category>讲座心得记录</category>
-      </categories>
-      <tags>
-        <tag>人工智能</tag>
-        <tag>讲座</tag>
-        <tag>迁移学习</tag>
-        <tag>联邦学习</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>记知识图谱前沿技术课程（武汉大学站）</title>
     <url>/blog/whu-KG-technology-course/</url>
     <content><![CDATA[<p>这周一（4月28日）参加了<a href="https://mp.weixin.qq.com/s?__biz=MzI0MTI1Nzk1MA==&mid=2651676132&idx=1&sn=3965c4718e97cf4962301229c4fd877f&chksm=f2f7a155c5802843c1ec73a120d6cbe506c819cf87f32b4f5fa68862dd6603a2edb66f10208b&mpshare=1&scene=23&srcid=04209Zn8T1cUyBEYullCcwnB#rd">知识图谱前沿技术课程暨学术研讨会（武汉大学站）</a>。本次研讨会邀请了很多著名学者和企业代表，结合知识图谱学界研究与业界应用的进展，系统地讲解知识图谱前沿技术及智能应用。</p>
@@ -3477,143 +3550,48 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>IJCAI2020 教训总结</title>
-    <url>/blog/my-summary-of-IJCAI20/</url>
-    <content><![CDATA[<p>很久没有写博客了，恰逢 IJCAI2020 前两天公布了录取结果。去年的我还在时间序列分析上捣鼓着我的毕业设计，今年的我在小样本学习上谋求一个落脚点，变的是年纪、是阅历、是心态，不变的是来自 IJCAI 的 reject。相比于去年，也许是因为 IJCAI 的审稿质量有了显著提升（也许也归功于他们在 desk reject 时大手一挥斩掉了将近一半的论文），也许是因为我自己在方法、实验设计和论文写作方面的进步使得评审能够更好地理解论文，总之这次的论文得以收获更加一针见血的点评，对我改进这份工作以及思考未来前进的方向有着不小的帮助。因此，我也想简单地总结一下评审们给出的意见，也是和博客的读者朋友们讨论一下（虽然可能这种讨论是单向的）身为科研菜鸟如何能够完善每一份工作。考虑到这篇论文还要修改后再投，这里把一些论文内容的相关信息模糊，只宏观地分析一下存在的问题。</p>
-<p>这次的四名评审给我的论文的评分是 1 个 accept，1 个 weak accept，2 个 reject。给 accept 的那一位评审简单地写了两行夸赞之词，并表示对于如何改进这份工作没有任何建议。在感谢这位评审的认同后，从另外三位评审的评语（为了方便，后文中称为 review）以及 SPC（在这四位评审之上决定是否录用的人）的评语（后文中称为 meta-review）中，我感觉体现了以下问题：</p>
-<ul>
-<li><p>文献调研不够充分。在做相关工作的文献调研时，我漏掉了一些论文，使得我在论文中错误地评估了这份工作对领域的贡献。这也是 SPC 给出的两条拒稿的主要理由之一。这给我的教训是在做文献调研的工作时，第一是不能仅用关键字的方式去搜查相关工作（当然这是主要方法之一），还应该顺着那些最相关的工作的引用和被引链条上下溯源，来找到那些在题目和摘要中不易看出但实际非常相关的工作；第二是要及时地去“扫荡”正好处于你实验和写作过程中发布的论文，尤其是被认为是正式发表的会议论文。这次我就吃了亏，有一篇论文在我投稿前不久刚刚发表，逃过了我的搜查。之后要及时快速阅读新出的会议论文，并做好归类工作；第三是要培养自己在看论文时的专注力，以及能够在短时间内评估论文贡献、和手头工作是否密切相关、以及对自己是否有进一步阅读价值的能力。另外，在平时不着急赶论文时，也要多读论文多思考，从广度和深度两个角度加深自己对领域的理解，这样在写论文的相关工作时才能更有的放矢。</p>
-</li>
-<li><p>故事讲得不够好。尽管人工智能领域仍然发展迅速，每周都会有开创性的工作面世，但绝大多数会议收录的工作都建立在已有工作的基础上，做了一定程度的改进。而信息的传播是有噪音的，这意味着不是所有人都能够正确地理解你的工作以及评估你的创新与贡献。论文是研究工作最主要的载体，想要让自己的改进在所有评审的眼里都能够达到会议要求的标准线，就需要在论文中对工作的每个细节有更加清晰、连贯的表述。这次有几位评审都对模型中的同一个细节提出了疑问，这是因为我在表述时没能够考虑到这里虽然是引用了已有的模型，但仍可能会有理解上的门槛。另外，也有评审对我的方法的实验设置有一些质疑，认为其不公平、没有实际应用价值。这样负面且充满误解的评审意见其实是能够在写作的过程中通过更详细的举例等说明来消除的。因此，在之后的写作过程中，一是要把自己的视角放的更低来审视自己的表述，二是要邀请实验室的一些同学来严格地审阅自己写好的论文，请他们从自己的角度积极地提出意见。</p>
-</li>
-<li><p>选择合适的会议，或者根据不同的会议来调整自己的表述。投稿经验丰富的研究者在自己心中对于经常打交道的会议期刊应该都有这方面的经验了，但我是第一次看到有评审在评审意见中提出 IJCAI 不应该过多接收纯计算机视觉的论文，因此综合考虑决定给出 reject。尽管我不认为我是做纯计算机视觉的，但我后来发现我在投稿时因为没找到最合适的 topic，因此 primary subject area 选的是 computer vision 下的子 topic 了…为自己的工作选择最合适的会议，既是增加一份被接收的希望，也让更多同领域的研究者有机会看到自己的工作，增加自己被引用和声名大振的概率。</p>
-</li>
-</ul>
-<p>如果每一份工作都是一面镜子，清晰地反映着你的不足，那这次 IJCAI 的经历无疑是最好的清洁剂，让这面镜子更加明亮。尽管一年来我收获了很多，但是以成果论的话，进步的速度还远远不够。除开重新投递这份工作，目前我手头还有其他的工作也将要投交。希望自己能够吸取教训，在把握宏观前进方向的同时也做好每一个细节，来更快地到达目的地。</p>
-]]></content>
-      <categories>
-        <category>翻滚吧博士生</category>
-      </categories>
-      <tags>
-        <tag>总结</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>记 CIPS 青工委武汉大学系列讲座</title>
-    <url>/blog/whu-CIPS-academic-salon/</url>
-    <content><![CDATA[<p>趁着余兴未尽，来将今天早上参加的讲座记录一下。很幸运周四在教学楼下看到了这次活动的海报。本次系列讲座是 CIPS 青工委（中国中文信息学会青年工作委员会）在武汉大学的一次活动，主持人是武大的李晨亮老师，嘉宾包括清华的刘洋老师、刘知远老师、张敏老师，天津大学的张鹏老师和北大的严睿老师。五名老师在其所关注的细分领域各有建树，全是自然语言处理和信息检索领域的大牛。接下来以老师报告的顺序大概介绍一下各位老师的报告内容，和我对各位老师的感受。因为我忘记带拍照用的手机了，因此没有照片，而且笔记也不完整，部分理解可能有偏差，尽请见谅。</p>
-<p>2018.04.03 更新：更新上周五中科院自动化所刘康老师的讲座笔记。</p>
+    <title>记杨强老师关于联邦学习的讲座</title>
+    <url>/blog/whu-federated-learning-talk/</url>
+    <content><![CDATA[<p>5 月 6 日刚从杭州回到武大准备毕业答辩，得知赫赫有名的杨强老师第二天将来武大，介绍他带领的微众银行人工智能团队在联邦学习上的一些工作和思考。我们实验室的研究方向包括迁移学习的应用，而杨强老师是迁移学习领域的领头人，因此一定是要前往聆听的。老师的讲座内容没有很多算法模型上的硬核知识，但也非常有宏观上的启发性。下面，我基于讲座的内容笔记及个人思考做一个整理。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/whu-yangqiang.jpg"></p>
 <span id="more"></span>
 
-<h2 id="刘洋《基于深度学习的机器翻译》"><a href="#刘洋《基于深度学习的机器翻译》" class="headerlink" title="刘洋《基于深度学习的机器翻译》"></a>刘洋《基于深度学习的机器翻译》</h2><p>首先是委员会主任刘洋老师的报告。PPT 与他主页上 <a href="http://nlp.csai.tsinghua.edu.cn/~ly/talks/cwmt2016_ly_v3_160826.pptx">Advances in Neural Machne Translation</a> 的内容有 70% 是一致的，可以据此了解一下。</p>
-<p>刘洋老师主要介绍了机器翻译的发展，从规则机器翻译 -&gt; 统计机器翻译 -&gt; 神经机器翻译，人们关注的重点也从规则到特征，最后变到架构。他认为神经机器翻译的可研究方向还包括架构学习（让机器学习架构来得到表现更好的，而非人类手工调整）、先验知识融合、单词学习、高效算法、可解释性等等。</p>
-<p>总体来说，刘洋老师的报告是五场报告中最容易理解的，他在其中加入了很多例子帮助理解，而非一味堆积 paper 成果。</p>
-<p>有观众提出问题，认为目前的机器翻译还缺少和人的感觉相配的评价指标。例如，如果机器将人名翻译错误，相似度降低很少，但是用户的使用体验就很差。另外，机器翻译用于商业时达成度不够。刘洋老师也认同目前存在这问题。</p>
-<p>刘洋老师真人比主页上的照片看起来帅一些，年轻一些。另外，坐在我前面一排的小朋友应该是刘洋老师的儿子，整个讲座过程中都非常安静，很难得，也显出刘洋老师家教有方。</p>
-<h2 id="严睿《人工智能在人机对话系统中的技术现状与挑战》"><a href="#严睿《人工智能在人机对话系统中的技术现状与挑战》" class="headerlink" title="严睿《人工智能在人机对话系统中的技术现状与挑战》"></a>严睿《人工智能在人机对话系统中的技术现状与挑战》</h2><p>严睿老师主要介绍了人机对话的一些现状，包括：</p>
+<h2 id="杨强《人工智能，数据孤岛和联邦学习》"><a href="#杨强《人工智能，数据孤岛和联邦学习》" class="headerlink" title="杨强《人工智能，数据孤岛和联邦学习》"></a>杨强《人工智能，数据孤岛和联邦学习》</h2><p>目前的 AI 系统在包括有偏性、和人类的合作、可解释性、可靠性、可信性、公平性等方面存在很多问题，其中一些问题的根因是数据的缺失和数据量的不足。杨强老师指出，目前的时代是“数据孤岛时代”，以法律、金融、医疗为首的各行业各公司都只拥有小数据。数据共享是一个容易被想到的解决方案，但其存在难度高、不合规、利益相关等问题，使得不但同一行业不同公司之间难以展开合作，甚至连同一公司各部门之间都存在“数据墙”。</p>
+<p>为了解决数据量不足的固有问题，杨强老师在过去的近十年内致力研究大数据迁移到小数据，即<strong>迁移学习（Transfer Learning）</strong>。因此，杨强老师首先简单回顾了迁移学习，其中有这些结论值得注意：1）迁移学习有助于实现鲁棒性（同样的输入对应同样的输出）和边缘计算（模型的计算放在终端进行）。2）迁移学习的本质是找到不同领域数据的不变量。3）在进行模型迁移时，低层特征更通用和可迁移，高层特征更特定和不可迁移。4）当两个领域相距很远时，可以进行传递性迁移学习（[Distant Domain Transfer Learning, AAAI 17], [Transitive Transfer Learning, KDD 15]）。</p>
+<p>在从学校转投工业界，发现上述工业界亟待解决的问题后，杨强老师提出了<strong>联邦学习（Federated Learning）</strong>的概念，致力于将拥有细碎数据的各控制方可以参与联合建立 AI 模型，并协作使用模型来进行决策。在这个过程中，各方数据不出本地，因此互相之间看不到彼此的真实数据，不会违反保护个人数据隐私的相关法案，并且能够保证数据的安全和各方的利益。同时，我们力求模型的效果不会受到损失（LOSSLESS）。</p>
+<p>联邦学习的一个典型流程是<code>终端本地训练 -&gt; 秘钥加密梯度 -&gt; 上传云端 -&gt; 更新模型</code>。例如，将手机终端存储的特征维度相同的用户数据在本地训练，然后将梯度等信息加密后，上传到唯一的中心，在云端中心用所有终端的信息更新模型后，手机终端再下载更新的模型。这个流程的缺点是过程比较漫长。</p>
+<p>除了如上述流程所示的安全模型建立，联邦学习还试图解决很多为了保护用户隐私而导致的问题，例如隐私保护下的样本 ID 匹配，如何能够在各家银行互相不泄露用户信息的前提下，找到同时在多家银行借贷而没有偿还能力的人。</p>
+<p>联邦学习的研究子方向包括但不限于：</p>
 <ul>
-<li><p>分类：</p>
+<li><p>系统效率</p>
 <ul>
-<li>按领域：开放领域 / 垂直领域：医疗、金融、法律…</li>
-<li>按回复方式：检索式（目前业界主流） / 生成式（下一代潮流：深度学习加持） / 综合式</li>
-<li>主动 / 被动</li>
-<li>…</li>
+<li>模型压缩（Compression）</li>
+<li>算法优化（Optimization algorithms）</li>
+<li>参与方选取（Client selection）</li>
+<li>边缘计算（Resource constraint, IoT, Edge computing）</li>
 </ul>
 </li>
-<li><p>算法：</p>
+<li><p>模型效果</p>
 <ul>
-<li>上下文信息</li>
-<li>知识库信息（世界知识）</li>
-<li>语意逻辑信息 </li>
+<li>数据分布不均匀（Data distribution and selection）</li>
+<li>个性化（Personalization）</li>
 </ul>
 </li>
-<li><p>挑战：</p>
-<ul>
-<li>源自人类认知直觉的剖析</li>
-<li>相关性、趣味性、信息量、情感化</li>
-</ul>
+<li><p>数据安全 </p>
 </li>
 </ul>
-<p>另外，介绍了较多的 paper 的工作。</p>
-<p>严睿老师语速比较快，给我的感觉是思路很活跃。另外，讲完后不久他就离场了，不知道是不是去看樱花去了，哈哈。</p>
-<h2 id="张敏《用户满意的异质可解释的推荐：THUIR工作进展》"><a href="#张敏《用户满意的异质可解释的推荐：THUIR工作进展》" class="headerlink" title="张敏《用户满意的异质可解释的推荐：THUIR工作进展》"></a>张敏《用户满意的异质可解释的推荐：THUIR工作进展》</h2><p>张敏老师主要介绍了自己所在的 THUIR 研究组对于推荐系统的一些工作，包括：</p>
-<ol>
-<li>可解释推荐。</li>
-<li>时间对推荐的影响（也算是可解释性）：ARIMA 时间序列模型。</li>
-<li>社会关系对推荐的影响（抑制的信息）：不认识不代表负类，而是在之后会认识的概率上在进行标识。并且也使用了迁移学习。</li>
-<li>用户满意度：多样性 vs 满意度。</li>
-<li>用户理解：群体推荐的公平性和满意度。</li>
-</ol>
-<p>张敏老师的工作应该是五场报告中我最感兴趣的。活动后我斗胆去询问她是否还有学硕或者直博的名额，可惜她的名额已经满了（抢手到可怕），让我给她发邮件看研究组里另外两位老师是否还有名额。（更新：张老师课题组名额全满了）</p>
-<h2 id="张鹏《量子力学启发的信息检索和自然语言处理》"><a href="#张鹏《量子力学启发的信息检索和自然语言处理》" class="headerlink" title="张鹏《量子力学启发的信息检索和自然语言处理》"></a>张鹏《量子力学启发的信息检索和自然语言处理》</h2><p>张鹏老师研究的问题比较新颖，将深度学习和量子计算结合起来。他所在的 TJU’s Quantum IR/NLP group 应该在这方面做了不少工作，但是我们可能就对这个方向不是很了解了。讲着讲着薛定谔的猫也出来了，有点懵…唯一一个报告完后没有学生提问的。老师人还是很和蔼的。</p>
-<h2 id="刘知远《知识表示学习及其应用》"><a href="#刘知远《知识表示学习及其应用》" class="headerlink" title="刘知远《知识表示学习及其应用》"></a>刘知远《知识表示学习及其应用》</h2><p>最后是知乎网红刘知远老师。PPT 和他主页上的<a href="http://thunlp.org/~lzy/talks/nrl2017.pdf">社会计算与表示学习</a> 前一半内容基本相同，后一半是介绍自己的近期工作。</p>
-<p>刘老师首先介绍了知识图谱实体与关系。知识图谱的典型表示方案是基于符号表示的三元组（RDF），但是无法有效计算实体间的语义关系，解决方案是将知识映射到低维向量空间。</p>
-<p>之后，介绍了 TransE：将关系表示为从 head 到 tail 的翻译操作，和融合文本和知识进行关系抽取等。具体内容可以看 PPT，个人水平有限，难以总结。</p>
-<p>老师目前主要关注大规模知识图谱的应用，包括关系抽取、实体对齐（不同领域的知识图谱的结合）、实体分类等。介绍了开源平台：<a href="http://openke.thunlp.org/">http://openke.thunlp.org/</a>。顺便一提，刘老师凌晨两点发了一条微博，表示整理了自己的一些工作，开源了相关代码，赞！</p>
-<p>未来工作方向：</p>
-<ul>
-<li>利用表示学习技术将知识图谱用于相关领域（信息检索、推荐系统）</li>
-<li>利用表示学习技术改进知识获取能力（富语境信息抽取、开放关系抽取、开放事件抽取）</li>
-</ul>
-<p>刘知远老师在知乎上对于学术科研写了不少回答，对我很有帮助。个人关注了他的微博和知乎。不过现场感觉刘老师比知乎上给人的感觉要更有威慑力一些…</p>
-<h2 id="刘康《基于弱标注的大规模知识抽取》"><a href="#刘康《基于弱标注的大规模知识抽取》" class="headerlink" title="刘康《基于弱标注的大规模知识抽取》"></a>刘康《基于弱标注的大规模知识抽取》</h2><p>在第一次讲座后一周，中科院自动化所的刘康老师也来到武大，对知识抽取的现状以及研究组在这方面的工作进行了介绍。以下是一个比较抽象的笔记：</p>
-<p>非结构化文本 =&gt; 知识</p>
-<p>知识图谱类型：</p>
-<ol>
-<li>实体 - 实体(三元组) 头实体-关系-尾实体</li>
-<li>事件为中心：可能有一个事件和多个实体</li>
-</ol>
-<p>构建知识图谱：</p>
-<ul>
-<li>关系抽取 / 事件抽取：动词作为触发词    挑战：开放的关系<ol>
-<li>在一句话中确定两个实体的关系（和分类任务相似）</li>
-<li>不给定具体上下文，要求一对实体的关系（方法：在文本中回标）</li>
-</ol>
-</li>
-</ul>
-<p>特征表示：</p>
-<ul>
-<li>用 DL（CNN）</li>
-<li>刘老师的工作：<ul>
-<li>Position Embeddings：记录实体的相对位置 </li>
-<li>Dynamic Multi-Pooling and Piece-wise MaxPooling：每一段做一个最大池化</li>
-</ul>
-</li>
-</ul>
-<p>自动标注大量训练数据：</p>
-<ul>
-<li>回标：将已找到的实体三元组在文本中回找，所有对应的语句都可以当作正样本 =&gt; 问题：关系可能不一样</li>
-<li>以上策略不能用于以事件为中心的知识：找不到事件所具体对应的字符串</li>
-<li>动词作为触发词，找其他实体 =&gt; 问题：在一句话中不会有全部的实体 =&gt; 找关键的 arguments（实体） =&gt; 如何找 key arguments？TF-IDF、相似度…</li>
-</ul>
-<p>训练策略：如何减少噪声的影响？</p>
-<ul>
-<li>Multi-Instance Learning</li>
-<li>Attention </li>
-<li>transE：三元组中，实体为点，关系为向量</li>
-</ul>
-<p>最新的工作：强化学习</p>
-<p>落地：从金融、法律公告中抽取结构化的知识</p>
-<ul>
-<li>文本分类（分析具体是哪种类型的事件 -&gt; Event Identification -&gt; 没记下来…</li>
-</ul>
-<p>老师展示了一个根据以上想法已经成型的 Web 应用。</p>
-<h2 id="总体感受"><a href="#总体感受" class="headerlink" title="总体感受"></a>总体感受</h2><p>各位老师都介绍了各自研究的领域、面临的问题以及目前的一些工作，让我能够在走上学术之路前能够充分了解自然语言处理和信息检索的一些研究方向，对我有很大的启发。</p>
-<p>现场的人数还是比较多的，临时换了一个更大的教室。刘知远老师报告时统计了一下在场的本科生，包括我在内的大约 10 人。让我没有想到的是，在场很多的研究生确实对不同老师的方向各有见解，提出了比较有深度的问题。武大啥时候冒出这么多自然语言处理方向的研究生啊，以前完全不知道，原来计院卧虎藏龙。</p>
-<p>也不知道该怎么结束这篇博文了。给大家欣赏一下我下午摄影实习照的樱花好了。</p>
-<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/1.jpg" />
-
-<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/2.jpg" />
-
-<img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/sakura/3.jpg" />
+<p>可以看到，作为一个工业界实际需求催生的研究方向，联邦学习所涉及的领域实际上不只有机器学习，还包括密码学、网络安全等。例如，联邦学习联盟的激励机制需要用到博弈论，来讨论各方如何合理分配通过联邦学习共同收获的利益。目前，IEEE 正在建立纵向联邦学习标准，相信也有很多不限于人工智能领域的专家会参与到这个过程中。更多有关联邦学习的内容可以访问 <a href="https://www.fedai.org/">https://www.fedai.org</a>。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/federated-learning-ecological-construction.jpg"></p>
+<p>以上是我对杨强老师讲座内容的总结。在提问环节，杨强老师对于科研起步者如何入门的问题做了简单解答。他认为，在研究开始时，应该找一个足够窄的领域中的一个足够清晰的问题，在走完一个完整的科研周期后<strong>成功</strong>发表自己的第一篇论文。他把这个过程比喻为找一个足够弱的敌人，打一场完整的胜仗；之后，就应该开始寻找当研究生毕业时什么领域会热门，而不是盲目投身现在大热的领域。找到未来的热门领域可能很难，需要多和别人交流和分析。在未来热门但现在可能是一片荒地的领域开荒也很难，杨强老师认为需要将在该领域的研究过程划分阶段，在每个小阶段取得成功后，将其变为故事能讲给同行学者、业界专家和普通人群。另外老师提出，能在人工智能行业取得成功的人需要懂人工智能、有商业头脑、有管理能力。</p>
 ]]></content>
       <categories>
         <category>讲座心得记录</category>
       </categories>
       <tags>
-        <tag>自然语言处理</tag>
+        <tag>人工智能</tag>
         <tag>讲座</tag>
-        <tag>CIPS 青工委</tag>
+        <tag>迁移学习</tag>
+        <tag>联邦学习</tag>
       </tags>
   </entry>
   <entry>
@@ -3688,52 +3666,62 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>越过山丘——写在大四开始时</title>
-    <url>/blog/over-the-hills/</url>
-    <content><![CDATA[<p>在保研尘埃落地、回学校参加院队热身赛结果弄伤膝盖、从十一假期养到现在，终于提笔开始写这一篇博客。现在已经是十月中旬，开学都已经一个半月了，但对我来说，大四似乎才刚刚开始。且简单地和大家分享一下我保研的结果和做出决定的一些想法，也给自己即将面临的新挑战打个气。</p>
+    <title>IJCAI2020 教训总结</title>
+    <url>/blog/my-summary-of-IJCAI20/</url>
+    <content><![CDATA[<p>很久没有写博客了，恰逢 IJCAI2020 前两天公布了录取结果。去年的我还在时间序列分析上捣鼓着我的毕业设计，今年的我在小样本学习上谋求一个落脚点，变的是年纪、是阅历、是心态，不变的是来自 IJCAI 的 reject。相比于去年，也许是因为 IJCAI 的审稿质量有了显著提升（也许也归功于他们在 desk reject 时大手一挥斩掉了将近一半的论文），也许是因为我自己在方法、实验设计和论文写作方面的进步使得评审能够更好地理解论文，总之这次的论文得以收获更加一针见血的点评，对我改进这份工作以及思考未来前进的方向有着不小的帮助。因此，我也想简单地总结一下评审们给出的意见，也是和博客的读者朋友们讨论一下（虽然可能这种讨论是单向的）身为科研菜鸟如何能够完善每一份工作。考虑到这篇论文还要修改后再投，这里把一些论文内容的相关信息模糊，只宏观地分析一下存在的问题。</p>
+<p>这次的四名评审给我的论文的评分是 1 个 accept，1 个 weak accept，2 个 reject。给 accept 的那一位评审简单地写了两行夸赞之词，并表示对于如何改进这份工作没有任何建议。在感谢这位评审的认同后，从另外三位评审的评语（为了方便，后文中称为 review）以及 SPC（在这四位评审之上决定是否录用的人）的评语（后文中称为 meta-review）中，我感觉体现了以下问题：</p>
+<ul>
+<li><p>文献调研不够充分。在做相关工作的文献调研时，我漏掉了一些论文，使得我在论文中错误地评估了这份工作对领域的贡献。这也是 SPC 给出的两条拒稿的主要理由之一。这给我的教训是在做文献调研的工作时，第一是不能仅用关键字的方式去搜查相关工作（当然这是主要方法之一），还应该顺着那些最相关的工作的引用和被引链条上下溯源，来找到那些在题目和摘要中不易看出但实际非常相关的工作；第二是要及时地去“扫荡”正好处于你实验和写作过程中发布的论文，尤其是被认为是正式发表的会议论文。这次我就吃了亏，有一篇论文在我投稿前不久刚刚发表，逃过了我的搜查。之后要及时快速阅读新出的会议论文，并做好归类工作；第三是要培养自己在看论文时的专注力，以及能够在短时间内评估论文贡献、和手头工作是否密切相关、以及对自己是否有进一步阅读价值的能力。另外，在平时不着急赶论文时，也要多读论文多思考，从广度和深度两个角度加深自己对领域的理解，这样在写论文的相关工作时才能更有的放矢。</p>
+</li>
+<li><p>故事讲得不够好。尽管人工智能领域仍然发展迅速，每周都会有开创性的工作面世，但绝大多数会议收录的工作都建立在已有工作的基础上，做了一定程度的改进。而信息的传播是有噪音的，这意味着不是所有人都能够正确地理解你的工作以及评估你的创新与贡献。论文是研究工作最主要的载体，想要让自己的改进在所有评审的眼里都能够达到会议要求的标准线，就需要在论文中对工作的每个细节有更加清晰、连贯的表述。这次有几位评审都对模型中的同一个细节提出了疑问，这是因为我在表述时没能够考虑到这里虽然是引用了已有的模型，但仍可能会有理解上的门槛。另外，也有评审对我的方法的实验设置有一些质疑，认为其不公平、没有实际应用价值。这样负面且充满误解的评审意见其实是能够在写作的过程中通过更详细的举例等说明来消除的。因此，在之后的写作过程中，一是要把自己的视角放的更低来审视自己的表述，二是要邀请实验室的一些同学来严格地审阅自己写好的论文，请他们从自己的角度积极地提出意见。</p>
+</li>
+<li><p>选择合适的会议，或者根据不同的会议来调整自己的表述。投稿经验丰富的研究者在自己心中对于经常打交道的会议期刊应该都有这方面的经验了，但我是第一次看到有评审在评审意见中提出 IJCAI 不应该过多接收纯计算机视觉的论文，因此综合考虑决定给出 reject。尽管我不认为我是做纯计算机视觉的，但我后来发现我在投稿时因为没找到最合适的 topic，因此 primary subject area 选的是 computer vision 下的子 topic 了…为自己的工作选择最合适的会议，既是增加一份被接收的希望，也让更多同领域的研究者有机会看到自己的工作，增加自己被引用和声名大振的概率。</p>
+</li>
+</ul>
+<p>如果每一份工作都是一面镜子，清晰地反映着你的不足，那这次 IJCAI 的经历无疑是最好的清洁剂，让这面镜子更加明亮。尽管一年来我收获了很多，但是以成果论的话，进步的速度还远远不够。除开重新投递这份工作，目前我手头还有其他的工作也将要投交。希望自己能够吸取教训，在把握宏观前进方向的同时也做好每一个细节，来更快地到达目的地。</p>
+]]></content>
+      <categories>
+        <category>翻滚吧博士生</category>
+      </categories>
+      <tags>
+        <tag>总结</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>花旗杯-新的终点，新的起点</title>
+    <url>/blog/new-end-new-start/</url>
+    <content><![CDATA[<p>在从成都回武汉的火车上开始写这一篇博客。</p>
+<p>历时共七个月的花旗杯终于结束了。作为创队元老，我从头到尾参与了这个项目，从每个组员的奇思妙想中挖掘出我们现在的选题，在一次次的争论中始终坚持它就是最好的选择。我也投入了大量的时间和精力，写完了整个网站前端开发的每一行代码，并参与了部分的算法研究工作。整个项目也数次从被放弃的边缘拉回来，成员也有一定的变动，可以说历经波折。</p>
+<p>到达成都后，临行前请人算了一卦的浦先生幸运地抽到答辩的最后一位，这让我们可以观摩其他队伍的答辩、对评委的关注点进行揣摩，并有较为充足的准备时间。之后，前往成都的核心队员开始昼夜不分地修改项目计划书、PPT、展示讲稿等各种材料，直到上台答辩的最后一秒。这个过程中，另外四名成员应该比我要更为辛苦，在答辩前一夜，负责算法的曹队和冯大佬更是直到凌晨三点还在讨论评委可能提出的问题（他们也确实命中了绝大部分问题，功居甚伟），而王同学也果断承担起本来属于队长的项目展示的重任。在这样的准备强度下，尽管也有遗憾，我对我们组的答辩表现可以打到 100 分，也为我们的付出感到骄傲。</p>
+<p>最终，我们的“探方网——网络文学 IP 价值评估及预测系统”获得了第十三届“花旗杯”金融创新应用大赛的三等奖。可惜的是，我们是最后一个宣布的三等奖，也就是说离二等奖仅有一步之遥。但能在全国二十强中最终名列第四，也是大赛诸多评委老师对我们项目极大肯定。</p>
+<p>从比较现实的角度来看，这次参赛经历带给我个人大学期间第一个有分量、对保研有加分的奖项，以及一点和劳动量好像不太对等的奖金。当然，我还有一些对我而言更为重要的东西与看到这篇博文的每一位分享。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/huaqi-prize.jpg" alt="huaqi-prize"></p>
 <span id="more"></span>
 
-<h2 id="选择"><a href="#选择" class="headerlink" title="选择"></a>选择</h2><p>先谈一下我最终的选择吧：浙江大学和西湖大学的跨学科联合培养博士生项目，计算机科学与技术专业。也就是说，我明年这个时候就是一名博士生了。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/over-the-hills/postgraduate-recommendation-result.jpg"></p>
-<p>简单地说一下我的保研经历。在夏令营周期中，我比较遗憾没拿到任何让我满意的 offer。而在九月本校保研资格公示后，我又因为复旦的报名系统已关闭而错过这所我心心念念的学校（结果我选择联培学校时最终也没选择复旦，哈哈）。因此，留给我可供选择的学校和导师都不太多了。</p>
-<p>其实我最终拿到了很不错的综合排名，因此很多同学和学长学姐都鼓励我申请清北。但我最终没有在九月再申请清北，原因包括当然包括学校层面的难度较大，但更深层的原因有二，一是我知道清北的好导师竞争激烈程度到清北本科生都需要先在其实验室长时间工作才有机会，而导师是我在做选择中最看重的因素；二是我在暑假去北京时，感受到很明显的与这座城市的隔离感，且气候对我也不太友好，待的很不舒服。鉴于以上原因，考虑到专心准备比较有把握的学校的考核，我做出了上述的抉择，而且我现在仍觉得这是正确的做法。</p>
-<p>在九月我最终申请了三所学校的计算机专业：浙大硕士、上海交大硕士和西湖大学联培博士（目前西湖大学只有博士生项目），严格意义上三所学校的 offer 我都拿到了。浙大是 9 月 27 日晚上给我发的邮件，但由于 9 月 28 日志愿填报系统开放，所有学校都要求当天走完所有填报流程，而我之前联系的浙大老师没有再回复我，因此我在浙大本校没有联系好的导师；上海交大一开始通知我没过，但 9 月 30 日又来电说有少量硕士名额，此时我早已被西湖大学录取，只可惜之前和上海交大 SpeechLab 的俞老师已经有比较深入的沟通，而且 SpeechLab 的研究方向和研究理念我都非常喜欢，最终遗憾错失这个机会。</p>
-<p>攻读直博是半年前的我可能没法想象到的选择，因为我其实一直是想着先读硕士，之后看情况是能够去国内外更好的地方继续深造或者想直接就业，因此申请各校时基本都填报的是硕士。那么，为什么是西湖大学的博士生？我想，原因肯定包括 27 日下午就确定录取以及未来的导师、西湖较好的住宿和待遇、对杭州本身的喜爱，但是起决定性作用的还是以下几点：</p>
+<h2 id="参加比赛的经历"><a href="#参加比赛的经历" class="headerlink" title="参加比赛的经历"></a>参加比赛的经历</h2><p>在成都备战的深夜里，几名核心大佬都表示“再也不参加花旗杯这样的非技术类比赛了”。“非技术类”确实对花旗杯是一个不太正当的评价，但准备花旗的开发周期之长、团队管理之累、准备工作之繁琐，对我们这些软件工程专业的 nerd 来说，是醉心于技术的阻碍。我们花了相当比例的精力在项目的包装上，而在实际技术层面可能没有达到我们想要的高度。</p>
+<p>但我还是很享受这个过程，因为比起纯粹的技术人员，我感觉可能我会更多地接触，也更为喜欢这样的项目包装、推广过程。我认为没有任何一个成功的项目能够单纯成长在技术的温室中，项目的包装是项目真正成为<strong>产品</strong>所不得不经历的工作。通过这样的工作，让技术人的智慧成果被更多人了解、使用和赏识，我认为这是十分有意义的。何况，在花旗的答辩场上，金玉其外、败絮其中的项目都被资深的评委老师们毫不留情地迅速戳破。</p>
+<p>整个过程确实很累很苦，尤其是最末期，网站的前端基本上一天加好几个功能，我也很骄傲我坚持了下来。在走出答辩场地后，我们五个人在楼下花旗杯决赛的展牌前合影。在空间 po 出照片时，我配的字是“我感觉毕了业”。因为我在那一刻的感觉大概和《中国有嘻哈》欧阳靖在结束最后一次的表演时一样，如释重负，而又如获新生。</p>
+<p>看看自己的码云，整个前端项目都是我的 commit，哈哈：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-472d42ef0cb3ff5d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="huaqi-commit.jpg"></p>
+<p>这次花旗杯的参赛经历对我来说是一次十分难忘的经历，在前端技术层面上有机会接触到很多新东西和新问题，提升很大。鉴于国软院有通知渠道并推荐参加的有含金量的比赛确实不多，我十分推荐学弟学妹们参加花旗杯。当然，下一届的学弟学妹如若进入决赛，大概要去东北挨冻了。另外，我也很欢迎有学弟学妹在明年联系我，作为项目方向、团队管理、答辩展示的一个咨询人员。</p>
+<h2 id="团队开发的经验"><a href="#团队开发的经验" class="headerlink" title="团队开发的经验"></a>团队开发的经验</h2><p><img src="/images/huaqi-team.png" alt="huaqi-team"></p>
+<p>这次花旗杯应该就是我本科中第一次，也是最后一次相对来说的大型团队开发项目了。数十人的团队开发在大学里是十分难得的经验，我也学到了很多，尤其是那些我们没有做的很好的环节，例如分工、沟通、日程规划等。以下是几条建议：</p>
 <ul>
-<li><strong>西湖有非常优秀的老师和同龄人</strong>：老师自然不必说，基本都是从全世界各个高校引入的才俊。而我在西湖遇到的同届同学以及学长学姐也都非常优秀。这轮招生都是招收保研本科生，而工学院录取的同学中，有一半以上已经发表过高质量的论文，其余的同学（除开我）也都有专利等成果。在 27 日的晚上，我们很多同学在宿舍的走廊非常自然而愉快地聊了一场大天，来自天南地北不同学校、工学化学生物等不同专业的同学相互自我介绍、聊理想聊规划聊各色各样，这种氛围真的非常吸引人。说实话，作为一个可以说没有科研基础的学生，与这些同学共处有一定的压力。但是我相信在这样的环境才能更好地成长，也能更开心地学习与工作。</li>
-<li><strong>作为西湖的建设者有更大的挑战</strong>：在知道我最终决定去西湖大学就读时，我父亲在电话非常严肃地说你等一等，随即询问几名同在高校工作的朋友来确定西湖是否“靠谱”。我理解西湖大学作为一所民办大学、一个刚起步的改革探索者，目前才有两届学生入学，在大众眼里和清北复交浙等传统名校会有一定的差距。但我觉得能够见证与参与这所研究型机构的初创期是一个非常难得的事情。这样的环境中的老师和同学们会更有个性和活力，大家都会成为学校的建设者。因此，我十分愿意和西湖大学一起迎接挑战。</li>
-<li><strong>我的导师具备科研实力和学生培养能力</strong>：其实我最终确定的导师不是我一开始的目标导师。我一直是希望能够在 NLP 方向开始研究，因此一开始联系的是在此领域名声在外的张老师，但是本轮张老师唯一的名额给了一名暑假在他那实习并且出了一篇顶会 paper 的优秀同学。工学院的王老师第一次与我见面是在武大的招生宣讲会上，当时他叮嘱我一定要按时申请。而在西湖面试结束后，他非常诚恳地和我聊，希望我能够去他那里。我们的沟通都非常顺畅，我认为王老师有足够的耐心让我从零起步开始科研、给我足够的条件和重视、并且能够支持我在大方向下自由探索。因此，我愿意放弃（至少是目前阶段）我最喜欢的 NLP 方向，以及背负一定直博带来的风险。我相信这是值得的。</li>
+<li>队长应该<strong>主动</strong>和各部分负责人沟通，确定进度。</li>
+<li>工作分配和修改必须要明确到人，并且利用好在线可查看可修改的备忘文件，例如石墨文档等。</li>
+<li>日程规划应在与各负责人协调的情况下，预留一定的缓冲时间。</li>
 </ul>
-<p>综上所述，我最终决定在西湖大学开始我的下一个阶段。感谢在保研过程中非常多的老师、同学、学长学姐给了我很多建议和帮助。希望我能够不忘初心，终有所得。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/over-the-hills/WIAS.jpg"></p>
-<h2 id="大四计划"><a href="#大四计划" class="headerlink" title="大四计划"></a>大四计划</h2><p>我目前计划是下周前往西湖高等研究院，开始在实验室里实习。还有一周的时间，这一周我计划是加强机器学习基础、调整自己的作息，以及处理完学校的一些事务。</p>
-<p>而在大四这一年，我目前有这样的一些计划：</p>
-<ol>
-<li>打好专业基础和研究基础，包括数学、机器学习的知识和论文阅读笔记等等；</li>
-<li>适应实验室的生活，积极参与研究项目；</li>
-<li>提前准备毕业论文，以寻找未来的研究方向；</li>
-<li>学习英语，可以考虑屠一个雅思/托福/GRE；</li>
-<li>养成并坚持早睡早起的作息习惯，适当注意保养脸和头发:)；</li>
-<li>认真打一次 Kaggle 的正式比赛，争取能够到前 10%，从而对 Python 代码编写、开源框架的使用、数据科学项目的思路以及优化的技巧都有一个极大的锻炼；</li>
-<li>啃完 3-4 本技术书籍，并在 Github 上拥有一个 100+ star 的技术性项目；</li>
-<li>看几本以前想看但是没抽时间看的书，例如《娱乐至死》、《乌合之众》、《我的职业是小说家》、《仿生人会梦见电子羊吗？》等。电影也可以选择性看看，最好能认真写几篇点评:)；</li>
-<li>去武大里没去过的地方看看，计划一场毕业旅行；</li>
-<li>向学长学姐了解博士生的生活，询问他们的规划，构建自己的蓝图。</li>
-</ol>
-<p>其实之前写在博客上的好多计划最后也就执行了大概一半，希望这一次能够努力实现吧。</p>
-<!--## 博士生阶段规划
-
-暂时写不出来了。嘻嘻，主要还是争取很多高质量的 paper，开会 social、交流、合作，增加出国和实习经历吧。
-
-[](https://www.zhihu.com/question/274824864/answer/504505852)-->
+<p>作为最初始的成员，我看着团队成员不断增加，也看到有些成员因为各种原因自己选择退出了这个项目。对于中途退出的成员，我们虽然没有给他们前期的努力以回报，但理解他们并心存感激；但我也看到有极少部分成员对这个项目缺少投入。不论是因为确实身兼数职、分身乏术，还是企图偷懒、不劳而获，我都认为这是缺乏责任心的表现。我理解在接近七个月的项目开发中，感到怠惰、信心不足是正常的表现，我自己也有过这样的心理。但是在整个项目中，如果你所做的努力远远少于其他人，最终却分享同样的荣誉，这不但拖累了项目的进度，对整个项目组的士气更有着极其不良的影响。因此，选择团队成员也是修行的一种，而及时止损也是选择的一种。</p>
+<p>对我自己来说，由于我个人的交际不是很广，没有太多的参与这次项目成员的挑选过程。通过这次经历，我也认识到广交朋友的益处，会努力在保证交友质量的前提去结识更多人。另外，在以后的项目开发中，我希望在个人技术水平达标的前提下，我能够承担起组长的重任，让整个团队有更好的开发积极性和管理秩序，同时挑战自我，获得进步。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>在这七个月里，我也对自己的性格缺陷进行了审视。我不太好意思向大家列举这些性格缺陷，但它们使我在包括花旗项目在内的学习过程中，甚至是在大学生涯的为人处事、个人发展等各方面遇到了不少挫折。我对未来我在性格方面的改善和转变有一些期许。我也不是很喜欢我现在的生活方式，希望能让它变得更加多彩。</p>
+<p>我走到了花旗杯的终点。但对我来说，还有很多的起点。我希望在未来的日子里，我能够更加坚定、更加拼搏、更加成熟、更加不甘平庸。这很难，我希望我能够做到。</p>
 ]]></content>
       <categories>
         <category>翻滚吧大学生</category>
       </categories>
       <tags>
-        <tag>总结</tag>
-        <tag>未来展望</tag>
         <tag>随笔</tag>
+        <tag>花旗杯</tag>
       </tags>
   </entry>
   <entry>
@@ -3794,40 +3782,52 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>花旗杯-新的终点，新的起点</title>
-    <url>/blog/new-end-new-start/</url>
-    <content><![CDATA[<p>在从成都回武汉的火车上开始写这一篇博客。</p>
-<p>历时共七个月的花旗杯终于结束了。作为创队元老，我从头到尾参与了这个项目，从每个组员的奇思妙想中挖掘出我们现在的选题，在一次次的争论中始终坚持它就是最好的选择。我也投入了大量的时间和精力，写完了整个网站前端开发的每一行代码，并参与了部分的算法研究工作。整个项目也数次从被放弃的边缘拉回来，成员也有一定的变动，可以说历经波折。</p>
-<p>到达成都后，临行前请人算了一卦的浦先生幸运地抽到答辩的最后一位，这让我们可以观摩其他队伍的答辩、对评委的关注点进行揣摩，并有较为充足的准备时间。之后，前往成都的核心队员开始昼夜不分地修改项目计划书、PPT、展示讲稿等各种材料，直到上台答辩的最后一秒。这个过程中，另外四名成员应该比我要更为辛苦，在答辩前一夜，负责算法的曹队和冯大佬更是直到凌晨三点还在讨论评委可能提出的问题（他们也确实命中了绝大部分问题，功居甚伟），而王同学也果断承担起本来属于队长的项目展示的重任。在这样的准备强度下，尽管也有遗憾，我对我们组的答辩表现可以打到 100 分，也为我们的付出感到骄傲。</p>
-<p>最终，我们的“探方网——网络文学 IP 价值评估及预测系统”获得了第十三届“花旗杯”金融创新应用大赛的三等奖。可惜的是，我们是最后一个宣布的三等奖，也就是说离二等奖仅有一步之遥。但能在全国二十强中最终名列第四，也是大赛诸多评委老师对我们项目极大肯定。</p>
-<p>从比较现实的角度来看，这次参赛经历带给我个人大学期间第一个有分量、对保研有加分的奖项，以及一点和劳动量好像不太对等的奖金。当然，我还有一些对我而言更为重要的东西与看到这篇博文的每一位分享。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/huaqi-prize.jpg" alt="huaqi-prize"></p>
+    <title>越过山丘——写在大四开始时</title>
+    <url>/blog/over-the-hills/</url>
+    <content><![CDATA[<p>在保研尘埃落地、回学校参加院队热身赛结果弄伤膝盖、从十一假期养到现在，终于提笔开始写这一篇博客。现在已经是十月中旬，开学都已经一个半月了，但对我来说，大四似乎才刚刚开始。且简单地和大家分享一下我保研的结果和做出决定的一些想法，也给自己即将面临的新挑战打个气。</p>
 <span id="more"></span>
 
-<h2 id="参加比赛的经历"><a href="#参加比赛的经历" class="headerlink" title="参加比赛的经历"></a>参加比赛的经历</h2><p>在成都备战的深夜里，几名核心大佬都表示“再也不参加花旗杯这样的非技术类比赛了”。“非技术类”确实对花旗杯是一个不太正当的评价，但准备花旗的开发周期之长、团队管理之累、准备工作之繁琐，对我们这些软件工程专业的 nerd 来说，是醉心于技术的阻碍。我们花了相当比例的精力在项目的包装上，而在实际技术层面可能没有达到我们想要的高度。</p>
-<p>但我还是很享受这个过程，因为比起纯粹的技术人员，我感觉可能我会更多地接触，也更为喜欢这样的项目包装、推广过程。我认为没有任何一个成功的项目能够单纯成长在技术的温室中，项目的包装是项目真正成为<strong>产品</strong>所不得不经历的工作。通过这样的工作，让技术人的智慧成果被更多人了解、使用和赏识，我认为这是十分有意义的。何况，在花旗的答辩场上，金玉其外、败絮其中的项目都被资深的评委老师们毫不留情地迅速戳破。</p>
-<p>整个过程确实很累很苦，尤其是最末期，网站的前端基本上一天加好几个功能，我也很骄傲我坚持了下来。在走出答辩场地后，我们五个人在楼下花旗杯决赛的展牌前合影。在空间 po 出照片时，我配的字是“我感觉毕了业”。因为我在那一刻的感觉大概和《中国有嘻哈》欧阳靖在结束最后一次的表演时一样，如释重负，而又如获新生。</p>
-<p>看看自己的码云，整个前端项目都是我的 commit，哈哈：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-472d42ef0cb3ff5d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="huaqi-commit.jpg"></p>
-<p>这次花旗杯的参赛经历对我来说是一次十分难忘的经历，在前端技术层面上有机会接触到很多新东西和新问题，提升很大。鉴于国软院有通知渠道并推荐参加的有含金量的比赛确实不多，我十分推荐学弟学妹们参加花旗杯。当然，下一届的学弟学妹如若进入决赛，大概要去东北挨冻了。另外，我也很欢迎有学弟学妹在明年联系我，作为项目方向、团队管理、答辩展示的一个咨询人员。</p>
-<h2 id="团队开发的经验"><a href="#团队开发的经验" class="headerlink" title="团队开发的经验"></a>团队开发的经验</h2><p><img src="/images/huaqi-team.png" alt="huaqi-team"></p>
-<p>这次花旗杯应该就是我本科中第一次，也是最后一次相对来说的大型团队开发项目了。数十人的团队开发在大学里是十分难得的经验，我也学到了很多，尤其是那些我们没有做的很好的环节，例如分工、沟通、日程规划等。以下是几条建议：</p>
+<h2 id="选择"><a href="#选择" class="headerlink" title="选择"></a>选择</h2><p>先谈一下我最终的选择吧：浙江大学和西湖大学的跨学科联合培养博士生项目，计算机科学与技术专业。也就是说，我明年这个时候就是一名博士生了。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/over-the-hills/postgraduate-recommendation-result.jpg"></p>
+<p>简单地说一下我的保研经历。在夏令营周期中，我比较遗憾没拿到任何让我满意的 offer。而在九月本校保研资格公示后，我又因为复旦的报名系统已关闭而错过这所我心心念念的学校（结果我选择联培学校时最终也没选择复旦，哈哈）。因此，留给我可供选择的学校和导师都不太多了。</p>
+<p>其实我最终拿到了很不错的综合排名，因此很多同学和学长学姐都鼓励我申请清北。但我最终没有在九月再申请清北，原因包括当然包括学校层面的难度较大，但更深层的原因有二，一是我知道清北的好导师竞争激烈程度到清北本科生都需要先在其实验室长时间工作才有机会，而导师是我在做选择中最看重的因素；二是我在暑假去北京时，感受到很明显的与这座城市的隔离感，且气候对我也不太友好，待的很不舒服。鉴于以上原因，考虑到专心准备比较有把握的学校的考核，我做出了上述的抉择，而且我现在仍觉得这是正确的做法。</p>
+<p>在九月我最终申请了三所学校的计算机专业：浙大硕士、上海交大硕士和西湖大学联培博士（目前西湖大学只有博士生项目），严格意义上三所学校的 offer 我都拿到了。浙大是 9 月 27 日晚上给我发的邮件，但由于 9 月 28 日志愿填报系统开放，所有学校都要求当天走完所有填报流程，而我之前联系的浙大老师没有再回复我，因此我在浙大本校没有联系好的导师；上海交大一开始通知我没过，但 9 月 30 日又来电说有少量硕士名额，此时我早已被西湖大学录取，只可惜之前和上海交大 SpeechLab 的俞老师已经有比较深入的沟通，而且 SpeechLab 的研究方向和研究理念我都非常喜欢，最终遗憾错失这个机会。</p>
+<p>攻读直博是半年前的我可能没法想象到的选择，因为我其实一直是想着先读硕士，之后看情况是能够去国内外更好的地方继续深造或者想直接就业，因此申请各校时基本都填报的是硕士。那么，为什么是西湖大学的博士生？我想，原因肯定包括 27 日下午就确定录取以及未来的导师、西湖较好的住宿和待遇、对杭州本身的喜爱，但是起决定性作用的还是以下几点：</p>
 <ul>
-<li>队长应该<strong>主动</strong>和各部分负责人沟通，确定进度。</li>
-<li>工作分配和修改必须要明确到人，并且利用好在线可查看可修改的备忘文件，例如石墨文档等。</li>
-<li>日程规划应在与各负责人协调的情况下，预留一定的缓冲时间。</li>
+<li><strong>西湖有非常优秀的老师和同龄人</strong>：老师自然不必说，基本都是从全世界各个高校引入的才俊。而我在西湖遇到的同届同学以及学长学姐也都非常优秀。这轮招生都是招收保研本科生，而工学院录取的同学中，有一半以上已经发表过高质量的论文，其余的同学（除开我）也都有专利等成果。在 27 日的晚上，我们很多同学在宿舍的走廊非常自然而愉快地聊了一场大天，来自天南地北不同学校、工学化学生物等不同专业的同学相互自我介绍、聊理想聊规划聊各色各样，这种氛围真的非常吸引人。说实话，作为一个可以说没有科研基础的学生，与这些同学共处有一定的压力。但是我相信在这样的环境才能更好地成长，也能更开心地学习与工作。</li>
+<li><strong>作为西湖的建设者有更大的挑战</strong>：在知道我最终决定去西湖大学就读时，我父亲在电话非常严肃地说你等一等，随即询问几名同在高校工作的朋友来确定西湖是否“靠谱”。我理解西湖大学作为一所民办大学、一个刚起步的改革探索者，目前才有两届学生入学，在大众眼里和清北复交浙等传统名校会有一定的差距。但我觉得能够见证与参与这所研究型机构的初创期是一个非常难得的事情。这样的环境中的老师和同学们会更有个性和活力，大家都会成为学校的建设者。因此，我十分愿意和西湖大学一起迎接挑战。</li>
+<li><strong>我的导师具备科研实力和学生培养能力</strong>：其实我最终确定的导师不是我一开始的目标导师。我一直是希望能够在 NLP 方向开始研究，因此一开始联系的是在此领域名声在外的张老师，但是本轮张老师唯一的名额给了一名暑假在他那实习并且出了一篇顶会 paper 的优秀同学。工学院的王老师第一次与我见面是在武大的招生宣讲会上，当时他叮嘱我一定要按时申请。而在西湖面试结束后，他非常诚恳地和我聊，希望我能够去他那里。我们的沟通都非常顺畅，我认为王老师有足够的耐心让我从零起步开始科研、给我足够的条件和重视、并且能够支持我在大方向下自由探索。因此，我愿意放弃（至少是目前阶段）我最喜欢的 NLP 方向，以及背负一定直博带来的风险。我相信这是值得的。</li>
 </ul>
-<p>作为最初始的成员，我看着团队成员不断增加，也看到有些成员因为各种原因自己选择退出了这个项目。对于中途退出的成员，我们虽然没有给他们前期的努力以回报，但理解他们并心存感激；但我也看到有极少部分成员对这个项目缺少投入。不论是因为确实身兼数职、分身乏术，还是企图偷懒、不劳而获，我都认为这是缺乏责任心的表现。我理解在接近七个月的项目开发中，感到怠惰、信心不足是正常的表现，我自己也有过这样的心理。但是在整个项目中，如果你所做的努力远远少于其他人，最终却分享同样的荣誉，这不但拖累了项目的进度，对整个项目组的士气更有着极其不良的影响。因此，选择团队成员也是修行的一种，而及时止损也是选择的一种。</p>
-<p>对我自己来说，由于我个人的交际不是很广，没有太多的参与这次项目成员的挑选过程。通过这次经历，我也认识到广交朋友的益处，会努力在保证交友质量的前提去结识更多人。另外，在以后的项目开发中，我希望在个人技术水平达标的前提下，我能够承担起组长的重任，让整个团队有更好的开发积极性和管理秩序，同时挑战自我，获得进步。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>在这七个月里，我也对自己的性格缺陷进行了审视。我不太好意思向大家列举这些性格缺陷，但它们使我在包括花旗项目在内的学习过程中，甚至是在大学生涯的为人处事、个人发展等各方面遇到了不少挫折。我对未来我在性格方面的改善和转变有一些期许。我也不是很喜欢我现在的生活方式，希望能让它变得更加多彩。</p>
-<p>我走到了花旗杯的终点。但对我来说，还有很多的起点。我希望在未来的日子里，我能够更加坚定、更加拼搏、更加成熟、更加不甘平庸。这很难，我希望我能够做到。</p>
+<p>综上所述，我最终决定在西湖大学开始我的下一个阶段。感谢在保研过程中非常多的老师、同学、学长学姐给了我很多建议和帮助。希望我能够不忘初心，终有所得。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/over-the-hills/WIAS.jpg"></p>
+<h2 id="大四计划"><a href="#大四计划" class="headerlink" title="大四计划"></a>大四计划</h2><p>我目前计划是下周前往西湖高等研究院，开始在实验室里实习。还有一周的时间，这一周我计划是加强机器学习基础、调整自己的作息，以及处理完学校的一些事务。</p>
+<p>而在大四这一年，我目前有这样的一些计划：</p>
+<ol>
+<li>打好专业基础和研究基础，包括数学、机器学习的知识和论文阅读笔记等等；</li>
+<li>适应实验室的生活，积极参与研究项目；</li>
+<li>提前准备毕业论文，以寻找未来的研究方向；</li>
+<li>学习英语，可以考虑屠一个雅思/托福/GRE；</li>
+<li>养成并坚持早睡早起的作息习惯，适当注意保养脸和头发:)；</li>
+<li>认真打一次 Kaggle 的正式比赛，争取能够到前 10%，从而对 Python 代码编写、开源框架的使用、数据科学项目的思路以及优化的技巧都有一个极大的锻炼；</li>
+<li>啃完 3-4 本技术书籍，并在 Github 上拥有一个 100+ star 的技术性项目；</li>
+<li>看几本以前想看但是没抽时间看的书，例如《娱乐至死》、《乌合之众》、《我的职业是小说家》、《仿生人会梦见电子羊吗？》等。电影也可以选择性看看，最好能认真写几篇点评:)；</li>
+<li>去武大里没去过的地方看看，计划一场毕业旅行；</li>
+<li>向学长学姐了解博士生的生活，询问他们的规划，构建自己的蓝图。</li>
+</ol>
+<p>其实之前写在博客上的好多计划最后也就执行了大概一半，希望这一次能够努力实现吧。</p>
+<!--## 博士生阶段规划
+
+暂时写不出来了。嘻嘻，主要还是争取很多高质量的 paper，开会 social、交流、合作，增加出国和实习经历吧。
+
+[](https://www.zhihu.com/question/274824864/answer/504505852)-->
 ]]></content>
       <categories>
         <category>翻滚吧大学生</category>
       </categories>
       <tags>
+        <tag>总结</tag>
+        <tag>未来展望</tag>
         <tag>随笔</tag>
-        <tag>花旗杯</tag>
       </tags>
   </entry>
   <entry>
@@ -4034,167 +4034,6 @@ MathJax.Hub.Config({
         <tag>ES 6</tag>
         <tag>《ECMAScript 6 入门》</tag>
         <tag>前端</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>NodeJS 入门笔记</title>
-    <url>/blog/start-to-learn-NodeJS/</url>
-    <content><![CDATA[<p>上学期曾在 NodeJS 的门槛前匆匆一瞥而不得入，暑假终于有大块的时间一次入门。这篇笔记以 <a href="http://nqdeng.github.io/7-days-nodejs/">七天学会NodeJS</a> 为主干，辅以廖雪峰 JavaScript 教程中相关内容以及其他渠道的一些知识整理而成。内容主要是脑图，一部分细碎知识点和代码以文字呈现。</p>
-<p>在学习 NodeJS 过程中，感觉对软件工程基础课程的融会贯通有了更深的理解。作为 JavaScript 的服务器端环境，NodeJS 操作文件、操作进程等功能和上学期的 Unix 课程有着较高的相通性。可惜我 Unix 没有好好听过。网络操作的内容则和 HTTP 以及 Socket 协议的知识紧密联系，这些大概在大三下学期的计算机网络课程中。到时要督促自己按时到勤认真听课了。</p>
-<p>虽然总觉得大学授课的水平参差不齐，课程内容可能重要性也分三六九等，但是回头才发现全面的知识体系对今后学习的帮助，不管哪方面知识都是可以迁移的。说实话 whu iss 的专业课安排还是比较科学的（不过学长说计算机网络有点晚，应该放到大三上学期）。希望自己珍惜在学校的最后一年多的时间，不管是学业还是别的方面，不要留太多遗憾。</p>
-<p>更新记录：</p>
-<ul>
-<li>17.08.30 根据《深入浅出 Node.js》的笔记，对”NodeJS 应用领域及特点”部分进行文字补充。</li>
-<li>17.09.02 根据《深入浅出 Node.js》的笔记，对”模块”部分进行文字补充。</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="NodeJS-应用领域及特点"><a href="#NodeJS-应用领域及特点" class="headerlink" title="NodeJS 应用领域及特点"></a>NodeJS 应用领域及特点</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-81b14861f2bc2943.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Node.js+概念一览.png"></p>
-<p>设计高性能 Web 服务器的要点：<strong>事件驱动、非阻塞 I/O</strong>。</p>
-<p>Node 从 Ryan Dahl 一开始设想的 Web 服务器，发展成一个<strong>强制不共享任何资源的单线程、单进程系统</strong>，包含十分适宜网络的库，为构建大型分布式应用程序提供基础设施的<strong>网络应用平台</strong>。</p>
-<h3 id="Node-与浏览器的异同"><a href="#Node-与浏览器的异同" class="headerlink" title="Node 与浏览器的异同"></a>Node 与浏览器的异同</h3><p>Chrome 浏览器除了 V8 作为 JavaScript 引擎外，还有一个 WebKit 布局引擎。</p>
-<p>Node 的结构和 Chrome 十分相似，都是<strong>基于事件驱动的异步架构</strong>。浏览器通过事件驱动来服务界面上的交互，Node 通过事件驱动来服务 I/O。</p>
-<h3 id="Node-的特点"><a href="#Node-的特点" class="headerlink" title="Node 的特点"></a>Node 的特点</h3><h3 id="异步-I-O"><a href="#异步-I-O" class="headerlink" title="异步 I/O"></a>异步 I/O</h3><h4 id="事件与回调函数"><a href="#事件与回调函数" class="headerlink" title="事件与回调函数"></a>事件与回调函数</h4><p>事件的编程方式具有<strong>轻量级</strong>、<strong>松耦合</strong>、<strong>只关注事务点</strong>等优势，但是在多个异步任务的场景下，各事件之间各自独立，如何协作是一个问题。</p>
-<h4 id="单线程"><a href="#单线程" class="headerlink" title="单线程"></a>单线程</h4><p>保持了 JS 在浏览器中单线程的特点。在 Node 中，JS 与其余线程无法共享状态。</p>
-<p>好处：</p>
-<ol>
-<li>不用在意状态同步问题；</li>
-<li>没有死锁；</li>
-<li>没有线程上下文交换带来的性能开销；</li>
-</ol>
-<p>弱点：</p>
-<ol>
-<li>无法利用多核 CPU；</li>
-<li>错误会引起整个应用退出，应用的健壮性值得考验；</li>
-<li>大量计算占用 COU 导致无法继续调用异步 I/O。</li>
-</ol>
-<p>浏览器端，Web Workers 能够创建工作线程进行计算。为了不阻塞主线程，工作线程采用<strong>消息传递</strong>的方式来传递运行结果，使得工作线程不能访问主线程的 UI。</p>
-<p>Node 采用同样的思路解决单线程中大计算量的问题：<strong>child_process</strong>。通过将计算分发到各个子进程，可以将大量计算分解掉，然后再通过进程之间的事件消息传递结果。</p>
-<p>子进程的出现，意味着 Node 可以从容应对单线程在健壮性和无法利用多核 CPU 方面的问题。</p>
-<h4 id="跨平台"><a href="#跨平台" class="headerlink" title="跨平台"></a>跨平台</h4><p>操作系统与 Node 上层模块之间构建了一层平台层架构，即<strong>libuv</strong>。</p>
-<h3 id="Node-的应用场景"><a href="#Node-的应用场景" class="headerlink" title="Node 的应用场景"></a>Node 的应用场景</h3><h4 id="I-O-密集型"><a href="#I-O-密集型" class="headerlink" title="I/O 密集型"></a>I/O 密集型</h4><p>Node 面向网络且擅长并行 I/O，能够有效组织更多的硬件资源。</p>
-<p>I/O 密集的优势在于<strong>Node 利用事件循环的处理能力</strong>（而非为每一个服务启动一个线程），资源占用极少。</p>
-<h4 id="不擅长-CPU-密集型业务？"><a href="#不擅长-CPU-密集型业务？" class="headerlink" title="不擅长 CPU 密集型业务？"></a>不擅长 CPU 密集型业务？</h4><p>由于 JavaScript 单线程的原因，如果有长时间运行的计算（比如大循环），将导致 CPU 时间片不能释放，使得后续 I/O 无法发起。<strong>适当调整和分解大型运算任务</strong>能使运算适时释放，不阻塞 I/O 调用的发起。</p>
-<h4 id="与遗留系统和平共处"><a href="#与遗留系统和平共处" class="headerlink" title="与遗留系统和平共处"></a>与遗留系统和平共处</h4><p>可以将稳定的旧有系统作为后端接口与中间件，而让 Node 将该数据源作为数据接口，发挥异步并行的优势。</p>
-<h4 id="分布式应用"><a href="#分布式应用" class="headerlink" title="分布式应用"></a>分布式应用</h4><h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-a1f50c7c0c750605.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="模块.png"></p>
-<h3 id="使用模块的好处"><a href="#使用模块的好处" class="headerlink" title="使用模块的好处"></a>使用模块的好处</h3><ol>
-<li>大大提高代码的可维护性；</li>
-<li>可以随时引用；</li>
-<li>避免函数名和变量名冲突；</li>
-</ol>
-<h3 id="CommonJS-规范"><a href="#CommonJS-规范" class="headerlink" title="CommonJS 规范"></a>CommonJS 规范</h3><p>CommonJS 主要是在 <strong>Node 服务器端</strong>的规范。意义在于将类聚的方法与变量限定在私有的作用域中，使得用户完全不必考虑变量污染。</p>
-<p>CommonJS 对模块的定义主要分为模块引用、模块定义、模块标识三个部分：</p>
-<h4 id="模块引用"><a href="#模块引用" class="headerlink" title="模块引用"></a>模块引用</h4><p>一个模块要引用其他模块暴露的变量，用<code>var foo = require(&#39;module_name&#39;)</code>就拿到了引用模块的变量。</p>
-<h4 id="模块定义"><a href="#模块定义" class="headerlink" title="模块定义"></a>模块定义</h4><p>上下文提供了 <strong>exports 对象</strong>用于导出当前模块的方法或者变量，并且它是唯一的出口。</p>
-<p>在模块中，还存在一个 <strong>module 对象</strong>，代表<strong>模块自身</strong>，而 exports 是 module 的<strong>属性</strong>。</p>
-<p>一个模块要对外暴露变量（函数也是变量），可以用<code>module.exports = variable;</code>。</p>
-<h4 id="模块标识"><a href="#模块标识" class="headerlink" title="模块标识"></a>模块标识</h4><p>即传递给<code>require()</code>方法的参数。</p>
-<h3 id="模块实现"><a href="#模块实现" class="headerlink" title="模块实现"></a>模块实现</h3><p>在 Node 中引入模块，需要经历如下三个步骤：</p>
-<ol>
-<li>路径分析</li>
-<li>文件定位</li>
-<li>编译执行</li>
-</ol>
-<p>在 Node 中，模块分为 Node 提供的<strong>核心模块</strong>和用户编写的<strong>文件模块</strong>。</p>
-<p><strong>核心模块</strong>部分在 Node 源代码的编译过程中，编译进了<strong>二进制执行文件</strong>。在 Node 进程启动时，部分核心模块就直接加载进内存中。因此可以省略文件定位和编译执行两个步骤，且在路径分析中优先判断，<strong>加载速度最快</strong>。</p>
-<p><strong>文件模块</strong>在<strong>运动时动态加载</strong>，需要完整的路径分析、文件定位、编译执行过程，速度比核心模块慢。</p>
-<h4 id="优先从缓存加载"><a href="#优先从缓存加载" class="headerlink" title="优先从缓存加载"></a>优先从缓存加载</h4><p><strong>模块加载会有缓存</strong>，且其根据<strong>绝对路径识别</strong>。因此同样的模块名放在不同的路径之中多次 require 不会重新加载。</p>
-<p>Node 对引入过的模块都会以<strong>编译和执行后的对象</strong>的形式进行缓存。核心模块和文件模块都采用缓存优先进行二次加载，核心模块的缓存检查先于文件模块。</p>
-<h4 id="路径分析和文件定位"><a href="#路径分析和文件定位" class="headerlink" title="路径分析和文件定位"></a>路径分析和文件定位</h4><p><strong>模块路径</strong>是 Node 在定位文件模块的具体文件时制定的查找策略，具体表现为一个路径组成的数组。</p>
-<p>其生成规则为从当前文件目录下的 node_modules 目录开始，沿路径向上逐级递归，直到根目录下的 node_modules 目录。</p>
-<p>Node 在当前目录下查找 package.json，通过<code>JSON.parse()</code>解析出包描述对象，从中取出<code>main</code>属性制定的文件名进行定位。</p>
-<h4 id="模块编译"><a href="#模块编译" class="headerlink" title="模块编译"></a>模块编译</h4><ul>
-<li>.js 文件。通过 fs 模块同步读取文件后编译执行。</li>
-<li>.node 文件。这是用 C/C++ 编写的扩展文件，通过<code>dlopen()</code>方法加载最后编译生成的文件。</li>
-<li>.json 文件。通过 fs 模块同步读取文件后，用<code>JSON.parse()</code>解析返回结果。</li>
-<li>其余扩展名。它们都被当作 .js 文件载入。</li>
-</ul>
-<p>每一个编译成功的模块都会将其<strong>文件路径作为索引</strong>缓存在 <strong>Module._cache 对象</strong>上，以提高二次引入的性能。</p>
-<p><strong>如果要达成 require 引入一个类的效果，请赋值给 module.exports 对象。</strong></p>
-<h3 id="前后端共用模块"><a href="#前后端共用模块" class="headerlink" title="前后端共用模块"></a>前后端共用模块</h3><p>浏览器端的 JavaScript 需要经历从同一个服务器端分发到多个客户端执行，瓶颈在于<strong>带宽</strong>；而服务器端 JavaScript 则是相同的代码需要多次执行，瓶颈在于 <strong>CPU 和内存等资源</strong>。</p>
-<p>CommonJS 是<strong>同步加载</strong>的，在服务器端模块文件一般存放在本地，再加上有缓存，加载速度很快。而在浏览器端就可能导致“假死”，因此浏览器端采用另一种异步加载方式 - AMD（Asynchronous Module Definition，异步模块定义）规范。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">define(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> <span class="built_in">exports</span> = &#123;&#125;</span><br><span class="line">  <span class="built_in">exports</span>.sayHello = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    alert(<span class="string">&#x27;Hello from module: &#x27;</span> + <span class="built_in">module</span>.id)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">exports</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>可以看到 AMD 的模块定义与 Node 模块相似，不同之处在于 <strong>AMD 模块需要用</strong><code>define</code><strong>来明确定义一个模块</strong>，而在 Node 实现中是隐式包装的；以及内容需要通过<strong>返回</strong>的方式实现导出。</p>
-<p>想要进一步了解，可参考 <a href="www.ruanyifeng.com/blog/2012/10/asynchronous_module_definition.html">Javascript模块化编程（二）：AMD规范 - 阮一峰的网络日志</a>。</p>
-<h3 id="深入了解模块原理"><a href="#深入了解模块原理" class="headerlink" title="深入了解模块原理"></a>深入了解模块原理</h3><p>Node.js 的“模块”功能利用了 JavaScript 函数式编程的特性，通过<strong>闭包</strong>实现。</p>
-<h2 id="代码的组织和部署"><a href="#代码的组织和部署" class="headerlink" title="代码的组织和部署"></a>代码的组织和部署</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-829fee6dc736dbd2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="代码的组织和部署.png"></p>
-<h3 id="包描述文件中的部分属性"><a href="#包描述文件中的部分属性" class="headerlink" title="包描述文件中的部分属性"></a>包描述文件中的部分属性</h3><ul>
-<li>maintainers。包维护者列表，npm 通过该属性进行权限认证。</li>
-<li>bin。将包作为命令行工具使用，需配置好 bin 字段，通过<code>npm install package_name -g</code>命令将脚本添加到执行路径中。之后可以在命令行中直接执行。例如：<code>&quot;bin&quot;: &#123; &quot;express&quot;: &quot;./bin/express&quot; &#125;</code></li>
-</ul>
-<h3 id="全局模式安装"><a href="#全局模式安装" class="headerlink" title="全局模式安装"></a>全局模式安装</h3><p><code>-g</code>将一个包安装为全局可用的可执行命令。通过全局模式安装的所有模块包都被安装进了一个统一的目录下，这个目录可以通过如下方式推算出来：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">path.resolve(process.execPath, <span class="string">&#x27;..&#x27;</span>, <span class="string">&#x27;..&#x27;</span>, <span class="string">&#x27;lib&#x27;</span>, <span class="string">&#x27;node_modules&#x27;</span>);</span><br></pre></td></tr></table></figure>
-
-<h2 id="基本模块"><a href="#基本模块" class="headerlink" title="基本模块"></a>基本模块</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-a0e8821626a2e3cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="基本模块.png"></p>
-<p>Node.js 内置的常用模块是为了实现基本的服务器功能，底层代码是用 C/C++ 在 Node.js 运行环境中实现。</p>
-<h3 id="global"><a href="#global" class="headerlink" title="global"></a>global</h3><p>Node.js 环境中唯一的全局变量。</p>
-<h3 id="process"><a href="#process" class="headerlink" title="process"></a>process</h3><p>代表当前 Node.js 进程。</p>
-<h3 id="判断-JavaScript-执行环境"><a href="#判断-JavaScript-执行环境" class="headerlink" title="判断 JavaScript 执行环境"></a>判断 JavaScript 执行环境</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">typeof</span>(<span class="built_in">window</span>) === <span class="string">&#x27;undefined&#x27;</span>)&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;node.js&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;browser&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-f46374c76abbbe98.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="文件操作.png"></p>
-<h3 id="不同系统下路径的标准化"><a href="#不同系统下路径的标准化" class="headerlink" title="不同系统下路径的标准化"></a>不同系统下路径的标准化</h3><p>标准化之后的路径里的斜杠在 Windows 系统下是<code>\</code>，而在 Linux 系统下是<code>/</code>。如果想保证任何系统下都使用<code>/</code>作为路径分隔符的话，需要用<code>.replace(/\\/g, &#39;/&#39;)</code>再替换一下标准路径。</p>
-<h3 id="遍历目录"><a href="#遍历目录" class="headerlink" title="遍历目录"></a>遍历目录</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 同步遍历获取某一文件夹下的所有文件，用 callback 处理</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">travel</span>(<span class="params">dir, callback</span>)</span>&#123;</span><br><span class="line">  fs.readdirSync(dir).forEach(<span class="function">(<span class="params">file</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> pathname = path.join(dir, file);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(fs.statSync(pathname).isDirectory())&#123;</span><br><span class="line">      travel(pathname, callback)；</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      callback(pathname);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 异步遍历</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">travel</span>(<span class="params">dir, callback, finish</span>)</span>&#123;</span><br><span class="line">  fs.readdir(dir, <span class="function">(<span class="params">err, files</span>) =&gt;</span> &#123;</span><br><span class="line">    (<span class="function"><span class="keyword">function</span> <span class="title">next</span>(<span class="params">i</span>)</span>&#123;</span><br><span class="line">      <span class="keyword">if</span>(i &lt; files.length) &#123;</span><br><span class="line">        <span class="keyword">var</span> pathname = path.join(dir, files[i]);</span><br><span class="line"></span><br><span class="line">        fs.stat(pathname, <span class="function">(<span class="params">err, stats</span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span>(stats.isDirectory())&#123;</span><br><span class="line">            travel(pathname, callback, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">              next(i + <span class="number">1</span>);</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            callback(pathname, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">              next(i + <span class="number">1</span>);</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        finish &amp;&amp; finish();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)(<span class="number">0</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="网络操作"><a href="#网络操作" class="headerlink" title="网络操作"></a>网络操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-439f836f1c5033bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="网络操作.png"></p>
-<h3 id="监听端口的权限问题"><a href="#监听端口的权限问题" class="headerlink" title="监听端口的权限问题"></a>监听端口的权限问题</h3><p>在 Linux 系统下，监听 1024 以下端口需要 root 权限。因此，如果想监听 80 或 443 端口的话，需要使用 sudo 命令启动程序。</p>
-<h3 id="URL-的完整组成"><a href="#URL-的完整组成" class="headerlink" title="URL 的完整组成"></a>URL 的完整组成</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">                           href</span><br><span class="line"> -----------------------------------------------------------------</span><br><span class="line">                            host              path</span><br><span class="line">                      --------------- ----------------------------</span><br><span class="line"> http: // user:pass @ host.com : 8080 /p/a/t/h ?query=string #hash</span><br><span class="line"> -----    ---------   --------   ---- -------- ------------- -----</span><br><span class="line">protocol     auth     hostname   port pathname     search     hash</span><br><span class="line">                                                ------------</span><br><span class="line">                                                   query</span><br></pre></td></tr></table></figure>
-
-<h3 id="网络操作常见问题"><a href="#网络操作常见问题" class="headerlink" title="网络操作常见问题"></a>网络操作常见问题</h3><ul>
-<li><p>问： 为什么通过<code>headers</code>对象访问到的 HTTP 请求头或响应头字段不是驼峰的？</p>
-<p>  答： 从规范上讲，HTTP 请求头和响应头字段都应该是驼峰的。但现实中不是每个 HTTP 服务端或客户端程序都严格遵循规范，所以 NodeJS 在处理从别的客户端或服务端收到的头字段时，都统一地转换为了小写字母格式，以便开发者能使用统一的方式来访问头字段，例如<code>headers[&#39;content-length&#39;]</code>。</p>
-</li>
-<li><p>问： 为什么<code>http</code>模块创建的 HTTP 服务器返回的响应是<code>chunked</code>传输方式的？</p>
-<p>  答： 因为默认情况下，使用<code>.writeHead</code>方法写入响应头后，允许使用<code>.write</code>方法写入任意长度的响应体数据，并使用<code>.end</code>方法结束一个响应。由于响应体数据长度不确定，因此 NodeJS 自动在响应头里添加了<code>Transfer-Encoding: chunked</code>字段，并采用<code>chunked</code>传输方式。但是当响应体数据长度确定时，可使用<code>.writeHead</code>方法在响应头里加上<code>Content-Length</code>字段，这样做之后 NodeJS 就不会自动添加<code>Transfer-Encoding</code>字段和使用<code>chunked</code>传输方式。</p>
-</li>
-<li><p>问： 为什么使用<code>http</code>模块发起 HTTP 客户端请求时，有时候会发生<code>socket hang up</code>错误？</p>
-<p>  答： 发起客户端 HTTP 请求前需要先创建一个客户端。<code>http</code>模块提供了一个全局客户端<code>http.globalAgent</code>，可以让我们使用<code>.request</code>或<code>.get</code>方法时不用手动创建客户端。但是全局客户端默认只允许5个并发 Socket 连接，当某一个时刻 HTTP 客户端请求创建过多，超过这个数字时，就会发生<code>socket hang up</code>错误。解决方法也很简单，通过<code>http.globalAgent.maxSockets</code>属性把这个数字改大些即可。另外，<code>https</code>模块遇到这个问题时也一样通过<code>https.globalAgent.maxSockets</code>属性来处理。</p>
-</li>
-</ul>
-<h2 id="进程操作"><a href="#进程操作" class="headerlink" title="进程操作"></a>进程操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-d48f8689170c4f6f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="进程管理.png"></p>
-<h3 id="降权"><a href="#降权" class="headerlink" title="降权"></a>降权</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 降权</span></span><br><span class="line">http.createServer(callback).listen(<span class="number">80</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> env = process.env,</span><br><span class="line">      uid = <span class="built_in">parseInt</span>(env[<span class="string">&#x27;SUDO_UID&#x27;</span>] || process.getuid(), <span class="number">10</span>);</span><br><span class="line">      gid = <span class="built_in">parseInt</span>(env[<span class="string">&#x27;SUDO_GID&#x27;</span>] || process.getgid(), <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">  process.setgid(gid);</span><br><span class="line">  process.setuid(uid);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>注意点：</p>
-<ol>
-<li><p>如果是通过<code>sudo</code>获取 root 权限的，运行程序的用户的 UID 和 GID 保存在环境变量<code>SUDO_UID</code>和<code>SUDO_GID</code>里边。如果是通过<code>chmod +s</code>方式获取 root 权限的，运行程序的用户的 UID 和 GID 可直接通过<code>process.getuid</code>和<code>process.getgid</code>方法获取。</p>
-</li>
-<li><p><code>process.setuid</code>和<code>process.setgid</code>方法只接受<code>number</code>类型的参数。</p>
-</li>
-<li><p>降权时必须先降 GID 再降 UID，否则顺序反过来的话就没权限更改程序的 GID 了。</p>
-</li>
-</ol>
-<h3 id="进程间通讯"><a href="#进程间通讯" class="headerlink" title="进程间通讯"></a>进程间通讯</h3><p>如果父子进程都是 NodeJS 进程，就可以通过 IPC（进程间通讯）双向传递数据。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* parent.js */</span></span><br><span class="line"><span class="comment">// 在 options.stdio 字段中通过 ipc 开启一条 IPC 通道</span></span><br><span class="line"><span class="keyword">var</span> child = child_process.spawn(<span class="string">&#x27;node&#x27;</span>, [<span class="string">&#x27;child.js&#x27;</span>], &#123;</span><br><span class="line">  <span class="attr">stdio</span>: [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="string">&#x27;ipc&#x27;</span>]</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">child.on(<span class="string">&#x27;message&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(msg);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 给子进程发送消息</span></span><br><span class="line">child.send(&#123; <span class="attr">hello</span>: <span class="string">&#x27;hello&#x27;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* child.js */</span></span><br><span class="line">process.on(<span class="string">&#x27;message&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  msg.hello = msg.hello.toUpperCase();</span><br><span class="line">  process.send(msg);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>数据在传递过程中，会先在发送端使用<code>JSON.stringify</code>方法序列化，再在接收端使用<code>JSON.parse</code>方法反序列化。</p>
-<h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 守护子进程</span></span><br><span class="line"><span class="comment">/* daemon.js */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">spawn</span>(<span class="params">mainModule</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> worker = child_process.spawn(<span class="string">&#x27;node&#x27;</span>, [mainModule]);</span><br><span class="line"></span><br><span class="line">  worker.on(<span class="string">&#x27;exit&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span>(code !== <span class="number">0</span>)&#123;</span><br><span class="line">      spawn(mainModule);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">spawn(<span class="string">&#x27;worker.js&#x27;</span>);</span><br></pre></td></tr></table></figure>
-
-<h2 id="异步编程"><a href="#异步编程" class="headerlink" title="异步编程"></a>异步编程</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-57c2d4c89e36c4d3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="异步编程.png"></p>
-<h3 id="domain-捕获异常"><a href="#domain-捕获异常" class="headerlink" title="domain 捕获异常"></a>domain 捕获异常</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">async</span>(<span class="params">request, callback</span>)</span>&#123;</span><br><span class="line">  <span class="comment">// Do something</span></span><br><span class="line">  asyncA(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// Do something</span></span><br><span class="line">    asyncB(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// Do something</span></span><br><span class="line">      asyncC(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// Do something</span></span><br><span class="line">        callback(data);</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">http.createServer(<span class="function">(<span class="params">request, response</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> d = domain.create();</span><br><span class="line"></span><br><span class="line">  d.on(<span class="string">&#x27;error&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    response.writeHead(<span class="number">500</span>);</span><br><span class="line">    response.end();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  d.run(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">async</span>(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      response.writeHead(<span class="number">200</span>);</span><br><span class="line">      response.end(data);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="陷阱"><a href="#陷阱" class="headerlink" title="陷阱"></a>陷阱</h3><p>使用<code>uncaughtException</code>或<code>domain</code>捕获异常，代码执行路径里涉及到了 C/C++ 部分的代码时，如果不能确定是否会导致内存泄漏等问题，最好在处理完异常后重启程序比较妥当。而使用<code>try</code>语句捕获异常时一般捕获到的都是 JS 本身的异常，不用担心上述问题。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>NodeJS 的学习其实主要分为三块：</p>
-<ol>
-<li>JavaScript 语言本身。要学会借助 <a href="https://www.ecma-international.org/publications/standards/Standard.htm">ECMAScript 规范</a> 加深自己的理解。</li>
-<li>NodeJS 的 API。要熟悉官方 API 文档，主要是熟悉 NodeJS 提供的功能以及知道该查询文档的哪块地方。不推荐死记硬背，因为新版本会更改和弃用部分 API。</li>
-<li>生态圈中的各种三方库。要学习检索、过滤、去其糟粕取其精华，利用但不迷信。</li>
-</ol>
-<p>而在 NodeJS 开发时，首先要有一个全局的设计，再再实现的过程中对之间忽略掉的细节进行设计上的改进，为二次迭代做准备。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>除开文章开头提到的资料，结语部分参考了 <a href="https://mp.weixin.qq.com/s?__biz=MzIyMjYyMzg3MA==&amp;mid=2247484289&amp;idx=1&amp;sn=9e7f6c0c5e6707c8b3d0a73b36bc00c1&amp;chksm=e82be290df5c6b86e2be66f2eea6ee88be1449c3b40d8ebf40932798f95e651fbaf49ca698d0&amp;mpshare=1&amp;scene=1&amp;srcid=0727qbaSu9gx8oduOdFPTUoU#">当我们学习 Node.js 时，我们在学习什么？</a>。</p>
-<h3 id="下一步学习"><a href="#下一步学习" class="headerlink" title="下一步学习"></a>下一步学习</h3><ol>
-<li><a href="https://github.com/alsotang/node-lessons">《Node.js 包教不包会》 by alsotang</a></li>
-<li>《深入浅出Node.js》</li>
-<li>自己撸个爬虫</li>
-</ol>
-]]></content>
-      <categories>
-        <category>NodeJS 学习笔记</category>
-      </categories>
-      <tags>
-        <tag>读书笔记</tag>
-        <tag>JavaScipt</tag>
-        <tag>NodeJS</tag>
-        <tag>脑图</tag>
       </tags>
   </entry>
   <entry>
@@ -4533,6 +4372,167 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
+    <title>NodeJS 入门笔记</title>
+    <url>/blog/start-to-learn-NodeJS/</url>
+    <content><![CDATA[<p>上学期曾在 NodeJS 的门槛前匆匆一瞥而不得入，暑假终于有大块的时间一次入门。这篇笔记以 <a href="http://nqdeng.github.io/7-days-nodejs/">七天学会NodeJS</a> 为主干，辅以廖雪峰 JavaScript 教程中相关内容以及其他渠道的一些知识整理而成。内容主要是脑图，一部分细碎知识点和代码以文字呈现。</p>
+<p>在学习 NodeJS 过程中，感觉对软件工程基础课程的融会贯通有了更深的理解。作为 JavaScript 的服务器端环境，NodeJS 操作文件、操作进程等功能和上学期的 Unix 课程有着较高的相通性。可惜我 Unix 没有好好听过。网络操作的内容则和 HTTP 以及 Socket 协议的知识紧密联系，这些大概在大三下学期的计算机网络课程中。到时要督促自己按时到勤认真听课了。</p>
+<p>虽然总觉得大学授课的水平参差不齐，课程内容可能重要性也分三六九等，但是回头才发现全面的知识体系对今后学习的帮助，不管哪方面知识都是可以迁移的。说实话 whu iss 的专业课安排还是比较科学的（不过学长说计算机网络有点晚，应该放到大三上学期）。希望自己珍惜在学校的最后一年多的时间，不管是学业还是别的方面，不要留太多遗憾。</p>
+<p>更新记录：</p>
+<ul>
+<li>17.08.30 根据《深入浅出 Node.js》的笔记，对”NodeJS 应用领域及特点”部分进行文字补充。</li>
+<li>17.09.02 根据《深入浅出 Node.js》的笔记，对”模块”部分进行文字补充。</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="NodeJS-应用领域及特点"><a href="#NodeJS-应用领域及特点" class="headerlink" title="NodeJS 应用领域及特点"></a>NodeJS 应用领域及特点</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-81b14861f2bc2943.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Node.js+概念一览.png"></p>
+<p>设计高性能 Web 服务器的要点：<strong>事件驱动、非阻塞 I/O</strong>。</p>
+<p>Node 从 Ryan Dahl 一开始设想的 Web 服务器，发展成一个<strong>强制不共享任何资源的单线程、单进程系统</strong>，包含十分适宜网络的库，为构建大型分布式应用程序提供基础设施的<strong>网络应用平台</strong>。</p>
+<h3 id="Node-与浏览器的异同"><a href="#Node-与浏览器的异同" class="headerlink" title="Node 与浏览器的异同"></a>Node 与浏览器的异同</h3><p>Chrome 浏览器除了 V8 作为 JavaScript 引擎外，还有一个 WebKit 布局引擎。</p>
+<p>Node 的结构和 Chrome 十分相似，都是<strong>基于事件驱动的异步架构</strong>。浏览器通过事件驱动来服务界面上的交互，Node 通过事件驱动来服务 I/O。</p>
+<h3 id="Node-的特点"><a href="#Node-的特点" class="headerlink" title="Node 的特点"></a>Node 的特点</h3><h3 id="异步-I-O"><a href="#异步-I-O" class="headerlink" title="异步 I/O"></a>异步 I/O</h3><h4 id="事件与回调函数"><a href="#事件与回调函数" class="headerlink" title="事件与回调函数"></a>事件与回调函数</h4><p>事件的编程方式具有<strong>轻量级</strong>、<strong>松耦合</strong>、<strong>只关注事务点</strong>等优势，但是在多个异步任务的场景下，各事件之间各自独立，如何协作是一个问题。</p>
+<h4 id="单线程"><a href="#单线程" class="headerlink" title="单线程"></a>单线程</h4><p>保持了 JS 在浏览器中单线程的特点。在 Node 中，JS 与其余线程无法共享状态。</p>
+<p>好处：</p>
+<ol>
+<li>不用在意状态同步问题；</li>
+<li>没有死锁；</li>
+<li>没有线程上下文交换带来的性能开销；</li>
+</ol>
+<p>弱点：</p>
+<ol>
+<li>无法利用多核 CPU；</li>
+<li>错误会引起整个应用退出，应用的健壮性值得考验；</li>
+<li>大量计算占用 COU 导致无法继续调用异步 I/O。</li>
+</ol>
+<p>浏览器端，Web Workers 能够创建工作线程进行计算。为了不阻塞主线程，工作线程采用<strong>消息传递</strong>的方式来传递运行结果，使得工作线程不能访问主线程的 UI。</p>
+<p>Node 采用同样的思路解决单线程中大计算量的问题：<strong>child_process</strong>。通过将计算分发到各个子进程，可以将大量计算分解掉，然后再通过进程之间的事件消息传递结果。</p>
+<p>子进程的出现，意味着 Node 可以从容应对单线程在健壮性和无法利用多核 CPU 方面的问题。</p>
+<h4 id="跨平台"><a href="#跨平台" class="headerlink" title="跨平台"></a>跨平台</h4><p>操作系统与 Node 上层模块之间构建了一层平台层架构，即<strong>libuv</strong>。</p>
+<h3 id="Node-的应用场景"><a href="#Node-的应用场景" class="headerlink" title="Node 的应用场景"></a>Node 的应用场景</h3><h4 id="I-O-密集型"><a href="#I-O-密集型" class="headerlink" title="I/O 密集型"></a>I/O 密集型</h4><p>Node 面向网络且擅长并行 I/O，能够有效组织更多的硬件资源。</p>
+<p>I/O 密集的优势在于<strong>Node 利用事件循环的处理能力</strong>（而非为每一个服务启动一个线程），资源占用极少。</p>
+<h4 id="不擅长-CPU-密集型业务？"><a href="#不擅长-CPU-密集型业务？" class="headerlink" title="不擅长 CPU 密集型业务？"></a>不擅长 CPU 密集型业务？</h4><p>由于 JavaScript 单线程的原因，如果有长时间运行的计算（比如大循环），将导致 CPU 时间片不能释放，使得后续 I/O 无法发起。<strong>适当调整和分解大型运算任务</strong>能使运算适时释放，不阻塞 I/O 调用的发起。</p>
+<h4 id="与遗留系统和平共处"><a href="#与遗留系统和平共处" class="headerlink" title="与遗留系统和平共处"></a>与遗留系统和平共处</h4><p>可以将稳定的旧有系统作为后端接口与中间件，而让 Node 将该数据源作为数据接口，发挥异步并行的优势。</p>
+<h4 id="分布式应用"><a href="#分布式应用" class="headerlink" title="分布式应用"></a>分布式应用</h4><h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-a1f50c7c0c750605.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="模块.png"></p>
+<h3 id="使用模块的好处"><a href="#使用模块的好处" class="headerlink" title="使用模块的好处"></a>使用模块的好处</h3><ol>
+<li>大大提高代码的可维护性；</li>
+<li>可以随时引用；</li>
+<li>避免函数名和变量名冲突；</li>
+</ol>
+<h3 id="CommonJS-规范"><a href="#CommonJS-规范" class="headerlink" title="CommonJS 规范"></a>CommonJS 规范</h3><p>CommonJS 主要是在 <strong>Node 服务器端</strong>的规范。意义在于将类聚的方法与变量限定在私有的作用域中，使得用户完全不必考虑变量污染。</p>
+<p>CommonJS 对模块的定义主要分为模块引用、模块定义、模块标识三个部分：</p>
+<h4 id="模块引用"><a href="#模块引用" class="headerlink" title="模块引用"></a>模块引用</h4><p>一个模块要引用其他模块暴露的变量，用<code>var foo = require(&#39;module_name&#39;)</code>就拿到了引用模块的变量。</p>
+<h4 id="模块定义"><a href="#模块定义" class="headerlink" title="模块定义"></a>模块定义</h4><p>上下文提供了 <strong>exports 对象</strong>用于导出当前模块的方法或者变量，并且它是唯一的出口。</p>
+<p>在模块中，还存在一个 <strong>module 对象</strong>，代表<strong>模块自身</strong>，而 exports 是 module 的<strong>属性</strong>。</p>
+<p>一个模块要对外暴露变量（函数也是变量），可以用<code>module.exports = variable;</code>。</p>
+<h4 id="模块标识"><a href="#模块标识" class="headerlink" title="模块标识"></a>模块标识</h4><p>即传递给<code>require()</code>方法的参数。</p>
+<h3 id="模块实现"><a href="#模块实现" class="headerlink" title="模块实现"></a>模块实现</h3><p>在 Node 中引入模块，需要经历如下三个步骤：</p>
+<ol>
+<li>路径分析</li>
+<li>文件定位</li>
+<li>编译执行</li>
+</ol>
+<p>在 Node 中，模块分为 Node 提供的<strong>核心模块</strong>和用户编写的<strong>文件模块</strong>。</p>
+<p><strong>核心模块</strong>部分在 Node 源代码的编译过程中，编译进了<strong>二进制执行文件</strong>。在 Node 进程启动时，部分核心模块就直接加载进内存中。因此可以省略文件定位和编译执行两个步骤，且在路径分析中优先判断，<strong>加载速度最快</strong>。</p>
+<p><strong>文件模块</strong>在<strong>运动时动态加载</strong>，需要完整的路径分析、文件定位、编译执行过程，速度比核心模块慢。</p>
+<h4 id="优先从缓存加载"><a href="#优先从缓存加载" class="headerlink" title="优先从缓存加载"></a>优先从缓存加载</h4><p><strong>模块加载会有缓存</strong>，且其根据<strong>绝对路径识别</strong>。因此同样的模块名放在不同的路径之中多次 require 不会重新加载。</p>
+<p>Node 对引入过的模块都会以<strong>编译和执行后的对象</strong>的形式进行缓存。核心模块和文件模块都采用缓存优先进行二次加载，核心模块的缓存检查先于文件模块。</p>
+<h4 id="路径分析和文件定位"><a href="#路径分析和文件定位" class="headerlink" title="路径分析和文件定位"></a>路径分析和文件定位</h4><p><strong>模块路径</strong>是 Node 在定位文件模块的具体文件时制定的查找策略，具体表现为一个路径组成的数组。</p>
+<p>其生成规则为从当前文件目录下的 node_modules 目录开始，沿路径向上逐级递归，直到根目录下的 node_modules 目录。</p>
+<p>Node 在当前目录下查找 package.json，通过<code>JSON.parse()</code>解析出包描述对象，从中取出<code>main</code>属性制定的文件名进行定位。</p>
+<h4 id="模块编译"><a href="#模块编译" class="headerlink" title="模块编译"></a>模块编译</h4><ul>
+<li>.js 文件。通过 fs 模块同步读取文件后编译执行。</li>
+<li>.node 文件。这是用 C/C++ 编写的扩展文件，通过<code>dlopen()</code>方法加载最后编译生成的文件。</li>
+<li>.json 文件。通过 fs 模块同步读取文件后，用<code>JSON.parse()</code>解析返回结果。</li>
+<li>其余扩展名。它们都被当作 .js 文件载入。</li>
+</ul>
+<p>每一个编译成功的模块都会将其<strong>文件路径作为索引</strong>缓存在 <strong>Module._cache 对象</strong>上，以提高二次引入的性能。</p>
+<p><strong>如果要达成 require 引入一个类的效果，请赋值给 module.exports 对象。</strong></p>
+<h3 id="前后端共用模块"><a href="#前后端共用模块" class="headerlink" title="前后端共用模块"></a>前后端共用模块</h3><p>浏览器端的 JavaScript 需要经历从同一个服务器端分发到多个客户端执行，瓶颈在于<strong>带宽</strong>；而服务器端 JavaScript 则是相同的代码需要多次执行，瓶颈在于 <strong>CPU 和内存等资源</strong>。</p>
+<p>CommonJS 是<strong>同步加载</strong>的，在服务器端模块文件一般存放在本地，再加上有缓存，加载速度很快。而在浏览器端就可能导致“假死”，因此浏览器端采用另一种异步加载方式 - AMD（Asynchronous Module Definition，异步模块定义）规范。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">define(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> <span class="built_in">exports</span> = &#123;&#125;</span><br><span class="line">  <span class="built_in">exports</span>.sayHello = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    alert(<span class="string">&#x27;Hello from module: &#x27;</span> + <span class="built_in">module</span>.id)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">exports</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 AMD 的模块定义与 Node 模块相似，不同之处在于 <strong>AMD 模块需要用</strong><code>define</code><strong>来明确定义一个模块</strong>，而在 Node 实现中是隐式包装的；以及内容需要通过<strong>返回</strong>的方式实现导出。</p>
+<p>想要进一步了解，可参考 <a href="www.ruanyifeng.com/blog/2012/10/asynchronous_module_definition.html">Javascript模块化编程（二）：AMD规范 - 阮一峰的网络日志</a>。</p>
+<h3 id="深入了解模块原理"><a href="#深入了解模块原理" class="headerlink" title="深入了解模块原理"></a>深入了解模块原理</h3><p>Node.js 的“模块”功能利用了 JavaScript 函数式编程的特性，通过<strong>闭包</strong>实现。</p>
+<h2 id="代码的组织和部署"><a href="#代码的组织和部署" class="headerlink" title="代码的组织和部署"></a>代码的组织和部署</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-829fee6dc736dbd2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="代码的组织和部署.png"></p>
+<h3 id="包描述文件中的部分属性"><a href="#包描述文件中的部分属性" class="headerlink" title="包描述文件中的部分属性"></a>包描述文件中的部分属性</h3><ul>
+<li>maintainers。包维护者列表，npm 通过该属性进行权限认证。</li>
+<li>bin。将包作为命令行工具使用，需配置好 bin 字段，通过<code>npm install package_name -g</code>命令将脚本添加到执行路径中。之后可以在命令行中直接执行。例如：<code>&quot;bin&quot;: &#123; &quot;express&quot;: &quot;./bin/express&quot; &#125;</code></li>
+</ul>
+<h3 id="全局模式安装"><a href="#全局模式安装" class="headerlink" title="全局模式安装"></a>全局模式安装</h3><p><code>-g</code>将一个包安装为全局可用的可执行命令。通过全局模式安装的所有模块包都被安装进了一个统一的目录下，这个目录可以通过如下方式推算出来：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">path.resolve(process.execPath, <span class="string">&#x27;..&#x27;</span>, <span class="string">&#x27;..&#x27;</span>, <span class="string">&#x27;lib&#x27;</span>, <span class="string">&#x27;node_modules&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="基本模块"><a href="#基本模块" class="headerlink" title="基本模块"></a>基本模块</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-a0e8821626a2e3cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="基本模块.png"></p>
+<p>Node.js 内置的常用模块是为了实现基本的服务器功能，底层代码是用 C/C++ 在 Node.js 运行环境中实现。</p>
+<h3 id="global"><a href="#global" class="headerlink" title="global"></a>global</h3><p>Node.js 环境中唯一的全局变量。</p>
+<h3 id="process"><a href="#process" class="headerlink" title="process"></a>process</h3><p>代表当前 Node.js 进程。</p>
+<h3 id="判断-JavaScript-执行环境"><a href="#判断-JavaScript-执行环境" class="headerlink" title="判断 JavaScript 执行环境"></a>判断 JavaScript 执行环境</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">typeof</span>(<span class="built_in">window</span>) === <span class="string">&#x27;undefined&#x27;</span>)&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;node.js&#x27;</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;browser&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-f46374c76abbbe98.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="文件操作.png"></p>
+<h3 id="不同系统下路径的标准化"><a href="#不同系统下路径的标准化" class="headerlink" title="不同系统下路径的标准化"></a>不同系统下路径的标准化</h3><p>标准化之后的路径里的斜杠在 Windows 系统下是<code>\</code>，而在 Linux 系统下是<code>/</code>。如果想保证任何系统下都使用<code>/</code>作为路径分隔符的话，需要用<code>.replace(/\\/g, &#39;/&#39;)</code>再替换一下标准路径。</p>
+<h3 id="遍历目录"><a href="#遍历目录" class="headerlink" title="遍历目录"></a>遍历目录</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 同步遍历获取某一文件夹下的所有文件，用 callback 处理</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">travel</span>(<span class="params">dir, callback</span>)</span>&#123;</span><br><span class="line">  fs.readdirSync(dir).forEach(<span class="function">(<span class="params">file</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> pathname = path.join(dir, file);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(fs.statSync(pathname).isDirectory())&#123;</span><br><span class="line">      travel(pathname, callback)；</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      callback(pathname);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 异步遍历</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">travel</span>(<span class="params">dir, callback, finish</span>)</span>&#123;</span><br><span class="line">  fs.readdir(dir, <span class="function">(<span class="params">err, files</span>) =&gt;</span> &#123;</span><br><span class="line">    (<span class="function"><span class="keyword">function</span> <span class="title">next</span>(<span class="params">i</span>)</span>&#123;</span><br><span class="line">      <span class="keyword">if</span>(i &lt; files.length) &#123;</span><br><span class="line">        <span class="keyword">var</span> pathname = path.join(dir, files[i]);</span><br><span class="line"></span><br><span class="line">        fs.stat(pathname, <span class="function">(<span class="params">err, stats</span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span>(stats.isDirectory())&#123;</span><br><span class="line">            travel(pathname, callback, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">              next(i + <span class="number">1</span>);</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            callback(pathname, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">              next(i + <span class="number">1</span>);</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        finish &amp;&amp; finish();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)(<span class="number">0</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="网络操作"><a href="#网络操作" class="headerlink" title="网络操作"></a>网络操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-439f836f1c5033bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="网络操作.png"></p>
+<h3 id="监听端口的权限问题"><a href="#监听端口的权限问题" class="headerlink" title="监听端口的权限问题"></a>监听端口的权限问题</h3><p>在 Linux 系统下，监听 1024 以下端口需要 root 权限。因此，如果想监听 80 或 443 端口的话，需要使用 sudo 命令启动程序。</p>
+<h3 id="URL-的完整组成"><a href="#URL-的完整组成" class="headerlink" title="URL 的完整组成"></a>URL 的完整组成</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">                           href</span><br><span class="line"> -----------------------------------------------------------------</span><br><span class="line">                            host              path</span><br><span class="line">                      --------------- ----------------------------</span><br><span class="line"> http: // user:pass @ host.com : 8080 /p/a/t/h ?query=string #hash</span><br><span class="line"> -----    ---------   --------   ---- -------- ------------- -----</span><br><span class="line">protocol     auth     hostname   port pathname     search     hash</span><br><span class="line">                                                ------------</span><br><span class="line">                                                   query</span><br></pre></td></tr></table></figure>
+
+<h3 id="网络操作常见问题"><a href="#网络操作常见问题" class="headerlink" title="网络操作常见问题"></a>网络操作常见问题</h3><ul>
+<li><p>问： 为什么通过<code>headers</code>对象访问到的 HTTP 请求头或响应头字段不是驼峰的？</p>
+<p>  答： 从规范上讲，HTTP 请求头和响应头字段都应该是驼峰的。但现实中不是每个 HTTP 服务端或客户端程序都严格遵循规范，所以 NodeJS 在处理从别的客户端或服务端收到的头字段时，都统一地转换为了小写字母格式，以便开发者能使用统一的方式来访问头字段，例如<code>headers[&#39;content-length&#39;]</code>。</p>
+</li>
+<li><p>问： 为什么<code>http</code>模块创建的 HTTP 服务器返回的响应是<code>chunked</code>传输方式的？</p>
+<p>  答： 因为默认情况下，使用<code>.writeHead</code>方法写入响应头后，允许使用<code>.write</code>方法写入任意长度的响应体数据，并使用<code>.end</code>方法结束一个响应。由于响应体数据长度不确定，因此 NodeJS 自动在响应头里添加了<code>Transfer-Encoding: chunked</code>字段，并采用<code>chunked</code>传输方式。但是当响应体数据长度确定时，可使用<code>.writeHead</code>方法在响应头里加上<code>Content-Length</code>字段，这样做之后 NodeJS 就不会自动添加<code>Transfer-Encoding</code>字段和使用<code>chunked</code>传输方式。</p>
+</li>
+<li><p>问： 为什么使用<code>http</code>模块发起 HTTP 客户端请求时，有时候会发生<code>socket hang up</code>错误？</p>
+<p>  答： 发起客户端 HTTP 请求前需要先创建一个客户端。<code>http</code>模块提供了一个全局客户端<code>http.globalAgent</code>，可以让我们使用<code>.request</code>或<code>.get</code>方法时不用手动创建客户端。但是全局客户端默认只允许5个并发 Socket 连接，当某一个时刻 HTTP 客户端请求创建过多，超过这个数字时，就会发生<code>socket hang up</code>错误。解决方法也很简单，通过<code>http.globalAgent.maxSockets</code>属性把这个数字改大些即可。另外，<code>https</code>模块遇到这个问题时也一样通过<code>https.globalAgent.maxSockets</code>属性来处理。</p>
+</li>
+</ul>
+<h2 id="进程操作"><a href="#进程操作" class="headerlink" title="进程操作"></a>进程操作</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-d48f8689170c4f6f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="进程管理.png"></p>
+<h3 id="降权"><a href="#降权" class="headerlink" title="降权"></a>降权</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 降权</span></span><br><span class="line">http.createServer(callback).listen(<span class="number">80</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> env = process.env,</span><br><span class="line">      uid = <span class="built_in">parseInt</span>(env[<span class="string">&#x27;SUDO_UID&#x27;</span>] || process.getuid(), <span class="number">10</span>);</span><br><span class="line">      gid = <span class="built_in">parseInt</span>(env[<span class="string">&#x27;SUDO_GID&#x27;</span>] || process.getgid(), <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">  process.setgid(gid);</span><br><span class="line">  process.setuid(uid);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>注意点：</p>
+<ol>
+<li><p>如果是通过<code>sudo</code>获取 root 权限的，运行程序的用户的 UID 和 GID 保存在环境变量<code>SUDO_UID</code>和<code>SUDO_GID</code>里边。如果是通过<code>chmod +s</code>方式获取 root 权限的，运行程序的用户的 UID 和 GID 可直接通过<code>process.getuid</code>和<code>process.getgid</code>方法获取。</p>
+</li>
+<li><p><code>process.setuid</code>和<code>process.setgid</code>方法只接受<code>number</code>类型的参数。</p>
+</li>
+<li><p>降权时必须先降 GID 再降 UID，否则顺序反过来的话就没权限更改程序的 GID 了。</p>
+</li>
+</ol>
+<h3 id="进程间通讯"><a href="#进程间通讯" class="headerlink" title="进程间通讯"></a>进程间通讯</h3><p>如果父子进程都是 NodeJS 进程，就可以通过 IPC（进程间通讯）双向传递数据。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* parent.js */</span></span><br><span class="line"><span class="comment">// 在 options.stdio 字段中通过 ipc 开启一条 IPC 通道</span></span><br><span class="line"><span class="keyword">var</span> child = child_process.spawn(<span class="string">&#x27;node&#x27;</span>, [<span class="string">&#x27;child.js&#x27;</span>], &#123;</span><br><span class="line">  <span class="attr">stdio</span>: [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="string">&#x27;ipc&#x27;</span>]</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">child.on(<span class="string">&#x27;message&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(msg);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 给子进程发送消息</span></span><br><span class="line">child.send(&#123; <span class="attr">hello</span>: <span class="string">&#x27;hello&#x27;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* child.js */</span></span><br><span class="line">process.on(<span class="string">&#x27;message&#x27;</span>, <span class="function">(<span class="params">msg</span>) =&gt;</span> &#123;</span><br><span class="line">  msg.hello = msg.hello.toUpperCase();</span><br><span class="line">  process.send(msg);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>数据在传递过程中，会先在发送端使用<code>JSON.stringify</code>方法序列化，再在接收端使用<code>JSON.parse</code>方法反序列化。</p>
+<h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 守护子进程</span></span><br><span class="line"><span class="comment">/* daemon.js */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">spawn</span>(<span class="params">mainModule</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> worker = child_process.spawn(<span class="string">&#x27;node&#x27;</span>, [mainModule]);</span><br><span class="line"></span><br><span class="line">  worker.on(<span class="string">&#x27;exit&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span>(code !== <span class="number">0</span>)&#123;</span><br><span class="line">      spawn(mainModule);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">spawn(<span class="string">&#x27;worker.js&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="异步编程"><a href="#异步编程" class="headerlink" title="异步编程"></a>异步编程</h2><p><img src="http://upload-images.jianshu.io/upload_images/2702529-57c2d4c89e36c4d3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="异步编程.png"></p>
+<h3 id="domain-捕获异常"><a href="#domain-捕获异常" class="headerlink" title="domain 捕获异常"></a>domain 捕获异常</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">async</span>(<span class="params">request, callback</span>)</span>&#123;</span><br><span class="line">  <span class="comment">// Do something</span></span><br><span class="line">  asyncA(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// Do something</span></span><br><span class="line">    asyncB(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// Do something</span></span><br><span class="line">      asyncC(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// Do something</span></span><br><span class="line">        callback(data);</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">http.createServer(<span class="function">(<span class="params">request, response</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> d = domain.create();</span><br><span class="line"></span><br><span class="line">  d.on(<span class="string">&#x27;error&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    response.writeHead(<span class="number">500</span>);</span><br><span class="line">    response.end();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  d.run(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">async</span>(request, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      response.writeHead(<span class="number">200</span>);</span><br><span class="line">      response.end(data);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="陷阱"><a href="#陷阱" class="headerlink" title="陷阱"></a>陷阱</h3><p>使用<code>uncaughtException</code>或<code>domain</code>捕获异常，代码执行路径里涉及到了 C/C++ 部分的代码时，如果不能确定是否会导致内存泄漏等问题，最好在处理完异常后重启程序比较妥当。而使用<code>try</code>语句捕获异常时一般捕获到的都是 JS 本身的异常，不用担心上述问题。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>NodeJS 的学习其实主要分为三块：</p>
+<ol>
+<li>JavaScript 语言本身。要学会借助 <a href="https://www.ecma-international.org/publications/standards/Standard.htm">ECMAScript 规范</a> 加深自己的理解。</li>
+<li>NodeJS 的 API。要熟悉官方 API 文档，主要是熟悉 NodeJS 提供的功能以及知道该查询文档的哪块地方。不推荐死记硬背，因为新版本会更改和弃用部分 API。</li>
+<li>生态圈中的各种三方库。要学习检索、过滤、去其糟粕取其精华，利用但不迷信。</li>
+</ol>
+<p>而在 NodeJS 开发时，首先要有一个全局的设计，再再实现的过程中对之间忽略掉的细节进行设计上的改进，为二次迭代做准备。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>除开文章开头提到的资料，结语部分参考了 <a href="https://mp.weixin.qq.com/s?__biz=MzIyMjYyMzg3MA==&amp;mid=2247484289&amp;idx=1&amp;sn=9e7f6c0c5e6707c8b3d0a73b36bc00c1&amp;chksm=e82be290df5c6b86e2be66f2eea6ee88be1449c3b40d8ebf40932798f95e651fbaf49ca698d0&amp;mpshare=1&amp;scene=1&amp;srcid=0727qbaSu9gx8oduOdFPTUoU#">当我们学习 Node.js 时，我们在学习什么？</a>。</p>
+<h3 id="下一步学习"><a href="#下一步学习" class="headerlink" title="下一步学习"></a>下一步学习</h3><ol>
+<li><a href="https://github.com/alsotang/node-lessons">《Node.js 包教不包会》 by alsotang</a></li>
+<li>《深入浅出Node.js》</li>
+<li>自己撸个爬虫</li>
+</ol>
+]]></content>
+      <categories>
+        <category>NodeJS 学习笔记</category>
+      </categories>
+      <tags>
+        <tag>读书笔记</tag>
+        <tag>JavaScipt</tag>
+        <tag>NodeJS</tag>
+        <tag>脑图</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>【paper reading】ICLR 2021 论文选读</title>
     <url>/blog/ICLR2021-notes/</url>
     <content><![CDATA[<p>这篇博文简单记录一下我快速阅读 ICLR 2021 其中一些<strong>我感兴趣</strong>的论文时的笔记和感想等。由于论文数量比较多，因此可能后续还会更新。接收列表见 <a href="https://www.paperdigest.org/2021/01/iclr-2021-highlights/">Paper Digest: ICLR 2021 Highlights</a>。</p>
@@ -4569,15 +4569,26 @@ MathJax.Hub.Config({
 </ul>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-ConstellationNet.png"></p>
 <p>本文将特征图上每个位置的局部特征 $u \in R^C$ 进行软聚类，将所有局部特征到所有聚类中心的距离组织为一张距离图 $D \in R^{B \times H \times W \times K}$，之后再将 $D$ 和一个位置编码 $P \in R^{B \times H \times W \times K}$ 相加来作为 query 和 key、$D$ 作为 value 进行多头自注意力运算。上述运算结果和特征图拼接后过 1x1 卷积，从而在骨干网络的每个卷积层后无缝接入 constellation 模型，以结合隐式和显式的 part-based representations。</p>
+<ul>
+<li><a href="https://openreview.net/forum?id=9z_dNsC4B5t">MetaNorm: Learning to Normalize Few-Shot Batches Across Domains</a><br>#meta-learning  #normalization</li>
+</ul>
+<p>本文认为当 batch size 较小或者 distribution shift 较大（训练集的统计数据不适用于测试集）时，batch 的统计数据是不可靠的。因此本文提出一种基于原学习的 batch normaliztion 方法，旨在利用一个神经网络来根据输入的样本生成统计数据来最小化不同 domain 或者 support 和 query 间的 KL 散度。该方法在小样本分类、domain generalization 以及提出的 few-shot domain generalization（meta-train 和 meta-test 每个 episode 中类别不同，每个 episode 内部 support 和 query 的 domain 不同）等任务上普遍优于现有的 normalization 方法。</p>
+<h2 id="Meta-Learning"><a href="#Meta-Learning" class="headerlink" title="Meta Learning"></a>Meta Learning</h2><ul>
+<li><a href="https://openreview.net/forum?id=XOjv2HxIF6i">Unsupervised Meta-Learning through Latent-Space Interpolation in Generative Models</a><br>#unsupervised learning  #generative adversarial networks </li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-latent-space-interpolation-unsupervised-meta-learning.png"></p>
+<p>现有的无监督元学习方法主要依靠包含聚类、数据增强、随机采样等方法来生成合成任务，这些方法的缺点是根据领域的不同，它们需要较大的调整。本文提出使用现成的、预训练好的生成模型，通过在隐式空间在进行插值来生成合成任务。该方法的优点在于基本不需要根据特定领域进行调整，仅有的一些超参数调整也具有可理解性。</p>
+<h2 id="Zero-shot-Learning"><a href="#Zero-shot-Learning" class="headerlink" title="Zero-shot Learning"></a>Zero-shot Learning</h2><ul>
+<li><a href="https://openreview.net/forum?id=TgSVWXw22FQ">Improving Zero-Shot Voice Style Transfer via Disentangled Representation Learning</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-zero-shot-voice-style-transfer.png"></p>
+<p>本文针对在不重新训练模型的情况下迁移到训练期间不可见的发声者风格的任务，认为现有的基于预训练分割编码器或者 AdaIN 的方法都无法较好地分离风格和内容编码。因此，本文最小化风格和内容编码间基于样本的互信息上界，并且最大化两个新的多组互信息下界来增强编码的表示能力。</p>
 <h2 id="DA-DG"><a href="#DA-DG" class="headerlink" title="DA / DG"></a>DA / DG</h2><ul>
 <li><a href="https://openreview.net/forum?id=b9PoimzZFJ">Systematic generalisation with group invariant predictions</a><br>#systematic generalisation  #invariance penalty  #semantic anomaly detection  #domain generalization</li>
 </ul>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICLR21-systematic-generalisation-with-group-invariant-predictions.png"></p>
 <p>本文提出，数据集通常存在和目标变量相关的简单特征（但不健壮）以及更加复杂但是健壮的特征。在三个合成的数据集 coloured-MNIST、COCO-on-colours 和 COCO-on-places 上的实验结果表明，用一个 soft-partition predicting network 来将数据集划分为 majority and minority groups，并且对不同 group 同类样本的特征施加不变性惩罚（例如 KL 散度）有助于模型关注这些更加健壮的特征。</p>
 <p>Spotlight。本文对不同类型的 shift 的划分还是挺有意思的，感觉和一些在视觉上做因果学习的工作在思路上有共通之处。方法上比较简单，可能这就是大巧不工吧。然后我比较关心的问题包括能否在真实数据集上使用这个方法，效果如何？Reviewer 3 也提出了相同的问题，举例问能否在 ImageNet 上找到一个合适的划分。作者的回答是像 ImageNet 这种数据来源丰富、相对杂乱的数据集可能难度比较大，而像医学图像这种数据来源相对单一的就要好一些。</p>
-<!-- (2) 能否在视觉的其他问题上应用该方法，例如目标检测或者语义分割？这个好像还没有评审提出来。 【那我们能不能用呢w】 -->
-
-
 <ul>
 <li><a href="https://openreview.net/forum?id=lQdXeXDoWtI">In Search of Lost Domain Generalization</a><br>#domain generalization  #benchmark</li>
 </ul>
@@ -5136,8 +5147,8 @@ MathJax.Hub.Config({
       <tags>
         <tag>机器学习</tag>
         <tag>自然语言处理</tag>
-        <tag>情感分析</tag>
         <tag>文本分类</tag>
+        <tag>情感分析</tag>
         <tag>情感计算</tag>
       </tags>
   </entry>
