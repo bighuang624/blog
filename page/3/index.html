@@ -162,7 +162,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/blog/archives/">
         
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -175,7 +175,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/blog/tags/">
           
-        <span class="site-state-item-count">129</span>
+        <span class="site-state-item-count">130</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -227,6 +227,103 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/user-authentication-of-behavioral-biometrics-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/blog/user-authentication-of-behavioral-biometrics-notes/" class="post-title-link" itemprop="url">论文综述 - 基于设备行为特征的用户身份认证</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-06-06 17:29:13" itemprop="dateCreated datePublished" datetime="2018-06-06T17:29:13+08:00">2018-06-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-09-06 16:34:38" itemprop="dateModified" datetime="2019-09-06T16:34:38+08:00">2019-09-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>这篇论文综述已经成文比较久了，是四月上旬写成的。“基于设备行为特征的用户身份认证”是朱老师给我的一个题目，希望我能在阅读论文后有一些想法，并做实验去实现。</p>
+<p>这篇文章算是一个阶段性总结，但是我们并没有一个具体的好的 idea，我这学期时间比较紧张，也不太好漫无目的地写程序做实验找实验者得到数据再以此找 idea，因此暂时搁置去做其他的工作。但是也算是我在实验室的工作之一，锻炼了我读论文的能力。希望大四有机会看能不能进一步做出一些成果。</p>
+<p>对了，我知道这不是一篇合格或者说合乎规范的论文综述。</p>
+<h2 id="论文总体背景"><a href="#论文总体背景" class="headerlink" title="论文总体背景"></a>论文总体背景</h2><h3 id="研究背景"><a href="#研究背景" class="headerlink" title="研究背景"></a>研究背景</h3><p>身份认证是指用户声明自己的身份并利用相关特征数据来证实该身份，将该用户的相关特征数据与其声明用户的模板进行比较，是一种一对一的匹配方法。安全的身份认证是保证计算机及网络系统安全的基本前提。现有的身份认证技术主要包括三类，分别利用了不同的信息:</p>
+<ol>
+<li>记忆信息，如密码、PIN 等；</li>
+<li>辅助设备、如 ID 卡、令牌等；</li>
+<li>生物特征，如指纹，虹膜等。</li>
+</ol>
+<p>这些传统的识别技术自身均存有缺陷，如密码难于记忆并容易搞混和泄露，ID 卡需要随身携带且易失窃或失效，生物认证需要额外的硬件设备。鉴于此，研究人员仍然在不断寻找新的身份认证手段和方法。[1]</p>
+<p><strong>基于设备行为特征的用户身份认证</strong>是研究通过键盘、鼠标等计算机输入设备以及触摸屏、陀螺仪等移动终端设备的使用行为特征来识别计算机操作者身份的可行性及相关方法。该研究基于所有用户在设备上进行操作的行为特征不尽相同的<strong>假设</strong>。因为其有着不需要额外的设备、在当前大多数计算机系统中可以直接部署、认证和监控期间对用户几乎无干扰等优点，因此逐渐成为身份认证研究中的新热点。除开网络安全、机器学习，该问题也被归于<strong>生物行为统计学（Behavioral Biometrics）</strong>。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/blog/user-authentication-of-behavioral-biometrics-notes/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1082,96 +1179,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/blog/whu-CIPS-academic-salon/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/kaggle-titanic-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/blog/images/profile.png">
-      <meta itemprop="name" content="Kyon Huang">
-      <meta itemprop="description" content="CS 土博在读">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kyon Huang 的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/blog/kaggle-titanic-1/" class="post-title-link" itemprop="url">Kaggle Titanic 生存预测--特征工程</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-02-26 19:12:03" itemprop="dateCreated datePublished" datetime="2018-02-26T19:12:03+08:00">2018-02-26</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2018-11-07 14:34:52" itemprop="dateModified" datetime="2018-11-07T14:34:52+08:00">2018-11-07</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/blog/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">机器学习笔记</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>注册著名的数据科学竞赛平台 Kaggle 四个多月了，当初是为了要一份数据集，而一直没有参加比赛。这个寒假终于按耐不住，决定拿入门级的 Titanic: Machine Learning from Disaster 打响革命第一枪。</p>
-<p>Titanic 生存预测比赛是一个二分类问题。题目提供了一份乘客名单，包含了乘客的名字、性别、年龄、船票等级等信息，以及是否成功获救的标记，最终需要提交一份对测试集中的乘客是否成功获救的 csv 文件。</p>
-<p>经过了四次提交，最后我的 Public Score 暂时定格在 0.80861，这个成绩目前在前 7%。这篇博文主要简述一下我所做的尝试和改进，并对最后一次换用 XGBoost 所得到的最好成绩的代码进行一个详细的说明，也是对相似题目处理流程的一个总结。</p>
-<p><img src="/images/Titanic-public-score.jpg" alt="Titanic-public-score"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/blog/kaggle-titanic-1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

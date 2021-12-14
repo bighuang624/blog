@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/huang_full.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/huang_full.ico">
+  <link rel="mask-icon" href="/blog/huang_full.ico" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;kyonhuang.top&quot;,&quot;root&quot;:&quot;&#x2F;blog&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;blog&#x2F;images&quot;,&quot;scheme&quot;:&quot;Pisces&quot;,&quot;version&quot;:&quot;8.5.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:false,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;blog&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="根据手头想法的需要，读一读 2021 年顶会顶刊的小样本分割论文。做笔记于此，持续更新。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【paper reading】2021 小样本分割论文选读">
+<meta property="og:url" content="https://kyonhuang.top/blog/few-shot-segmentation-2021/">
+<meta property="og:site_name" content="Kyon Huang 的博客">
+<meta property="og:description" content="根据手头想法的需要，读一读 2021 年顶会顶刊的小样本分割论文。做笔记于此，持续更新。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-figure1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table2.png">
+<meta property="article:published_time" content="2021-12-14T08:39:35.000Z">
+<meta property="article:modified_time" content="2021-12-14T08:41:06.044Z">
+<meta property="article:author" content="Kyon Huang">
+<meta property="article:tag" content="few-shot segmentation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure1.png">
+
+
+<link rel="canonical" href="https://kyonhuang.top/blog/few-shot-segmentation-2021/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;few-shot-segmentation-2021&#x2F;&quot;,&quot;path&quot;:&quot;few-shot-segmentation-2021&#x2F;&quot;,&quot;title&quot;:&quot;【paper reading】2021 小样本分割论文选读&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>【paper reading】2021 小样本分割论文选读 | Kyon Huang 的博客</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/blog/atom.xml" title="Kyon Huang 的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Kyon Huang 的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Github 连接不稳定，请科学上网以获取最佳访问效果</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-开源"><a href="/blog/opensource/" rel="section"><i class="fa fa-code fa-fw"></i>开源</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Few-Shot-Segmentation-Via-Cycle-Consistent-Transformer"><span class="nav-number">1.</span> <span class="nav-text">Few-Shot Segmentation Via Cycle-Consistent Transformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Few-Shot-Segmentation-Without-Meta-Learning-A-Good-Transductive-Inference-Is-All-You-Need"><span class="nav-number">2.</span> <span class="nav-text">Few-Shot Segmentation Without Meta-Learning: A Good Transductive Inference Is All You Need?</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kyon Huang"
+      src="/blog/images/profile.png">
+  <p class="site-author-name" itemprop="name">Kyon Huang</p>
+  <div class="site-description" itemprop="description">CS 土博在读</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">130</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/blog/atom.xml" title="RSS → https:&#x2F;&#x2F;kyonhuang.top&#x2F;blog&#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://kyonhuang.top/" title="学术主页 → https:&#x2F;&#x2F;kyonhuang.top&#x2F;"><i class="fa fa-user-graduate fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://github.com/bighuang624" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;bighuang624" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/huang-si-teng-67" title="知乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;huang-si-teng-67" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kyonhuang@qq.com" title="E-Mail → mailto:kyonhuang@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/bighuang624" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kyonhuang.top/blog/few-shot-segmentation-2021/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/profile.png">
+      <meta itemprop="name" content="Kyon Huang">
+      <meta itemprop="description" content="CS 土博在读">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kyon Huang 的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【paper reading】2021 小样本分割论文选读
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-12-14 16:39:35 / 修改时间：16:41:06" itemprop="dateCreated datePublished" datetime="2021-12-14T16:39:35+08:00">2021-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/blog/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">论文阅读笔记</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>根据手头想法的需要，读一读 2021 年顶会顶刊的小样本分割论文。做笔记于此，持续更新。</p>
+<span id="more"></span>
+
+<h3 id="Few-Shot-Segmentation-Via-Cycle-Consistent-Transformer"><a href="#Few-Shot-Segmentation-Via-Cycle-Consistent-Transformer" class="headerlink" title="Few-Shot Segmentation Via Cycle-Consistent Transformer"></a>Few-Shot Segmentation Via Cycle-Consistent Transformer</h3><p>NeurIPS 2021 | <a target="_blank" rel="noopener" href="https://papers.nips.cc/paper/2021/hash/b8b12f949378552c21f28deff8ba8eb6-Abstract.html">link</a> | <a target="_blank" rel="noopener" href="https://github.com/GengDavid/CyCTR">github（尚未包含代码）</a></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure1.png"></p>
+<p>已有的小样本分割工作通常从 support 的图像特征提取 semantic-level prototypes，其中根据可以分为两类：(1) 如上图 (a) 所示的 class-wise mean pooling (<a target="_blank" rel="noopener" href="http://arxiv.org/abs/1908.06391">PANet, ICCV 2019</a>; <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1810.09091">SG-One, IEEE Trans. Cybern., 2020</a>; <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1903.02351">CANet, CVPR 2019</a>)，将属于不同类别的区域的特征算均值得到 prototypes；(2) 如上图 (b) 所示的 clustering，使用 EM 算法 (<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2008.03898">RPMM, ECCV 2020</a>) 或者 K-means (<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2007.06309">PPNet, ECCV 2020</a>) 来生成多个 prototypes 。然而，基于 prototypes 的方法会导致不同程度的 support information 的损失。因此，一些工作 (<a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_ICCV_2019/html/Zhang_Pyramid_Graph_Networks_With_Connection_Attentions_for_Region-Based_One-Shot_Semantic_ICCV_2019_paper.html">PGNet, ICCV 2019</a>; <a target="_blank" rel="noopener" href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123580715.pdf">DAN, ECCV 2020</a>) 用 attention 机制来从 support 前景像素提取信息。然而，<strong>这些方法忽略了存在对分割有帮助的信息的 support 背景像素</strong>；同时，support 和 query 图像间的包含尺度、颜色、场景等差别使得只有一小部分 support 像素是对 query 图像的分割有帮助，而<strong>另一些 support 像素会和 query 的前景像素有很大差别，导致 attention 无法准确表示语义上的对齐</strong>。</p>
+<p>本文提出了 <strong>Cycle-Consistent Transformer (CyCTR)</strong> 模块，包含两种 Transformer 部件：(1) <strong>self-alignment block</strong>：通过聚合相关的上下文信息来编码 query 的图像特征，Query、Key 和 Value 都来自同个 embedding；(2) <strong>cross-alignment block</strong>：将 support 图像的 pixel-wise 特征聚合到 query 图像的 pixel-wise 特征中，query 图像的特征是 Query，support 图像的特征作为 Key 和 Value。另外，一种新的 <strong>cycle-consistent attention</strong> 被部署在 cross-alignment block 上。从一个 support 像素的特征出发，我们找到它在 query 特征上的最近邻，然后在找到与这个最近邻最相似的 support 特征。如果起点和终点的 support 特征属于同一类别，就称作建立起了 <strong>cycle-consistency relationship</strong>。这个操作被集成到 attention 中来让 query 特征只去注意 cycle-consistent support 特征。因此，我们可以使用 support 的背景像素，而避免将 bias 引入到 query 特征。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure3.png"></p>
+<!-- 具体地 -->
+
+<p>实验结果：</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table1.png"></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table2.png"></p>
+<!-- 思考：
+
+1. 在 FSAD 中，support 和 query 中与 affordance 不相关的像素更多，如何解决？能否参考 weak-shot segmentation 先把边界弄出来？ 
+2. 用一个 CyCTR 模块来代替 FSAD 的中间处理部分呢？
+
+-->
+
+<h3 id="Few-Shot-Segmentation-Without-Meta-Learning-A-Good-Transductive-Inference-Is-All-You-Need"><a href="#Few-Shot-Segmentation-Without-Meta-Learning-A-Good-Transductive-Inference-Is-All-You-Need" class="headerlink" title="Few-Shot Segmentation Without Meta-Learning: A Good Transductive Inference Is All You Need?"></a>Few-Shot Segmentation Without Meta-Learning: A Good Transductive Inference Is All You Need?</h3><p>CVPR 2021 | <a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2021/html/Boudiaf_Few-Shot_Segmentation_Without_Meta-Learning_A_Good_Transductive_Inference_Is_All_CVPR_2021_paper.html">link</a> | <a target="_blank" rel="noopener" href="https://github.com/mboudiaf/RePRI-for-Few-Shot-Segmentation">github</a></p>
+<p>本文提出现有的小样本分割工作所遵循的两个假设在现实场景中通常是不可用的：(1) episodic training 假设 testing tasks 的 support shots 数量和 meta-training 阶段使用的任务保持一致；(2) base 和 novel 类别通常被假设从同一数据集中采样得到。针对假设 (1)，本文的思想与 <a target="_blank" rel="noopener" href="https://openreview.net/forum?id=rylXBkrYDS">Transductive Fine-Tuning, ICLR 2020</a> 等小样本识别方法有共通之处，提出精心设计的 transductive fine-tuning 的方法 RePRI (Region Proportion Regularized Inference)，能够用线性的分类器取得 SOTA。针对假设 (2)，本文也引入了 cross-domain 的设置，即 base 和 novel 类别来自不同的数据集，并在 COCO-&gt;PASCAL 上取得 SOTA。</p>
+<p>在 meta-training 阶段，RePRI 不采用 episodic training，而是用整个 base set 和标准交叉熵来训练特征提取器。在每个 testing task 进行 inference 时，RePRI 在优化时采用的损失包含三项：</p>
+<ol>
+<li>$\mathrm{CE}=-\frac{1}{K|\Psi|} \sum_{k=1}^{K} \sum_{j \in \Psi} \widetilde{y}<em>{k}(j)^{\top} \log \left(p</em>{k}(j)\right)$：标准的交叉熵 (cross-entropy, CE)，作用于 support 图像的有标签像素上。注意只使用这一项来进行优化通常导致过拟合于 support set，尤其是 1-shot 设置时；</li>
+<li>$\mathcal{H}=-\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)^{\top} \log \left(p_{\mathcal{Q}}(j)\right)$：香农熵 (Shannon entropy)，作用于 query 图像像素的预测上，来使模型对 query 图像的预测更加有信心。直观来说，这一项让线性分类器的决策边界推向 query 特征空间的低密度区域。在对最初置信度较低的区域的预测有帮助的同时，仅仅将这项加入到损失中并不能解决 CE 导致的问题，甚至可能使表现进一步恶化，如下图 Figure 1 所示；</li>
+<li>$\mathcal{D}<em>{\mathrm{KL}}=\widehat{p}</em>{\mathcal{Q}}^{\top} \log \left(\frac{\widehat{p}<em>{\mathcal{Q}}}{\pi}\right), \widehat{p}</em>{\mathcal{Q}}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)$：KL 散度，鼓励模型预测的背景/前景 (B/F) 比例接近于一个参数 $\pi \in [0, 1]^2$。论文指出这一项在损失中占关键位置，首先当参数 $\pi$ 与 query 图像的精确 B/F 比例不匹配时，该项有助于避免因 $\mathrm{CE}$ 和 $\mathcal{H}$ 最小化而导致的退化解；而如果能够准确估计 query 图像中的 B/F 比例（即有这个先验知识可供使用时），该项可以大幅提高方法整体的性能。</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-figure1.png"></p>
+<p><strong>分类器的选择</strong>：RePRI 的线性分类器和 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1904.04232">Baseline++, ICLR 2019</a> 相似：$s^{(t)}(j)=\operatorname{sigmoid}\left(\tau\left[\cos \left(z(j), w^{(t)}\right)-b^{(t)}\right]\right)$。其中原型 $w^{(0)}$ 是 support 前景特征的均值：$w^{(0)}=\frac{1}{K|\Psi|} \sum_{k=1}^{K} \sum_{j \in \Psi} \widetilde{y}<em>{k}(j)</em>{1} z_{k}(j)$；$b^{(0)}$ 是对 query 前景的 soft predictions的均值 ：$b^{(0)}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)_{1}$。</p>
+<p><strong>B/F 比例 $\pi$ 的联合估计</strong>：当没有先验知识时，RePRI 使用 $\widehat{p}<em>{\mathcal{Q}}$ 来联合学习 $\pi$ 和分类器的参数，这时 $\mathcal{D}</em>{\mathrm{KL}}$ 可以被视为 self-regularization 来防止模型的 marginal distribution 发生偏移。具体实现中，只在初始化后在之后的某一轮迭代 $t_{\pi}$ 更新一次 $\pi$ 即可，即</p>
+<p>$$<br>\pi^{(t)}= \begin{cases}\widehat{p}<em>{\mathcal{Q}}^{(0)} &amp; 0 \leq t \leq t</em>{\pi} \ \hat{p}<em>{\mathcal{Q}}^{\left(t</em>{\pi}\right)} &amp; t&gt;t_{\pi}\end{cases}<br>$$</p>
+<p>实验结果：</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table1.png"></p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table2.png"></p>
+<p>可以看到在 5-shot 上 RePRI 取得了全面的 SOTA。本文同样做了包含 (1) 训练时采用 1-shot task、测试时用 1-\5-\10-shot task；(2) cross-domain 等实验。具体请看原论文。</p>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Kyon Huang
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kyonhuang.top/blog/few-shot-segmentation-2021/" title="【paper reading】2021 小样本分割论文选读">https://kyonhuang.top/blog/few-shot-segmentation-2021/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/few-shot-segmentation/" rel="tag"><i class="fa fa-tag"></i> few-shot segmentation</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/ICLR2021-notes/" rel="prev" title="【paper reading】ICLR 2021 论文选读">
+                  <i class="fa fa-chevron-left"></i> 【paper reading】ICLR 2021 论文选读
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kyon Huang</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
