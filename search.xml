@@ -253,63 +253,6 @@
       </tags>
   </entry>
   <entry>
-    <title>【译】理解 LSTM</title>
-    <url>/blog/Understanding-LSTMs/</url>
-    <content><![CDATA[<p>一直以来感觉自己对 LSTM 的理解缺了点什么。这次看到一篇不错的博客 <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding LSTM Networks</a>，对 LSTM 的机制和公式有逐条的解释。正好最近手头的工作也和门机制有一定联系，因此决定翻译一下，帮助自己理解和记忆公式。主要靠意译，省略了一点无关紧要的内容，有条件可以自己看看原文。</p>
-<span id="more"></span>
-
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>人类不是每分每秒都从头开始思考，而是基于所学所想进一步思考，有一定的持续性。RNN 可以通过前一个单元将消息传递给后一个单元，一定程度上模拟这个过程。</p>
-<p>使用 RNN 面临着一个问题，有时候我们需要非常长的上下文，例如通过非常靠前的相关信息来预测下一个词。在实践中，RNN 难以处理这种“<strong>长期依赖</strong>”，原因和梯度爆炸（exploding gradient）/梯度消失（vanishing gradient）有关。不过，LSTM 可以解决这个问题，它会默认地长时间记忆信息。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-SimpleRNN.png"></p>
-<p>上图展示了包含了单个层的标准 RNN 单元组成的链式结构。LSTM 有着同样的链式结构，但是重复的组件结构不同，它有着四个交互的层：</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-chain.png"></p>
-<h2 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h2><p>LSTM 的核心是 <strong>cell state（单元状态）</strong>，即贯穿图顶部的水平线。cell state 有点像传送带，沿着整个链向后，只有一些小的线形相互作用。因此，信息很容易不加改动地沿着它流动。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-C-line.png"></p>
-<p>而向 cell state 删除或者添加的信息通过<strong>门（gates）</strong>结构精心控制。门结构能够选择性地让信息通过，它有一个 sigmoid 层和一个 pointwise 乘积操作组成：</p>
-<img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-gate.png" style="width:20%; margin-top=10px; margin-bottom=10px;">
-
-<p>sigmoid 层输出一个 0 到 1 之间的实数，来描述允许多少信息通过，0 代表不允许任何信息通过，而 1 代表让全部信息通过。LSTM 有三个类似的门机构，用来保护和控制 cell state。</p>
-<h2 id="一步一步看公式"><a href="#一步一步看公式" class="headerlink" title="一步一步看公式"></a>一步一步看公式</h2><p>LSTM 的第一步是决定从 cell state 中丢弃什么信息，这个决定通过称为“<strong>忘记门（forget gate）</strong>”的 sigmoid 层作出。输入是 $h_{t-1}$ 和 $x_t$，并为 cell state $C_{t-1}$ 中的每个数字输出一个 0 到 1 之间的值，1 表示完全保留，而 0 表示完全遗忘。</p>
-<p>举一个基于前面所有单词来预测下一个单词的例子，在这个问题中，cell state 可能包括当前主语的性别，以便使用正确的代词。当我们看到一个新的主语时，我们想要忘记旧主语的性别。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-f.png"></p>
-<p>第二步我们决定将在 cell state 中存储什么新信息。首先，一个称为<strong>输入门（input gate）</strong>的 sigmoid 层决定我们将要更新的值。然后，一个 tanh 层创建一个候选的 $\tilde C_i$，准备加到 cell state 中。在下一步，我们将这两个值合并，来为 cell state 做一个更新。</p>
-<p>继续之前的例子，我们想要将新主语的性别加入到 cell state，以取代我们遗忘的内容。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-i.png"></p>
-<p>接下来我们将旧的 cell state $C_{t-1}$ 更新为新的 cell state $C_t$。在例子中，我们在这一步中正式地丢弃关于旧主语性别的信息并添加新信息。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-C.png"></p>
-<p>最后，我们决定要输出的内容。输出取决于我们的 cell state，不过要经过一层过滤。首先，我们还是通过一个 sigmoid 层来决定 cell state 中哪些部分要被输出。之后，我们将 state cell 通过 tanh 来将值缩放到 -1 与 1 之间，并用 sigmoid 门的输出做乘法，决定输出的部分。</p>
-<p>对于语言模型示例，由于它只看到了一个主语，因此可能希望输出与谓词相关的信息，以防接下来会出现与谓词相关的信息。例如，它可以输出主语是单数还是复数，这样我们就知道如果接下来是动词，动词应该用什么形式。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-o.png"></p>
-<h2 id="LSTM-的变体"><a href="#LSTM-的变体" class="headerlink" title="LSTM 的变体"></a>LSTM 的变体</h2><p>以上所述就是一个标准的 LSTM。但是，几乎所有的论文使用的 LSTM 都有或多或少的修改。虽然差异不大，但其中有些版本值得一提。</p>
-<p><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a> 中的版本增加了<strong>窥视孔连接（peephole connections）</strong>，使得门层可以观察 cell state。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-peepholes.png"></p>
-<p>上图在所有的门上都加了窥视孔。也有些论文只给一些门增加窥视孔。</p>
-<p>另一种变体是将遗忘门和输入门耦合。我们不再单独决定要忘记什么或者应该添加什么新信息，而是共同做出这些决定，并且只在准备遗忘旧信息时添加新信息作为替代。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-tied.png"></p>
-<p>一个变化稍大的变体是 <a href="arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a> 提出的<strong>门控循环单元（Gated Recurrent Unit, GRU）</strong>。它将遗忘和输入合并到一个单独的“更新门”，并将 cell state 和 hidden state 合并到一块。GRU 比标准的 LSTM 更简单，并且也得到广泛的应用。</p>
-<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-GRU.png"></p>
-<p>除了几个最值得注意的变体，还有很多版本。<a href="jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a> 测试了超过一万种 RNN 架构，发现一部分会在特定任务上比 LSTM 表现更好。</p>
-<h2 id="推荐资料"><a href="#推荐资料" class="headerlink" title="推荐资料"></a>推荐资料</h2><ul>
-<li><a href="http://www.bioinf.jku.at/publications/older/2604.pdf">Hochreiter S, Schmidhuber J. Long Short-Term Memory[J]. Neural Computation, 1997, 9(8):1735-1780.</a>：提出 LSTM 的 paper。</li>
-<li><a href="https://jalammar.github.io/">Jay Alammar’s Blog</a>：另一个致力于可视化讲解机器学习概念的好博客。最新的两篇讲 NLP 里的 Transformer 和 BERT，可见内容之新。</li>
-</ul>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  tex2jax: {inlineMath: [ ['$', '$'] ],
-        displayMath: [ ['$$', '$$']]}
-});
-</script>
-
-<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
-      <categories>
-        <category>自然语言处理笔记</category>
-      </categories>
-      <tags>
-        <tag>LSTM</tag>
-        <tag>自然语言处理</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Word2vec - 最经典的词嵌入学习算法</title>
     <url>/blog/Word2vec-intro/</url>
     <content><![CDATA[<p>如果想要开始研究基于深度学习的自然语言处理，你很难逃开 Word2vec 这一最为经典的词嵌入学习算法。然而，想要透彻理解 Word2vec 又并非易事。因此，我写这篇博文，力图叙述清楚 Word2vec 的原理，以对学到的知识做一个梳理。</p>
@@ -395,83 +338,53 @@ MathJax.Hub.Config({
         <category>自然语言处理笔记</category>
       </categories>
       <tags>
-        <tag>自然语言处理</tag>
         <tag>Word2vec</tag>
         <tag>语言模型</tag>
         <tag>Skip-gram</tag>
         <tag>CBOW</tag>
+        <tag>自然语言处理</tag>
       </tags>
   </entry>
   <entry>
-    <title>【paper reading】A Closer Look at Few-shot Classification</title>
-    <url>/blog/CloserLookFewShot-notes/</url>
-    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CloserLookFewShot-paper-title.png"></p>
-<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文研究了骨干网络的能力、数据集领域差异对现有小样本学习方法性能的影响，并强调了现有小样本学习方法的领域自适应能力普遍较差，需要多加注意。</p>
-<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
-<li>作者：Wei-Yu Chen, Yen-Cheng Liu, Zsolt Kira, Yu-Chiang Frank Wang, Jia-Bin Huang</li>
-<li>出处：ICLR 2019</li>
-<li>机构：CMU; Georgia Tech; National Taiwan University; Virginia Tech</li>
-<li>关键词：few-shot learning, domain shift, domain adaptation</li>
-<li><a href="https://openreview.net/pdf?id=HkxLXnAcFQ">论文链接</a></li>
-<li>开源代码：<a href="https://github.com/wyharveychen/CloserLookFewShot">wyharveychen/CloserLookFewShot</a></li>
-<li>其他资料：<ul>
-<li><a href="https://www.semanticscholar.org/paper/A-Closer-Look-at-Few-shot-Classification-Chen-Liu/9d5ec23154fb278a765f47ba5ee5150bd441d0de">Semantic Scholar</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/76596852">知乎上的一份解读</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/64672817">知乎上的另一份解读</a></li>
-</ul>
-</li>
-</ul>
+    <title>【译】理解 LSTM</title>
+    <url>/blog/Understanding-LSTMs/</url>
+    <content><![CDATA[<p>一直以来感觉自己对 LSTM 的理解缺了点什么。这次看到一篇不错的博客 <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding LSTM Networks</a>，对 LSTM 的机制和公式有逐条的解释。正好最近手头的工作也和门机制有一定联系，因此决定翻译一下，帮助自己理解和记忆公式。主要靠意译，省略了一点无关紧要的内容，有条件可以自己看看原文。</p>
 <span id="more"></span>
 
-<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景与主要贡献"><a href="#背景与主要贡献" class="headerlink" title="背景与主要贡献"></a>背景与主要贡献</h3><p>尽管小样本学习（Few-Shot Learning, FSL）近年来有很大的进展，但各种方法实现上的细节差异掩盖了相对表现增益，缺少在同一框架下进行公平的比较。例如，是否在数据增强的情况下进行训练（意思是简单的数据增强能够大幅提高 baseline 的效果）。本文有三个主要贡献：</p>
-<ol>
-<li>本文对于几种代表性的小样本分类算法进行分析，特别实验了基础骨干网络对这些方法的影响。结果表明，更深的骨干网络（即特征提取能力越强），在领域差异有限的数据集上，显著降低了方法之间的性能差异；</li>
-<li>本文建立了两个 baseline，其中一种基于距离的分类 baseline 能够在 mini-ImageNet 和 CUB 数据集上与 SOTA 方法相媲美；</li>
-<li>虽然目前的评估侧重于识别具有有限训练样例的新类，但这些新类从同一数据集中采样。而在现实中，新类和基础类通常存在领域漂移（domain shift）问题。因此，本文强调了小样本学习任务中的领域自适应问题。设置了评估 FSL 算法的跨域泛化能力的实验，其中，基础类和新类别从不同领域中采样。实验表明，目前的 FSL 分类 SOTA 算法在领域漂移的情况下表现相当不好，效果甚至比 baseline 要差，从而表明 FSL 中学习适应领域差别的重要性。</li>
-</ol>
-<h4 id="领域自适应（domain-adaptation）"><a href="#领域自适应（domain-adaptation）" class="headerlink" title="领域自适应（domain adaptation）"></a>领域自适应（domain adaptation）</h4><p>前文提到的有关领域的相关概念可能在迁移学习领域更为常见。<strong>领域（domain）</strong>主要由两部分组成：<strong>数据</strong>和<strong>生成这些数据的概率分布</strong>。而<strong>领域漂移（domain shift）</strong>指的就是源域和目标域的数据分布差异较大。<strong>领域自适应（domain adaptation）</strong>就是旨在解决领域漂移问题的研究内容。</p>
-<p>在本文提到的场景中，领域自适应和小样本分类的区别：</p>
-<ul>
-<li>领域自适应：旨在将<strong>源数据集</strong>的知识迁移到<strong>目标数据集</strong>的<strong>相同</strong>类别上；</li>
-<li>小样本分类：从基础类学习去分辨<strong>同一数据集</strong>的<strong>新</strong>类。</li>
-</ul>
-<p>如果基础类和新类都来自同一数据集，则基础类和新类之间存在的领域漂移极少。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CloserLookFewShot-paper-Table-A1.png"></p>
-<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>本文提出的 Baseline 和 Baseline++：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/4-Figure1-1.png"></p>
-<p>在 Baseline++ 中，权重矩阵 $\mathbf{W}_{b} \in \mathbb{R}^{d \times c}$ 可以被分为 $c$ 个 $d$ 维向量，每个向量表示一个类。在训练阶段，每一个输入特征，与 $c$ 个 $d$ 维向量计算 cos 相似度，之后用一个 softmax 函数对相似度进行 normalization。因此，分类结果选取相似度最大的权重向量所代表的类。因此，学到的权重向量可以看作每一类的 prototype，而分类器基于输入特征与学到的 prototype 的距离来运作。softmax 函数可防止学到的权重向量变为零向量。</p>
-<p>Baseline++ 显著减少了类内（intra-class）变化性。当然，更深的骨干网络也能做到这一点。</p>
-<hr>
-<p>对比的方法包括 MatchingNet、ProtoNet、RelationNet、MAML：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/5-Figure2-1.png"></p>
-<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>三个场景对应的数据集：</p>
-<ol>
-<li>通用对象识别：mini-ImageNet；</li>
-<li>细粒度图像分类：CUB-200-2011；</li>
-<li>跨域自适应：mini-ImageNet (base class) -&gt; CUB (novel class)。</li>
-</ol>
-<h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>对比各方法在对应的论文公布的结果和本文作者实现的结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/7-Table1-1.png"></p>
-<p>带<code>*</code>号的是没有进行数据增强的 Baseline。带<code>#</code>号指 way 数更多的 PropoNet。可以看到，数据增强能够有效缓解 Baseline 的过拟合，从而提升效果。</p>
-<hr>
-<p>在 mini-ImageNet 和 CUB 数据集上的实验结果：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/7-Table2-1.png"></p>
-<p>可以看到，Baseline++ 可以与现有 SOTA 方法相媲美。同时，Baseline++ 要比 Baseline 表现好很多，说明<strong>减少类内变化是现在小样本分类问题设置中的一个重要因素</strong>。</p>
-<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p>考虑到一个更深的骨干网络也能够减少类内变化，因此在同一方法上换用不同的骨干网络比较效果，结果如下：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/8-Figure3-1.png"></p>
-<p>可以看到，更深的骨干网络一般都能够提升各方法的效果。但在 mini-ImageNet 数据集的 5-shot 设置上，一些元方法的效果变差（一种看法是说明，在领域差异较大的情况下，随着特征提取能力的提高，这些方法性能差异越来越大）。考虑到 mini-ImageNet 数据集的基础类与新类的领域差异要比 CUB 数据集更大，因此，接下来通过实验分析这种域差异如何影响小样本分类的效果。</p>
-<h4 id="分析领域差异大小对各方法的影响"><a href="#分析领域差异大小对各方法的影响" class="headerlink" title="分析领域差异大小对各方法的影响"></a>分析领域差异大小对各方法的影响</h4><p>即分析各方法的跨域能力。在 mini-ImageNet (base class) -&gt; CUB (novel class) 的 5-shot，骨干网络为 ResNet-18 的分类准确率效果如下：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/9-Table3-1.png"></p>
-<p>在不同场景下的 5-shot，骨干网络为 ResNet-18 的分类准确率表现对比如下：</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/9-Figure4-1.png"></p>
-<p>可以看到，在 base class 和 novel class 域差异较大时，Baseline 模型表现相对较好。说明现有元学习方法难以适应于域差异与 base support class 过大的新类。而 Baseline 模型简单地基于少数新类别数据微调分类器，允许快速适应新类别并受领域漂移地影响较小。同时，Baseline 模型比 Baseline++ 方法表现更好，<strong>可能是因为额外减少类内变化会影响跨域的适应性</strong>。</p>
-<h4 id="领域适应能力提升的影响"><a href="#领域适应能力提升的影响" class="headerlink" title="领域适应能力提升的影响"></a>领域适应能力提升的影响</h4><p>为了让小样本学习方法能够有更好的适应能力，对于 MatchingNet 和 ProtoNet，可以固定特征并训练一个新的 softmax 训练器；对于 MAML，由于初始化方法 MAML 无法固定特征，因此设置为 用 support 更新更多次迭代（实验中设置为 100 次）来训练新的分类层；对于 RelationNet，特征是卷积映射而非特征向量，因此无法用 softmax 替换。作为替代，将新类中的少数训练数据随机分为 3 个 support 和 2 个 query 数据，来用 100 个 epochs 微调关系模块。</p>
-<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/9-Figure5-1.png"></p>
-<p>实验表明，缺少适应是之前元学习方法比 Baseline 差的原因。因此，<strong>在元训练阶段学习去学会适应领域漂移，对于未来的元学习研究是一个重要方向</strong>。</p>
-<h4 id="量化分析骨干网络深度对类内变化的影响"><a href="#量化分析骨干网络深度对类内变化的影响" class="headerlink" title="量化分析骨干网络深度对类内变化的影响"></a>量化分析骨干网络深度对类内变化的影响</h4><p>使用了 [1] 中的 Davies-Bouldin 指数，这是一种评估聚类（在本文中即为类）的紧密度的度量。结论是，使用更深的骨干网络时，base class 和 novel class 的特征的类内变化都会减少。</p>
-<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>本文没有提出新颖的模型，而是指出小样本学习领域一些容易被忽视的问题，特别强调了骨干网络（特征提取网络）的能力、数据集的差异性以及领域自适应问题对小样本学习任务的影响。从帮助研究者认清小样本学习领域面临的挑战而言，本文是有价值的。</p>
-<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
-<li>[1] David L Davies and Donald W Bouldin. A cluster separation measure. IEEE Transactions on Pattern Analysis and Machine Intelligence, 1979.</li>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>人类不是每分每秒都从头开始思考，而是基于所学所想进一步思考，有一定的持续性。RNN 可以通过前一个单元将消息传递给后一个单元，一定程度上模拟这个过程。</p>
+<p>使用 RNN 面临着一个问题，有时候我们需要非常长的上下文，例如通过非常靠前的相关信息来预测下一个词。在实践中，RNN 难以处理这种“<strong>长期依赖</strong>”，原因和梯度爆炸（exploding gradient）/梯度消失（vanishing gradient）有关。不过，LSTM 可以解决这个问题，它会默认地长时间记忆信息。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-SimpleRNN.png"></p>
+<p>上图展示了包含了单个层的标准 RNN 单元组成的链式结构。LSTM 有着同样的链式结构，但是重复的组件结构不同，它有着四个交互的层：</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-chain.png"></p>
+<h2 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h2><p>LSTM 的核心是 <strong>cell state（单元状态）</strong>，即贯穿图顶部的水平线。cell state 有点像传送带，沿着整个链向后，只有一些小的线形相互作用。因此，信息很容易不加改动地沿着它流动。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-C-line.png"></p>
+<p>而向 cell state 删除或者添加的信息通过<strong>门（gates）</strong>结构精心控制。门结构能够选择性地让信息通过，它有一个 sigmoid 层和一个 pointwise 乘积操作组成：</p>
+<img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-gate.png" style="width:20%; margin-top=10px; margin-bottom=10px;">
+
+<p>sigmoid 层输出一个 0 到 1 之间的实数，来描述允许多少信息通过，0 代表不允许任何信息通过，而 1 代表让全部信息通过。LSTM 有三个类似的门机构，用来保护和控制 cell state。</p>
+<h2 id="一步一步看公式"><a href="#一步一步看公式" class="headerlink" title="一步一步看公式"></a>一步一步看公式</h2><p>LSTM 的第一步是决定从 cell state 中丢弃什么信息，这个决定通过称为“<strong>忘记门（forget gate）</strong>”的 sigmoid 层作出。输入是 $h_{t-1}$ 和 $x_t$，并为 cell state $C_{t-1}$ 中的每个数字输出一个 0 到 1 之间的值，1 表示完全保留，而 0 表示完全遗忘。</p>
+<p>举一个基于前面所有单词来预测下一个单词的例子，在这个问题中，cell state 可能包括当前主语的性别，以便使用正确的代词。当我们看到一个新的主语时，我们想要忘记旧主语的性别。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-f.png"></p>
+<p>第二步我们决定将在 cell state 中存储什么新信息。首先，一个称为<strong>输入门（input gate）</strong>的 sigmoid 层决定我们将要更新的值。然后，一个 tanh 层创建一个候选的 $\tilde C_i$，准备加到 cell state 中。在下一步，我们将这两个值合并，来为 cell state 做一个更新。</p>
+<p>继续之前的例子，我们想要将新主语的性别加入到 cell state，以取代我们遗忘的内容。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-i.png"></p>
+<p>接下来我们将旧的 cell state $C_{t-1}$ 更新为新的 cell state $C_t$。在例子中，我们在这一步中正式地丢弃关于旧主语性别的信息并添加新信息。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-C.png"></p>
+<p>最后，我们决定要输出的内容。输出取决于我们的 cell state，不过要经过一层过滤。首先，我们还是通过一个 sigmoid 层来决定 cell state 中哪些部分要被输出。之后，我们将 state cell 通过 tanh 来将值缩放到 -1 与 1 之间，并用 sigmoid 门的输出做乘法，决定输出的部分。</p>
+<p>对于语言模型示例，由于它只看到了一个主语，因此可能希望输出与谓词相关的信息，以防接下来会出现与谓词相关的信息。例如，它可以输出主语是单数还是复数，这样我们就知道如果接下来是动词，动词应该用什么形式。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-focus-o.png"></p>
+<h2 id="LSTM-的变体"><a href="#LSTM-的变体" class="headerlink" title="LSTM 的变体"></a>LSTM 的变体</h2><p>以上所述就是一个标准的 LSTM。但是，几乎所有的论文使用的 LSTM 都有或多或少的修改。虽然差异不大，但其中有些版本值得一提。</p>
+<p><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a> 中的版本增加了<strong>窥视孔连接（peephole connections）</strong>，使得门层可以观察 cell state。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-peepholes.png"></p>
+<p>上图在所有的门上都加了窥视孔。也有些论文只给一些门增加窥视孔。</p>
+<p>另一种变体是将遗忘门和输入门耦合。我们不再单独决定要忘记什么或者应该添加什么新信息，而是共同做出这些决定，并且只在准备遗忘旧信息时添加新信息作为替代。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-tied.png"></p>
+<p>一个变化稍大的变体是 <a href="arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a> 提出的<strong>门控循环单元（Gated Recurrent Unit, GRU）</strong>。它将遗忘和输入合并到一个单独的“更新门”，并将 cell state 和 hidden state 合并到一块。GRU 比标准的 LSTM 更简单，并且也得到广泛的应用。</p>
+<p><img src="http://colah.github.io/posts/2015-08-Understanding-LSTMs/img/LSTM3-var-GRU.png"></p>
+<p>除了几个最值得注意的变体，还有很多版本。<a href="jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a> 测试了超过一万种 RNN 架构，发现一部分会在特定任务上比 LSTM 表现更好。</p>
+<h2 id="推荐资料"><a href="#推荐资料" class="headerlink" title="推荐资料"></a>推荐资料</h2><ul>
+<li><a href="http://www.bioinf.jku.at/publications/older/2604.pdf">Hochreiter S, Schmidhuber J. Long Short-Term Memory[J]. Neural Computation, 1997, 9(8):1735-1780.</a>：提出 LSTM 的 paper。</li>
+<li><a href="https://jalammar.github.io/">Jay Alammar’s Blog</a>：另一个致力于可视化讲解机器学习概念的好博客。最新的两篇讲 NLP 里的 Transformer 和 BERT，可见内容之新。</li>
 </ul>
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -482,15 +395,11 @@ MathJax.Hub.Config({
 
 <script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
       <categories>
-        <category>论文阅读笔记</category>
+        <category>自然语言处理笔记</category>
       </categories>
       <tags>
-        <tag>few-shot learning</tag>
-        <tag>domain shift</tag>
-        <tag>domain adaptation</tag>
-        <tag>小样本学习</tag>
-        <tag>领域漂移</tag>
-        <tag>领域自适应</tag>
+        <tag>自然语言处理</tag>
+        <tag>LSTM</tag>
       </tags>
   </entry>
   <entry>
@@ -660,6 +569,97 @@ MathJax.Hub.Config({
         <tag>RDD</tag>
         <tag>Dataset</tag>
         <tag>MLlib</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>【paper reading】A Closer Look at Few-shot Classification</title>
+    <url>/blog/CloserLookFewShot-notes/</url>
+    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CloserLookFewShot-paper-title.png"></p>
+<h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>本文研究了骨干网络的能力、数据集领域差异对现有小样本学习方法性能的影响，并强调了现有小样本学习方法的领域自适应能力普遍较差，需要多加注意。</p>
+<h2 id="论文信息"><a href="#论文信息" class="headerlink" title="论文信息"></a>论文信息</h2><ul>
+<li>作者：Wei-Yu Chen, Yen-Cheng Liu, Zsolt Kira, Yu-Chiang Frank Wang, Jia-Bin Huang</li>
+<li>出处：ICLR 2019</li>
+<li>机构：CMU; Georgia Tech; National Taiwan University; Virginia Tech</li>
+<li>关键词：few-shot learning, domain shift, domain adaptation</li>
+<li><a href="https://openreview.net/pdf?id=HkxLXnAcFQ">论文链接</a></li>
+<li>开源代码：<a href="https://github.com/wyharveychen/CloserLookFewShot">wyharveychen/CloserLookFewShot</a></li>
+<li>其他资料：<ul>
+<li><a href="https://www.semanticscholar.org/paper/A-Closer-Look-at-Few-shot-Classification-Chen-Liu/9d5ec23154fb278a765f47ba5ee5150bd441d0de">Semantic Scholar</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/76596852">知乎上的一份解读</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/64672817">知乎上的另一份解读</a></li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="内容简记"><a href="#内容简记" class="headerlink" title="内容简记"></a>内容简记</h2><h3 id="背景与主要贡献"><a href="#背景与主要贡献" class="headerlink" title="背景与主要贡献"></a>背景与主要贡献</h3><p>尽管小样本学习（Few-Shot Learning, FSL）近年来有很大的进展，但各种方法实现上的细节差异掩盖了相对表现增益，缺少在同一框架下进行公平的比较。例如，是否在数据增强的情况下进行训练（意思是简单的数据增强能够大幅提高 baseline 的效果）。本文有三个主要贡献：</p>
+<ol>
+<li>本文对于几种代表性的小样本分类算法进行分析，特别实验了基础骨干网络对这些方法的影响。结果表明，更深的骨干网络（即特征提取能力越强），在领域差异有限的数据集上，显著降低了方法之间的性能差异；</li>
+<li>本文建立了两个 baseline，其中一种基于距离的分类 baseline 能够在 mini-ImageNet 和 CUB 数据集上与 SOTA 方法相媲美；</li>
+<li>虽然目前的评估侧重于识别具有有限训练样例的新类，但这些新类从同一数据集中采样。而在现实中，新类和基础类通常存在领域漂移（domain shift）问题。因此，本文强调了小样本学习任务中的领域自适应问题。设置了评估 FSL 算法的跨域泛化能力的实验，其中，基础类和新类别从不同领域中采样。实验表明，目前的 FSL 分类 SOTA 算法在领域漂移的情况下表现相当不好，效果甚至比 baseline 要差，从而表明 FSL 中学习适应领域差别的重要性。</li>
+</ol>
+<h4 id="领域自适应（domain-adaptation）"><a href="#领域自适应（domain-adaptation）" class="headerlink" title="领域自适应（domain adaptation）"></a>领域自适应（domain adaptation）</h4><p>前文提到的有关领域的相关概念可能在迁移学习领域更为常见。<strong>领域（domain）</strong>主要由两部分组成：<strong>数据</strong>和<strong>生成这些数据的概率分布</strong>。而<strong>领域漂移（domain shift）</strong>指的就是源域和目标域的数据分布差异较大。<strong>领域自适应（domain adaptation）</strong>就是旨在解决领域漂移问题的研究内容。</p>
+<p>在本文提到的场景中，领域自适应和小样本分类的区别：</p>
+<ul>
+<li>领域自适应：旨在将<strong>源数据集</strong>的知识迁移到<strong>目标数据集</strong>的<strong>相同</strong>类别上；</li>
+<li>小样本分类：从基础类学习去分辨<strong>同一数据集</strong>的<strong>新</strong>类。</li>
+</ul>
+<p>如果基础类和新类都来自同一数据集，则基础类和新类之间存在的领域漂移极少。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CloserLookFewShot-paper-Table-A1.png"></p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>本文提出的 Baseline 和 Baseline++：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/4-Figure1-1.png"></p>
+<p>在 Baseline++ 中，权重矩阵 $\mathbf{W}_{b} \in \mathbb{R}^{d \times c}$ 可以被分为 $c$ 个 $d$ 维向量，每个向量表示一个类。在训练阶段，每一个输入特征，与 $c$ 个 $d$ 维向量计算 cos 相似度，之后用一个 softmax 函数对相似度进行 normalization。因此，分类结果选取相似度最大的权重向量所代表的类。因此，学到的权重向量可以看作每一类的 prototype，而分类器基于输入特征与学到的 prototype 的距离来运作。softmax 函数可防止学到的权重向量变为零向量。</p>
+<p>Baseline++ 显著减少了类内（intra-class）变化性。当然，更深的骨干网络也能做到这一点。</p>
+<hr>
+<p>对比的方法包括 MatchingNet、ProtoNet、RelationNet、MAML：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/5-Figure2-1.png"></p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>三个场景对应的数据集：</p>
+<ol>
+<li>通用对象识别：mini-ImageNet；</li>
+<li>细粒度图像分类：CUB-200-2011；</li>
+<li>跨域自适应：mini-ImageNet (base class) -&gt; CUB (novel class)。</li>
+</ol>
+<h4 id="对比实验"><a href="#对比实验" class="headerlink" title="对比实验"></a>对比实验</h4><p>对比各方法在对应的论文公布的结果和本文作者实现的结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/7-Table1-1.png"></p>
+<p>带<code>*</code>号的是没有进行数据增强的 Baseline。带<code>#</code>号指 way 数更多的 PropoNet。可以看到，数据增强能够有效缓解 Baseline 的过拟合，从而提升效果。</p>
+<hr>
+<p>在 mini-ImageNet 和 CUB 数据集上的实验结果：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/7-Table2-1.png"></p>
+<p>可以看到，Baseline++ 可以与现有 SOTA 方法相媲美。同时，Baseline++ 要比 Baseline 表现好很多，说明<strong>减少类内变化是现在小样本分类问题设置中的一个重要因素</strong>。</p>
+<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p>考虑到一个更深的骨干网络也能够减少类内变化，因此在同一方法上换用不同的骨干网络比较效果，结果如下：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/8-Figure3-1.png"></p>
+<p>可以看到，更深的骨干网络一般都能够提升各方法的效果。但在 mini-ImageNet 数据集的 5-shot 设置上，一些元方法的效果变差（一种看法是说明，在领域差异较大的情况下，随着特征提取能力的提高，这些方法性能差异越来越大）。考虑到 mini-ImageNet 数据集的基础类与新类的领域差异要比 CUB 数据集更大，因此，接下来通过实验分析这种域差异如何影响小样本分类的效果。</p>
+<h4 id="分析领域差异大小对各方法的影响"><a href="#分析领域差异大小对各方法的影响" class="headerlink" title="分析领域差异大小对各方法的影响"></a>分析领域差异大小对各方法的影响</h4><p>即分析各方法的跨域能力。在 mini-ImageNet (base class) -&gt; CUB (novel class) 的 5-shot，骨干网络为 ResNet-18 的分类准确率效果如下：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/9-Table3-1.png"></p>
+<p>在不同场景下的 5-shot，骨干网络为 ResNet-18 的分类准确率表现对比如下：</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/9-Figure4-1.png"></p>
+<p>可以看到，在 base class 和 novel class 域差异较大时，Baseline 模型表现相对较好。说明现有元学习方法难以适应于域差异与 base support class 过大的新类。而 Baseline 模型简单地基于少数新类别数据微调分类器，允许快速适应新类别并受领域漂移地影响较小。同时，Baseline 模型比 Baseline++ 方法表现更好，<strong>可能是因为额外减少类内变化会影响跨域的适应性</strong>。</p>
+<h4 id="领域适应能力提升的影响"><a href="#领域适应能力提升的影响" class="headerlink" title="领域适应能力提升的影响"></a>领域适应能力提升的影响</h4><p>为了让小样本学习方法能够有更好的适应能力，对于 MatchingNet 和 ProtoNet，可以固定特征并训练一个新的 softmax 训练器；对于 MAML，由于初始化方法 MAML 无法固定特征，因此设置为 用 support 更新更多次迭代（实验中设置为 100 次）来训练新的分类层；对于 RelationNet，特征是卷积映射而非特征向量，因此无法用 softmax 替换。作为替代，将新类中的少数训练数据随机分为 3 个 support 和 2 个 query 数据，来用 100 个 epochs 微调关系模块。</p>
+<p><img src="https://d3i71xaburhd42.cloudfront.net/9d5ec23154fb278a765f47ba5ee5150bd441d0de/9-Figure5-1.png"></p>
+<p>实验表明，缺少适应是之前元学习方法比 Baseline 差的原因。因此，<strong>在元训练阶段学习去学会适应领域漂移，对于未来的元学习研究是一个重要方向</strong>。</p>
+<h4 id="量化分析骨干网络深度对类内变化的影响"><a href="#量化分析骨干网络深度对类内变化的影响" class="headerlink" title="量化分析骨干网络深度对类内变化的影响"></a>量化分析骨干网络深度对类内变化的影响</h4><p>使用了 [1] 中的 Davies-Bouldin 指数，这是一种评估聚类（在本文中即为类）的紧密度的度量。结论是，使用更深的骨干网络时，base class 和 novel class 的特征的类内变化都会减少。</p>
+<h3 id="个人笔记"><a href="#个人笔记" class="headerlink" title="个人笔记"></a>个人笔记</h3><h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><p>本文没有提出新颖的模型，而是指出小样本学习领域一些容易被忽视的问题，特别强调了骨干网络（特征提取网络）的能力、数据集的差异性以及领域自适应问题对小样本学习任务的影响。从帮助研究者认清小样本学习领域面临的挑战而言，本文是有价值的。</p>
+<h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><ul>
+<li>[1] David L Davies and Donald W Bouldin. A cluster separation measure. IEEE Transactions on Pattern Analysis and Machine Intelligence, 1979.</li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+      <categories>
+        <category>论文阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>few-shot learning</tag>
+        <tag>domain shift</tag>
+        <tag>domain adaptation</tag>
+        <tag>小样本学习</tag>
+        <tag>领域漂移</tag>
+        <tag>领域自适应</tag>
       </tags>
   </entry>
   <entry>
@@ -1381,6 +1381,70 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
+    <title>初探前端自动化测试--以 Vue 为例</title>
+    <url>/blog/start-front-end-test/</url>
+    <content><![CDATA[<p>随着前端项目规模日益膨胀，自动化测试显得越来越重要。在开发过程中就进行测试，可以保障代码质量和功能实现完整度，提升后期开发效率，也便于项目维护。当然，对于需求变更频繁、复用度低的内容，维护测试用例的成本就显得过高；但对于稳定、多次复用以及需要长期维护的项目，自动化测试就尤为重要。</p>
+<p>现在优秀的开源项目大多都经过了各种测试。最近我也想码一个规范性要求严格的小项目，于是兵马未动粮草先行，先对前端自动化测试进行学习，总结记录一下学习成果，以在之后项目上进行实践。</p>
+<p>前端的测试类型分为<strong>单元测试（unit testing）</strong>、<strong>集成测试（integration testing）</strong>和<strong>端到端测试（e2e testing）</strong>。</p>
+<ul>
+<li><strong>单元测试</strong>将应用拆分为细小的组件（JS 中的一个函数/对象/模块等）方法，然后针对这些方法进行单独的测试工作；</li>
+<li><strong>集成测试</strong>是针对产品的某个功能的测试，又称功能测试；</li>
+<li><strong>e2e 测试</strong>则是从用户界面直达数据库的全链路测试，模拟用户进行页面操作，通过判断页面状态的变化来检查功能是否运行正常，需要用到浏览器环境。</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="开发模式"><a href="#开发模式" class="headerlink" title="开发模式"></a>开发模式</h2><p>先绕点路，了解一下 TDD、BDD等<strong>以测试为导向的开发模式</strong>，有助于我们更深入地理解自动化测试。</p>
+<h3 id="TDD"><a href="#TDD" class="headerlink" title="TDD"></a>TDD</h3><p>TDD（Test Driven Development），即<strong>测试驱动开发</strong>。其先针对每个功能点抽象出接口代码，然后编写单元测试用例代码。之后实现接口，运行单元测试代码进行测试，循环往复直至所有单元测试通过。</p>
+<p>TDD 要求测试先于编写功能代码。测试用例不仅是对于代码的验证，更成为对代码的规范与约束，确保在开发以及未来进行修改时能够极大程度地保证该模块行为仍然是正确的。</p>
+<h3 id="BDD"><a href="#BDD" class="headerlink" title="BDD"></a>BDD</h3><p>BDD（Behavior Driven Development），即<strong>行为驱动开发</strong>。BDD 和 TDD 一样，都要求先写测试，再写代码。可以认为 BDD 是 TDD 的一个子集或分支，是测试驱动开发的扩展。</p>
+<p>TDD 基于开发者角度，重点测试函数的输入输出；而 BDD 更侧重于使用者角度，重点测试对用户行为的反应。</p>
+<p>BDD 测试中，客户与开发者共同考虑系统该如何运行，然后用通用的语言抽象描述系统的行为，使得双方从技术层面和业务需求都能理解，避免沟通障碍。</p>
+<h2 id="测试工具"><a href="#测试工具" class="headerlink" title="测试工具"></a>测试工具</h2><h3 id="测试管理工具"><a href="#测试管理工具" class="headerlink" title="测试管理工具"></a>测试管理工具</h3><p>用来组织和运行整个测试的工具，它能够将测试框架、断言库、测试浏览器、测试代码和被测试代码组织起来，并运行被测试代码进行测试。</p>
+<p>可选择的有 Karma、Selenium、Mocha（Mocha既是测试工具，也是测试框架）。</p>
+<h3 id="测试框架"><a href="#测试框架" class="headerlink" title="测试框架"></a>测试框架</h3><p>测试框架是单元测试的核心，提供了单元测试所需的各种API，并对测试用例分组。测试框架会抓取到代码抛出的 AssertionError 并提供附加信息。</p>
+<p>选择较多，有名的有 Mocha、Jasmine等。不过 Mocha 既支持 TDD 也支持 BDD 的测试语法，Jasmine 只支持 BDD。</p>
+<h3 id="断言库"><a href="#断言库" class="headerlink" title="断言库"></a>断言库</h3><p>断言库提供了很多语义化的方法来对值做各种判断。当然也可以不用断言库，Node.js 中也可以直接使用原生 assert 库。</p>
+<p>可供选择的断言库也很多，包括 should.js、expect.js、chai.js等。</p>
+<h3 id="测试浏览器"><a href="#测试浏览器" class="headerlink" title="测试浏览器"></a>测试浏览器</h3><p>前端代码是运行在浏览器中的，要对其进行单元测试，只能将其运行在浏览器上。目前大部分测试工具都支持调用和运行本地浏览器来进行测试，但如果测试仅仅是针对函数和模块的单元测试，则完全可以使用一款无界面的 webkit 内核浏览器：PhantomJS。</p>
+<h3 id="测试覆盖率统计工具"><a href="#测试覆盖率统计工具" class="headerlink" title="测试覆盖率统计工具"></a>测试覆盖率统计工具</h3><p>测试覆盖率工具为代码在语法级分支上打点，之后运行代码，并在运行结束后根据收集到的信息统计出当前测试用例对源码的覆盖情况。</p>
+<p>一般情况下你的测试管理工具会提供相关的覆盖率统计工具，但是有些情况下它们提供的工具未必是你想要的。比如当被测试的代码是经过了某些打包工具打包完了且被压缩和混淆了，同时打包工具还混入了很多自己的代码，这时覆盖率的统计就容易不准确。所以为了避免这种情况，测试覆盖率统计工具需要谨慎选择，至少你得确认它支持你的打包工具已经打包好的代码。</p>
+<h2 id="vue-cli-的配置"><a href="#vue-cli-的配置" class="headerlink" title="vue-cli 的配置"></a>vue-cli 的配置</h2><p>vue-cli 的 webpack 模版内置了开箱即用的 Karma + Jasmine 单元测试配置，以及 Nightwatch + Selenium E2E 测试配置，<code>npm run test</code>即可测试自带的一个初始测试用例。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-50166ab65032fdd5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-unit-test.jpg"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-298692df753ab061.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-e2e-test.jpg"></p>
+<p>有坑请注意：</p>
+<ol>
+<li>建议使用 cnpm 对 vue-cli 项目进行依赖安装，否则可能有些东西装不上。</li>
+<li>自带的 e2e 测试要求装有 chrome 浏览器，否则报错<code>Error retrieving a new session from the selenium server</code>。我被这个坑折腾了半天…</li>
+</ol>
+<h2 id="开始编写测试代码"><a href="#开始编写测试代码" class="headerlink" title="开始编写测试代码"></a>开始编写测试代码</h2><p><a href="https://github.com/bighuang624/resume">我的简历项目</a> 是我花了一天时间写的一个 vue-cli 初始化、只用了 Vue 的一个小项目，我们拿这个简单的小项目来入门测试代码的编写。我们直接利用 vue-cli 的初始配置，即用 Karma + Jasmine 进行单元测试，Nightwatch + Selenium 进行 E2E 测试。</p>
+<p>你可以将我的项目 clone 下来进行测试代码的编写练习，不过项目里的测试代码可能已经因为更新而何下面的示例不一样了。</p>
+<h3 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h3><p><code>/test/unit/index.js</code>中可以看到，单元测试的测试代码是<code>/specs</code>文件夹下以<code>.spec.js</code>结尾的文件。将自带的<code>Hello.spec.js</code>改写为<code>LeftNav.spec.js</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> LeftNav <span class="keyword">from</span> <span class="string">&#x27;@/components/LeftNav&#x27;</span>;</span><br><span class="line"></span><br><span class="line">describe(<span class="string">&#x27;LeftNav.vue&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> Constructor = Vue.extend(LeftNav);</span><br><span class="line">  <span class="keyword">const</span> vm = <span class="keyword">new</span> Constructor().$mount();</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct name&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h1&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Kyon Huang&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct title&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h3&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Web 开发工程师&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="E2E-测试"><a href="#E2E-测试" class="headerlink" title="E2E 测试"></a>E2E 测试</h3><p>同理，将<code>/test/e2e/specs/test.js</code>改写为</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// For authoring Nightwatch tests, see</span></span><br><span class="line"><span class="comment">// http://nightwatchjs.org/guide#usage</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="string">&#x27;default e2e tests&#x27;</span>: <span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params">browser</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// automatically uses dev Server port from /config.index.js</span></span><br><span class="line">    <span class="comment">// default: http://localhost:8080</span></span><br><span class="line">    <span class="comment">// see nightwatch.conf.js</span></span><br><span class="line">    <span class="keyword">const</span> devServer = browser.globals.devServerURL;</span><br><span class="line"></span><br><span class="line">    browser</span><br><span class="line">      .url(devServer)</span><br><span class="line">      .waitForElementVisible(<span class="string">&#x27;#app&#x27;</span>, <span class="number">5000</span>)</span><br><span class="line">      .assert.elementPresent(<span class="string">&#x27;.leftNav&#x27;</span>)</span><br><span class="line">      .assert.containsText(<span class="string">&#x27;h1&#x27;</span>, <span class="string">&#x27;Kyon Huang&#x27;</span>)</span><br><span class="line">      .assert.elementCount(<span class="string">&#x27;img&#x27;</span>, <span class="number">1</span>)</span><br><span class="line">      .end();</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>测试结果：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-bd0c6382e613c281.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="unit-test-result.png"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-dbd1bfcc046e28fd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="e2e-test-result.png"></p>
+<p>可以看到，我们的单元测试和 e2e 测试都通过了。不过单元测试的覆盖率有点低，只有 25%。如何写好测试代码，需要进一步的学习。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>前端工程自动化入门系列下一篇：<a href="http://kyonhuang.top/start-CI/">《再探前端自动化－持续集成》</a></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="写作资料"><a href="#写作资料" class="headerlink" title="写作资料"></a>写作资料</h3><p><a href="http://www.cnblogs.com/bigdataZJ/p/AutoTesting1.html">开发人员看测试之TDD和BDD - JackieZheng - 博客园</a></p>
+<p><a href="http://www.jianshu.com/p/6726c0410650">前端自动化单元测试初探 - 简书</a></p>
+<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><p><a href="http://www.infoq.com/cn/articles/virtual-panel-tdd-bdd#">虚拟座谈会：代码测试比率、测试驱动开发及行为驱动开发</a></p>
+<p><a href="https://www.qcloud.com/community/article/743451001489391682">PhantomJS 基础及示例 - 腾云阁 - 腾讯云</a></p>
+]]></content>
+      <categories>
+        <category>前端工程</category>
+      </categories>
+      <tags>
+        <tag>JavaScipt</tag>
+        <tag>前端</tag>
+        <tag>前端工程</tag>
+        <tag>测试</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>单页面程序及组件化相关笔记</title>
     <url>/blog/SPA-learning-notes/</url>
     <content><![CDATA[<p>随着 Vue 文档的阅读，单页面程序、组件等概念出现地越来越频繁。但我始终感觉对这几个词缺少一种逻辑联系上的认知。直到看到 <a href="https://github.com/xufei/blog">xufei</a> 在 github 上的关于这个主题的一系列博文，始有醍醐灌顶之感。综合各方面资料，自己进行一个整理，帮助自己深入理解。</p>
@@ -1463,67 +1527,57 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>初探前端自动化测试--以 Vue 为例</title>
-    <url>/blog/start-front-end-test/</url>
-    <content><![CDATA[<p>随着前端项目规模日益膨胀，自动化测试显得越来越重要。在开发过程中就进行测试，可以保障代码质量和功能实现完整度，提升后期开发效率，也便于项目维护。当然，对于需求变更频繁、复用度低的内容，维护测试用例的成本就显得过高；但对于稳定、多次复用以及需要长期维护的项目，自动化测试就尤为重要。</p>
-<p>现在优秀的开源项目大多都经过了各种测试。最近我也想码一个规范性要求严格的小项目，于是兵马未动粮草先行，先对前端自动化测试进行学习，总结记录一下学习成果，以在之后项目上进行实践。</p>
-<p>前端的测试类型分为<strong>单元测试（unit testing）</strong>、<strong>集成测试（integration testing）</strong>和<strong>端到端测试（e2e testing）</strong>。</p>
-<ul>
-<li><strong>单元测试</strong>将应用拆分为细小的组件（JS 中的一个函数/对象/模块等）方法，然后针对这些方法进行单独的测试工作；</li>
-<li><strong>集成测试</strong>是针对产品的某个功能的测试，又称功能测试；</li>
-<li><strong>e2e 测试</strong>则是从用户界面直达数据库的全链路测试，模拟用户进行页面操作，通过判断页面状态的变化来检查功能是否运行正常，需要用到浏览器环境。</li>
-</ul>
-<span id="more"></span>
+    <title>对几个前端相关概念的理解——OO CSS、语义化、CSS hack</title>
+    <url>/blog/some-FE-concepts/</url>
+    <content><![CDATA[<p>极客学院的视频《CSS 在工程中改变》中讲到了OO CSS这个概念，而在知乎上看到别人的回答中提到了语义化和CSS hack这两个概念。在查找了相关资料后，我对这几个概念有了一些自己的理解。</p>
+  <span id="more"></span>
 
-<h2 id="开发模式"><a href="#开发模式" class="headerlink" title="开发模式"></a>开发模式</h2><p>先绕点路，了解一下 TDD、BDD等<strong>以测试为导向的开发模式</strong>，有助于我们更深入地理解自动化测试。</p>
-<h3 id="TDD"><a href="#TDD" class="headerlink" title="TDD"></a>TDD</h3><p>TDD（Test Driven Development），即<strong>测试驱动开发</strong>。其先针对每个功能点抽象出接口代码，然后编写单元测试用例代码。之后实现接口，运行单元测试代码进行测试，循环往复直至所有单元测试通过。</p>
-<p>TDD 要求测试先于编写功能代码。测试用例不仅是对于代码的验证，更成为对代码的规范与约束，确保在开发以及未来进行修改时能够极大程度地保证该模块行为仍然是正确的。</p>
-<h3 id="BDD"><a href="#BDD" class="headerlink" title="BDD"></a>BDD</h3><p>BDD（Behavior Driven Development），即<strong>行为驱动开发</strong>。BDD 和 TDD 一样，都要求先写测试，再写代码。可以认为 BDD 是 TDD 的一个子集或分支，是测试驱动开发的扩展。</p>
-<p>TDD 基于开发者角度，重点测试函数的输入输出；而 BDD 更侧重于使用者角度，重点测试对用户行为的反应。</p>
-<p>BDD 测试中，客户与开发者共同考虑系统该如何运行，然后用通用的语言抽象描述系统的行为，使得双方从技术层面和业务需求都能理解，避免沟通障碍。</p>
-<h2 id="测试工具"><a href="#测试工具" class="headerlink" title="测试工具"></a>测试工具</h2><h3 id="测试管理工具"><a href="#测试管理工具" class="headerlink" title="测试管理工具"></a>测试管理工具</h3><p>用来组织和运行整个测试的工具，它能够将测试框架、断言库、测试浏览器、测试代码和被测试代码组织起来，并运行被测试代码进行测试。</p>
-<p>可选择的有 Karma、Selenium、Mocha（Mocha既是测试工具，也是测试框架）。</p>
-<h3 id="测试框架"><a href="#测试框架" class="headerlink" title="测试框架"></a>测试框架</h3><p>测试框架是单元测试的核心，提供了单元测试所需的各种API，并对测试用例分组。测试框架会抓取到代码抛出的 AssertionError 并提供附加信息。</p>
-<p>选择较多，有名的有 Mocha、Jasmine等。不过 Mocha 既支持 TDD 也支持 BDD 的测试语法，Jasmine 只支持 BDD。</p>
-<h3 id="断言库"><a href="#断言库" class="headerlink" title="断言库"></a>断言库</h3><p>断言库提供了很多语义化的方法来对值做各种判断。当然也可以不用断言库，Node.js 中也可以直接使用原生 assert 库。</p>
-<p>可供选择的断言库也很多，包括 should.js、expect.js、chai.js等。</p>
-<h3 id="测试浏览器"><a href="#测试浏览器" class="headerlink" title="测试浏览器"></a>测试浏览器</h3><p>前端代码是运行在浏览器中的，要对其进行单元测试，只能将其运行在浏览器上。目前大部分测试工具都支持调用和运行本地浏览器来进行测试，但如果测试仅仅是针对函数和模块的单元测试，则完全可以使用一款无界面的 webkit 内核浏览器：PhantomJS。</p>
-<h3 id="测试覆盖率统计工具"><a href="#测试覆盖率统计工具" class="headerlink" title="测试覆盖率统计工具"></a>测试覆盖率统计工具</h3><p>测试覆盖率工具为代码在语法级分支上打点，之后运行代码，并在运行结束后根据收集到的信息统计出当前测试用例对源码的覆盖情况。</p>
-<p>一般情况下你的测试管理工具会提供相关的覆盖率统计工具，但是有些情况下它们提供的工具未必是你想要的。比如当被测试的代码是经过了某些打包工具打包完了且被压缩和混淆了，同时打包工具还混入了很多自己的代码，这时覆盖率的统计就容易不准确。所以为了避免这种情况，测试覆盖率统计工具需要谨慎选择，至少你得确认它支持你的打包工具已经打包好的代码。</p>
-<h2 id="vue-cli-的配置"><a href="#vue-cli-的配置" class="headerlink" title="vue-cli 的配置"></a>vue-cli 的配置</h2><p>vue-cli 的 webpack 模版内置了开箱即用的 Karma + Jasmine 单元测试配置，以及 Nightwatch + Selenium E2E 测试配置，<code>npm run test</code>即可测试自带的一个初始测试用例。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-50166ab65032fdd5.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-unit-test.jpg"></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-298692df753ab061.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="vuecli-e2e-test.jpg"></p>
-<p>有坑请注意：</p>
+<h2 id="OO-CSS"><a href="#OO-CSS" class="headerlink" title="OO CSS"></a>OO CSS</h2><p>OO CSS，全称为Object Oriented CSS，意为“面向对象的CSS”。</p>
+<p>OO CSS是一种书写规则，看重代码的重用性、可维护性和可扩展性。OO CSS将页面可重用元素抽象成一个类，用Class加以描述，而与其对应的HTML即可看成是此类的一个实例。</p>
+<p>OO CSS更加适合大型网站的开发，因为大型网站用到更多的可重用组件。为了更好地维护，最好给每个组件写一份说明文档。</p>
+<p>作用：</p>
 <ol>
-<li>建议使用 cnpm 对 vue-cli 项目进行依赖安装，否则可能有些东西装不上。</li>
-<li>自带的 e2e 测试要求装有 chrome 浏览器，否则报错<code>Error retrieving a new session from the selenium server</code>。我被这个坑折腾了半天…</li>
+<li>加强代码复用以便方便维护。</li>
+<li>减小CSS体积。</li>
+<li>提升渲染效率。</li>
+<li>组件库思想、栅格布局可共用、减少选择器、方便扩展。</li>
 </ol>
-<h2 id="开始编写测试代码"><a href="#开始编写测试代码" class="headerlink" title="开始编写测试代码"></a>开始编写测试代码</h2><p><a href="https://github.com/bighuang624/resume">我的简历项目</a> 是我花了一天时间写的一个 vue-cli 初始化、只用了 Vue 的一个小项目，我们拿这个简单的小项目来入门测试代码的编写。我们直接利用 vue-cli 的初始配置，即用 Karma + Jasmine 进行单元测试，Nightwatch + Selenium 进行 E2E 测试。</p>
-<p>你可以将我的项目 clone 下来进行测试代码的编写练习，不过项目里的测试代码可能已经因为更新而何下面的示例不一样了。</p>
-<h3 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h3><p><code>/test/unit/index.js</code>中可以看到，单元测试的测试代码是<code>/specs</code>文件夹下以<code>.spec.js</code>结尾的文件。将自带的<code>Hello.spec.js</code>改写为<code>LeftNav.spec.js</code>：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> LeftNav <span class="keyword">from</span> <span class="string">&#x27;@/components/LeftNav&#x27;</span>;</span><br><span class="line"></span><br><span class="line">describe(<span class="string">&#x27;LeftNav.vue&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> Constructor = Vue.extend(LeftNav);</span><br><span class="line">  <span class="keyword">const</span> vm = <span class="keyword">new</span> Constructor().$mount();</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct name&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h1&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Kyon Huang&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  it(<span class="string">&#x27;should render correct title&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    expect(vm.$el.querySelector(<span class="string">&#x27;.leftNav h3&#x27;</span>).textContent)</span><br><span class="line">      .to.equal(<span class="string">&#x27;Web 开发工程师&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="E2E-测试"><a href="#E2E-测试" class="headerlink" title="E2E 测试"></a>E2E 测试</h3><p>同理，将<code>/test/e2e/specs/test.js</code>改写为</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// For authoring Nightwatch tests, see</span></span><br><span class="line"><span class="comment">// http://nightwatchjs.org/guide#usage</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="string">&#x27;default e2e tests&#x27;</span>: <span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params">browser</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// automatically uses dev Server port from /config.index.js</span></span><br><span class="line">    <span class="comment">// default: http://localhost:8080</span></span><br><span class="line">    <span class="comment">// see nightwatch.conf.js</span></span><br><span class="line">    <span class="keyword">const</span> devServer = browser.globals.devServerURL;</span><br><span class="line"></span><br><span class="line">    browser</span><br><span class="line">      .url(devServer)</span><br><span class="line">      .waitForElementVisible(<span class="string">&#x27;#app&#x27;</span>, <span class="number">5000</span>)</span><br><span class="line">      .assert.elementPresent(<span class="string">&#x27;.leftNav&#x27;</span>)</span><br><span class="line">      .assert.containsText(<span class="string">&#x27;h1&#x27;</span>, <span class="string">&#x27;Kyon Huang&#x27;</span>)</span><br><span class="line">      .assert.elementCount(<span class="string">&#x27;img&#x27;</span>, <span class="number">1</span>)</span><br><span class="line">      .end();</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>测试结果：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-bd0c6382e613c281.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="unit-test-result.png"></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-dbd1bfcc046e28fd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="e2e-test-result.png"></p>
-<p>可以看到，我们的单元测试和 e2e 测试都通过了。不过单元测试的覆盖率有点低，只有 25%。如何写好测试代码，需要进一步的学习。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>前端工程自动化入门系列下一篇：<a href="http://kyonhuang.top/start-CI/">《再探前端自动化－持续集成》</a></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><h3 id="写作资料"><a href="#写作资料" class="headerlink" title="写作资料"></a>写作资料</h3><p><a href="http://www.cnblogs.com/bigdataZJ/p/AutoTesting1.html">开发人员看测试之TDD和BDD - JackieZheng - 博客园</a></p>
-<p><a href="http://www.jianshu.com/p/6726c0410650">前端自动化单元测试初探 - 简书</a></p>
-<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><p><a href="http://www.infoq.com/cn/articles/virtual-panel-tdd-bdd#">虚拟座谈会：代码测试比率、测试驱动开发及行为驱动开发</a></p>
-<p><a href="https://www.qcloud.com/community/article/743451001489391682">PhantomJS 基础及示例 - 腾云阁 - 腾讯云</a></p>
+<p>注意事项：</p>
+<ol>
+<li><strong>不要直接定义子节点，应把共性声明放在父类。</strong></li>
+<li><strong>结构与样式相互独立。</strong></li>
+<li><strong>容器和内容相互独立。</strong></li>
+<li>抽象出可重用的元素，建好组件库，在组件库内寻找可用的元素组装页面。</li>
+<li>往你想要扩展的对象本身增加class而不是他的父节点。</li>
+<li><strong>对象应保持独立性。</strong></li>
+<li>避免使用ID选择器，权重太高，无法重用。（ID选择器大多数为JS服务）</li>
+<li><strong>避免位置相关的样式。</strong></li>
+<li>保证选择器相同的权重。</li>
+<li>类名应简短、清晰并保有语义。OOCSS的名字并不影响HTML语义化。</li>
+</ol>
+<p>参考资料：</p>
+<p><a href="http://www.w3cplus.com/css/oocss-concept">OOCSS——概念篇</a></p>
+<h2 id="语义化"><a href="#语义化" class="headerlink" title="语义化"></a>语义化</h2><p><strong>语义化</strong>就是对数据和信息进行处理，使得机器可以理解。</p>
+<p>如何在开放的网络、庞大的信息资源中找到需要的信息？我们当然需要借助包括搜索引擎、爬虫在内的智能程序的力量。而为了让这些程序能够理解内容、推演逻辑、建立索引并给予较高的权值，语义化变得越来越重要。SEO最有效的一种方法就是对网页的HTML结构进行重构，实质上就是语义化。</p>
+<p>为了使机器能够尽可能理解内容，规范是必须的。程序肯定只会关注那些约定俗成的东西。某种规范被认可的程度越高，就越会成为机器算法的目标，人们就越可以根据它来实现各种功能。</p>
+<p>HTML本身也是机器可读的语义信息，但由于HTML被设计的目的并不是为了机器可读，所以不尽完美。也因此，HTML规范一直在往语义化的方向上发展。HTML5更是在之前规范的基础上，将所有表现层的语义描述都进行了修改或者删除，增加了不少可以表达更丰富语义的元素。</p>
+<p>当然，HTML5并非Web语义化唯一的规范。有很多组织都提出了有浏览器和搜索引擎支持的规范，为扩展、标准化Web语义做着自己的贡献。关于HTML5各个元素语义的描述，可参考 <a href="http://justineo.github.io/slideshows/semantic-html/#/">Semantic HTML</a>。</p>
+<p>参考资料：</p>
+<p><a href="https://www.zhihu.com/question/20455165">如何理解 Web 语义化？- 知乎</a></p>
+<h2 id="CSS-hack"><a href="#CSS-hack" class="headerlink" title="CSS hack"></a>CSS hack</h2><p>由于不同厂商的浏览器和浏览器的不同版本对CSS有不一样的支持和解析结果，导致我们需要针对不同的浏览器及同一浏览器的不同版本写特定的样式，以获得统一的页面效果。这个过程叫做<strong>CSS hack</strong>。</p>
+<p>使用CSS hack虽然有助于实现页面表现的一致性，但滥用会造成编码过于复杂、文档混乱不堪，增加管理和维护的负担。因此，hack要少用、慎用。等到未来浏览器厂商的标准能够完全统一时，就是hack退出历史舞台的时候了。</p>
+<p>参考资料：</p>
+<p><a href="http://blog.csdn.net/freshlover/article/details/12132801">史上最全的CSS hack方式一览</a></p>
 ]]></content>
       <categories>
-        <category>前端工程</category>
+        <category>前端学习笔记</category>
       </categories>
       <tags>
-        <tag>JavaScipt</tag>
         <tag>前端</tag>
-        <tag>前端工程</tag>
-        <tag>测试</tag>
+        <tag>概念理解</tag>
+        <tag>OO CSS</tag>
+        <tag>语义化</tag>
+        <tag>CSS hack</tag>
       </tags>
   </entry>
   <entry>
@@ -1759,60 +1813,6 @@ MathJax.Hub.Config({
       <tags>
         <tag>学科复习笔记</tag>
         <tag>数据库系统</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>对几个前端相关概念的理解——OO CSS、语义化、CSS hack</title>
-    <url>/blog/some-FE-concepts/</url>
-    <content><![CDATA[<p>极客学院的视频《CSS 在工程中改变》中讲到了OO CSS这个概念，而在知乎上看到别人的回答中提到了语义化和CSS hack这两个概念。在查找了相关资料后，我对这几个概念有了一些自己的理解。</p>
-  <span id="more"></span>
-
-<h2 id="OO-CSS"><a href="#OO-CSS" class="headerlink" title="OO CSS"></a>OO CSS</h2><p>OO CSS，全称为Object Oriented CSS，意为“面向对象的CSS”。</p>
-<p>OO CSS是一种书写规则，看重代码的重用性、可维护性和可扩展性。OO CSS将页面可重用元素抽象成一个类，用Class加以描述，而与其对应的HTML即可看成是此类的一个实例。</p>
-<p>OO CSS更加适合大型网站的开发，因为大型网站用到更多的可重用组件。为了更好地维护，最好给每个组件写一份说明文档。</p>
-<p>作用：</p>
-<ol>
-<li>加强代码复用以便方便维护。</li>
-<li>减小CSS体积。</li>
-<li>提升渲染效率。</li>
-<li>组件库思想、栅格布局可共用、减少选择器、方便扩展。</li>
-</ol>
-<p>注意事项：</p>
-<ol>
-<li><strong>不要直接定义子节点，应把共性声明放在父类。</strong></li>
-<li><strong>结构与样式相互独立。</strong></li>
-<li><strong>容器和内容相互独立。</strong></li>
-<li>抽象出可重用的元素，建好组件库，在组件库内寻找可用的元素组装页面。</li>
-<li>往你想要扩展的对象本身增加class而不是他的父节点。</li>
-<li><strong>对象应保持独立性。</strong></li>
-<li>避免使用ID选择器，权重太高，无法重用。（ID选择器大多数为JS服务）</li>
-<li><strong>避免位置相关的样式。</strong></li>
-<li>保证选择器相同的权重。</li>
-<li>类名应简短、清晰并保有语义。OOCSS的名字并不影响HTML语义化。</li>
-</ol>
-<p>参考资料：</p>
-<p><a href="http://www.w3cplus.com/css/oocss-concept">OOCSS——概念篇</a></p>
-<h2 id="语义化"><a href="#语义化" class="headerlink" title="语义化"></a>语义化</h2><p><strong>语义化</strong>就是对数据和信息进行处理，使得机器可以理解。</p>
-<p>如何在开放的网络、庞大的信息资源中找到需要的信息？我们当然需要借助包括搜索引擎、爬虫在内的智能程序的力量。而为了让这些程序能够理解内容、推演逻辑、建立索引并给予较高的权值，语义化变得越来越重要。SEO最有效的一种方法就是对网页的HTML结构进行重构，实质上就是语义化。</p>
-<p>为了使机器能够尽可能理解内容，规范是必须的。程序肯定只会关注那些约定俗成的东西。某种规范被认可的程度越高，就越会成为机器算法的目标，人们就越可以根据它来实现各种功能。</p>
-<p>HTML本身也是机器可读的语义信息，但由于HTML被设计的目的并不是为了机器可读，所以不尽完美。也因此，HTML规范一直在往语义化的方向上发展。HTML5更是在之前规范的基础上，将所有表现层的语义描述都进行了修改或者删除，增加了不少可以表达更丰富语义的元素。</p>
-<p>当然，HTML5并非Web语义化唯一的规范。有很多组织都提出了有浏览器和搜索引擎支持的规范，为扩展、标准化Web语义做着自己的贡献。关于HTML5各个元素语义的描述，可参考 <a href="http://justineo.github.io/slideshows/semantic-html/#/">Semantic HTML</a>。</p>
-<p>参考资料：</p>
-<p><a href="https://www.zhihu.com/question/20455165">如何理解 Web 语义化？- 知乎</a></p>
-<h2 id="CSS-hack"><a href="#CSS-hack" class="headerlink" title="CSS hack"></a>CSS hack</h2><p>由于不同厂商的浏览器和浏览器的不同版本对CSS有不一样的支持和解析结果，导致我们需要针对不同的浏览器及同一浏览器的不同版本写特定的样式，以获得统一的页面效果。这个过程叫做<strong>CSS hack</strong>。</p>
-<p>使用CSS hack虽然有助于实现页面表现的一致性，但滥用会造成编码过于复杂、文档混乱不堪，增加管理和维护的负担。因此，hack要少用、慎用。等到未来浏览器厂商的标准能够完全统一时，就是hack退出历史舞台的时候了。</p>
-<p>参考资料：</p>
-<p><a href="http://blog.csdn.net/freshlover/article/details/12132801">史上最全的CSS hack方式一览</a></p>
-]]></content>
-      <categories>
-        <category>前端学习笔记</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>概念理解</tag>
-        <tag>OO CSS</tag>
-        <tag>语义化</tag>
-        <tag>CSS hack</tag>
       </tags>
   </entry>
   <entry>
@@ -2176,6 +2176,36 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
+    <title>Bye,2016 and Hello,2017</title>
+    <url>/blog/bye2016hello2017/</url>
+    <content><![CDATA[<p>开始写的时候是 12 月 30 日晚上，刚刚考完的大物感觉还不错。然后马上就到了 2016 年的最后一天。希望能在2016年内写完这篇博文，给自己的这一年做一个回顾。更重要的是，认真地考虑一下，2017 年应该去做些什么。</p>
+  <span id="more"></span>
+
+<h2 id="Goodbye-2016"><a href="#Goodbye-2016" class="headerlink" title="Goodbye, 2016"></a>Goodbye, 2016</h2><ol>
+<li>从软件工程的萌新变成半萌新。感觉算是摸到了大门，往内斗胆一窥，发现这个世界广阔无垠。东瞧西瞥，还没有考虑好自己今后的发展方向，目前还是打算先以 java 的进阶为主，向 web 开发方面学习。</li>
+<li>今年的学期感觉除了课业上按部就班外，在技术自学上没有激情。倒是暑假自学 java 有很大的收获。希望自己能够不忽视小块的时间去学习技术。当然，首先找到至少短期内的一个学习目标。</li>
+<li>大一下学期进了院长实验室，但是总觉得项目安排上有点难受。外包任务让自己没什么长进。下学期看看怎么协调一下，当然也有可能下学期会参加花旗杯。</li>
+<li>拿了一些院级活动的奖（而且基本都是产品&amp;设计方面的工作）。希望自己能做一些负责技术方面的、有价值的项目。</li>
+<li>体测比去年同期略瘦，50米快了整整一秒。希望自己能保持锻炼，还能在院队有个位置。</li>
+</ol>
+<h2 id="Hello-2017"><a href="#Hello-2017" class="headerlink" title="Hello, 2017"></a>Hello, 2017</h2><ol>
+<li>先顺利地过了上学期所有期末考。希望自己的绩点还能保持在3.5以上。认真复习，少浪，别懒！</li>
+<li>寒假先定个小目标，比如啃啃 javascript，啃啃java 的高级特性，啃啃 lintcode，写几篇有用的技术博客，顺便把博客再折腾一下，最好买个域名。总之，要让 27 天的寒假过的有意义。寒假开始时再列个日程表。</li>
+<li>早睡早起，勤奋刻苦，下学期尽量不翘课。都是专业课，认真听。还要在课余时间继续学技术。</li>
+<li>希望能做一个真正意义上的大项目（比如花旗杯）。为了这个目标，学技术。</li>
+<li>在自己真正的兴趣上利用时间，而不是无所事事地浪费。</li>
+<li>每天过得健康、充实、开心！</li>
+</ol>
+<img src="https://raw.githubusercontent.com/bighuang624/blog/master/images/2017bignews.gif" />]]></content>
+      <categories>
+        <category>年终总结</category>
+      </categories>
+      <tags>
+        <tag>总结</tag>
+        <tag>未来展望</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>yuki-目录文档生成工具</title>
     <url>/blog/yuki-intro/</url>
     <content><![CDATA[<blockquote>
@@ -2331,36 +2361,6 @@ MathJax.Hub.Config({
         <tag>demo</tag>
         <tag>爬虫</tag>
         <tag>学习笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Bye,2016 and Hello,2017</title>
-    <url>/blog/bye2016hello2017/</url>
-    <content><![CDATA[<p>开始写的时候是 12 月 30 日晚上，刚刚考完的大物感觉还不错。然后马上就到了 2016 年的最后一天。希望能在2016年内写完这篇博文，给自己的这一年做一个回顾。更重要的是，认真地考虑一下，2017 年应该去做些什么。</p>
-  <span id="more"></span>
-
-<h2 id="Goodbye-2016"><a href="#Goodbye-2016" class="headerlink" title="Goodbye, 2016"></a>Goodbye, 2016</h2><ol>
-<li>从软件工程的萌新变成半萌新。感觉算是摸到了大门，往内斗胆一窥，发现这个世界广阔无垠。东瞧西瞥，还没有考虑好自己今后的发展方向，目前还是打算先以 java 的进阶为主，向 web 开发方面学习。</li>
-<li>今年的学期感觉除了课业上按部就班外，在技术自学上没有激情。倒是暑假自学 java 有很大的收获。希望自己能够不忽视小块的时间去学习技术。当然，首先找到至少短期内的一个学习目标。</li>
-<li>大一下学期进了院长实验室，但是总觉得项目安排上有点难受。外包任务让自己没什么长进。下学期看看怎么协调一下，当然也有可能下学期会参加花旗杯。</li>
-<li>拿了一些院级活动的奖（而且基本都是产品&amp;设计方面的工作）。希望自己能做一些负责技术方面的、有价值的项目。</li>
-<li>体测比去年同期略瘦，50米快了整整一秒。希望自己能保持锻炼，还能在院队有个位置。</li>
-</ol>
-<h2 id="Hello-2017"><a href="#Hello-2017" class="headerlink" title="Hello, 2017"></a>Hello, 2017</h2><ol>
-<li>先顺利地过了上学期所有期末考。希望自己的绩点还能保持在3.5以上。认真复习，少浪，别懒！</li>
-<li>寒假先定个小目标，比如啃啃 javascript，啃啃java 的高级特性，啃啃 lintcode，写几篇有用的技术博客，顺便把博客再折腾一下，最好买个域名。总之，要让 27 天的寒假过的有意义。寒假开始时再列个日程表。</li>
-<li>早睡早起，勤奋刻苦，下学期尽量不翘课。都是专业课，认真听。还要在课余时间继续学技术。</li>
-<li>希望能做一个真正意义上的大项目（比如花旗杯）。为了这个目标，学技术。</li>
-<li>在自己真正的兴趣上利用时间，而不是无所事事地浪费。</li>
-<li>每天过得健康、充实、开心！</li>
-</ol>
-<img src="https://raw.githubusercontent.com/bighuang624/blog/master/images/2017bignews.gif" />]]></content>
-      <categories>
-        <category>年终总结</category>
-      </categories>
-      <tags>
-        <tag>总结</tag>
-        <tag>未来展望</tag>
       </tags>
   </entry>
   <entry>
@@ -2568,6 +2568,143 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
+    <title>如何给终端安上炫酷的皮神黄皮肤？</title>
+    <url>/blog/pikachu-iterm/</url>
+    <content><![CDATA[<p>昨天看 Trending repositories on GitHub today 时，发现了一个不得了的东西：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-17d0934182abb9bc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Pokemon-Terminal，已经有 1200+ star"></p>
+<p>给终端安上超炫酷的皮神黄皮肤！<br>作为一个铁杆口袋迷+程序员，还有什么能比这更打动我的心吗？</p>
+<p>一天后，在一番说麻烦也不麻烦，说不麻烦又学了很多新东西的折腾后，我成功入手了这款至尊皮神黄皮肤！</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-bc1f7d006fb2f0e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="感觉又能元气满满地查 bug 了呢"></p>
+<p>如果你也是口袋迷，也想给终端安上这款皮肤（或者在 493 只不同的口袋妖怪皮肤中任选一款），那么你可以看看我对这趟折腾之旅的全过程介绍，或许可以少跳几个坑。</p>
+<span id="more"></span>
+
+<h3 id="从零开始的项目安装"><a href="#从零开始的项目安装" class="headerlink" title="从零开始的项目安装"></a>从零开始的项目安装</h3><p>打开 <a href="https://github.com/LazoCoder/Pokemon-Terminal">Pokemon-Terminal 项目的 github 主页</a>，我发现安装前有两个要求：</p>
+<ol>
+<li>3.5及以上版本的 python；</li>
+<li>已安装 iTerm2。</li>
+</ol>
+<p>巧了，这两个要求我都不符合！</p>
+<p>iTerm2 我从来没有接触过，根本不知道是什么。而比较久远的时候，我在试图将 OS X 系统自带的 python 2.+ 升级为 3.+ 时，跟着网上不知道靠不靠谱的教程误操作，以致 2.+ 删掉了 3.+ 却没安好，依赖于 python 的以 Xcode 为首的一系列软件全部罢工（而且过了一周左右才查出来是这个原因），最后灰溜溜地又下了一遍 2.+，从此留下了对 python 的心理阴影（但是我们这篇教程还是很靠谱的）。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-cbaa6148775a471f.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="吃瘪了"></p>
+<p>没关系，作为（准）程序员，要勇于折腾！我们一步一步的搞起。</p>
+<h3 id="iTerm2"><a href="#iTerm2" class="headerlink" title="iTerm2"></a>iTerm2</h3><p>我是先下载的 iTerm2，<a href="http://www.iterm2.com/">官网</a>在此，下载即可。</p>
+<p>iTerm2 是 OS X 系统下很好用的一款命令行工具，至于具体怎么好用，敬请百度了解。因为我现在只是为了皮神黄皮肤。当然之后我也会进一步学习使用。</p>
+<h3 id="python-3-5"><a href="#python-3-5" class="headerlink" title="python 3.5+"></a>python 3.5+</h3><p>昨晚吃瘪后的我心有不甘，发了一条说说。然后幸得初中同学救驾：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-6bbe74dae5518c8f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="向蔡老师低头"></p>
+<p>这个允许用户方便地安装不同版本的 python 并可以快速切换的 anaconda 帮助我解决了问题。<a href="https://www.continuum.io/downloads/">官网</a>提供了图形化安装和命令行安装两种方式，根据自己的专业程度选择下载即可。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-7a10e852f127c605.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="选择 3.6 版本，安装后会自动帮你把 python 版本切换为3.6"></p>
+<p>这个 anaconda 据说也是 python 开发的利器之一，不过我也不会 python。也许之后机缘巧合会深入学习（想了解可以参照这篇文章<a href="http://www.jianshu.com/p/2f3be7781451#">Anaconda使用总结</a>）。说实话为了给终端换个皮肤，让我本不宽裕的存储空间又少了 1G 左右，有些心疼。但是折腾还是给了我很多乐趣，也许之后有用呢。</p>
+<p>那么要求都满足了。按照项目 README 要求，在 iTerm 2 中输入以下三条语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Pokemon Installation</span><br><span class="line">git clone https://github.com/LazoCoder/Pokemon-Terminal $HOME/.Pokemon-Terminal</span><br><span class="line">echo PATH=&quot;$HOME/.Pokemon-Terminal:$&#123;PATH&#125;&quot; &gt;&gt; ~/.bash_profile</span><br><span class="line">source ~/.bash_profile</span><br></pre></td></tr></table></figure>
+
+<p>安装完毕，皮神我来了！</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ pokemon pikachu</span><br></pre></td></tr></table></figure>
+
+<p>然后…出现以下报错提示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.Pokemon-Terminal/./Scripts/background.scpt:39:46: script error: Expected end of line but found identifier. (-2741)</span><br></pre></td></tr></table></figure>
+
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-31f620e842cc120a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="报错了，就很难受"></p>
+<h3 id="翻越最后一座-bug-高山"><a href="#翻越最后一座-bug-高山" class="headerlink" title="翻越最后一座 bug 高山"></a>翻越最后一座 bug 高山</h3><p>想去给作者提一个 issue，就发现作者对于这个 bug 已经给出了<a href="https://github.com/LazoCoder/Pokemon-Terminal/issues/15">解决方法</a>。</p>
+<p>按照解决方法，我们需要对 .Pokemon-Terminal/scripter.py 文件进行一些修改（当然，不一定每个人都碰上了这个 bug）。其实我也不太会用 vim，所以以下操作参照了这篇文章<a href="http://blog.csdn.net/bruce0532/article/details/7842384">修改文件内容 vi命令</a>。</p>
+<p>用以下命令在终端打开：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi .Pokemon-Terminal/scripter.py</span><br></pre></td></tr></table></figure>
+
+<p>然后按一下 i，从命令行模式进入插入模式。找到函数<code>__terminal_script</code>（在比较靠上的位置），将：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">content = &quot;tell application \&quot;iTerm\&quot;\n&quot;</span><br></pre></td></tr></table></figure>
+<p>修改为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">content = &quot;tell application \&quot;iTerm2\&quot;\n&quot;</span><br></pre></td></tr></table></figure>
+
+<p>按 Esc 键进入命令行模式，再按<code>:wq</code>保存退出。大功告成！</p>
+<p>再在 iTerm2 中输入<code>pokemon pikachu</code>，就会发现黑漆漆（或者白晃晃）的背景变成了皮神黄！</p>
+<h3 id="深度使用"><a href="#深度使用" class="headerlink" title="深度使用"></a>深度使用</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">    pokemon [parameter]</span><br><span class="line"></span><br><span class="line">Parameters:</span><br><span class="line">    [name]        -   Change the terminal background to the specified Pokemon.</span><br><span class="line">    [index]       -   Change the terminal background to a Pokemon by its index.</span><br><span class="line">    [region]      -   List all the Pokemon of the specified region.</span><br><span class="line">    [one letter]  -   List all Pokemon who&#x27;s names begin with a particular letter.</span><br><span class="line">    [two letters] -   List all Pokemon who&#x27;s names begin with those two letters.</span><br><span class="line"></span><br><span class="line">Other Parameters:</span><br><span class="line">    pokemon all             -   List all the Pokemon supported.</span><br><span class="line">    pokemon regions         -   List all the available regions.</span><br><span class="line">    pokemon extra           -   List all the Pokemon from the &#x27;Extra&#x27; folder.</span><br><span class="line">    pokemon random          -   Change the terminal background to a random Pokemon.</span><br><span class="line">    pokemon random-kanto    -   Change the terminal background to a random Pokemon from the specified region.</span><br><span class="line">    pokemon ?               -   Identify the current Pokemon in the terminal.</span><br><span class="line">    pokemon _pikachu        -   Change the wallpaper to the specified Pokemon.</span><br><span class="line">    pokemon _random         -   Change the wallpaper to a random Pokemon.</span><br><span class="line">    pokemon _random-kanto   -   Change the wallpaper to a random Pokemon from the specified region.</span><br><span class="line">    pokemon _?              -   Identify the current Pokemon in the wallpaper.</span><br><span class="line">    pokemon slideshow       -   Iterate through each Pokemon.</span><br><span class="line">    pokemon slideshow-kanto -   Iterate through each Pokemon in the specified region.</span><br><span class="line">    pokemon help            -   Display this menu.</span><br></pre></td></tr></table></figure>
+
+<p>以上是作者提供的用法。可以通过口袋妖怪的英文名或者编号切换皮肤，或者用<code>pokemon random</code>来切换成随机的皮肤。</p>
+<p>我们现在还得每次打开 iTerm 后输入命令来切换皮肤。作者同样提供了点开就换的方法，只用在 iTerm 的 Preferences 里做一点配置：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-e7b439a27bbb15e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="可以去掉; clear以使终端界面不自己下滑来隐藏这条命令"></p>
+<p>想一想，通过配置为<code>pokemon random</code>，每次打开都是不同皮肤说不定更爽到。</p>
+<p>最后作者建议你改变一下透明度之类的，使皮神看起来更酷炫有范：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-f45392ab4550af00.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="作者的配置"></p>
+<p>我的配置是这样的：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-1d60fdcb28354450.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="我的配置"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-16299e1b9b28d546.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="再看一次"></p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>其实一个皮肤也没有那么重要（还是有那么一点爽的啦），重要的是通过这一番折腾，接触到了很多常规学习中可能不会接触的东西，包括 iTerm 和 anaconda。这也是我第一次有目的性地去看项目的 issue。希望自己以后能多一点这样地非常规学习。</p>
+]]></content>
+      <categories>
+        <category>程序猿喜欢折腾</category>
+      </categories>
+      <tags>
+        <tag>终端</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据预处理及常用处理方法</title>
+    <url>/blog/intro-to-data-preprocessing/</url>
+    <content><![CDATA[<p>作为互联网上最著名的数据科学竞赛平台之一，Kaggle 无疑是数据从业者和爱好者最喜欢的社区之一。最近，Kaggle 发布了 <a href="https://www.kaggle.com/amberthomas/kaggle-2017-survey-results">2017 用户调查报告</a>，共有 16000 余名用户参与的这份调查可以让我们对数据工作者的各类信息有一个了解。</p>
+<p>其中，对于“工作中遇到的障碍主要是什么？”这个问题，有 49.4% 的被调查者选择了“脏数据（dirty data）”这一项，占该问题所有选项的第一位。也就是说，数据科学家一般最常见的困扰就是要对手头的数据进行大量的预处理工程。</p>
+<p>在业界有一句广泛流传的话：数据和特征决定了机器学习的上限，而模型和算法只是逼近这个上限而已。从这句话可以看出，数据的好坏对于机器学习模型的最终效果有着极大的影响。</p>
+<p>然而，现实世界中数据大体上都是不完整、不一致、含噪声的脏数据，无法直接使用，或结果差强人意。为了提高数据的质量，数据预处理技术应运而生。实际上，在一个基于机器学习模型的实际应用中，对于数据的预处理工作所需的时间和精力可能远大于模型和算法的选择和应用。</p>
+<span id="more"></span>
+
+<h2 id="数据预处理的概念"><a href="#数据预处理的概念" class="headerlink" title="数据预处理的概念"></a>数据预处理的概念</h2><p><strong>数据预处理</strong>是指对所收集数据进行分类或分组前所做的审核、筛选、排序、变换、规约、汇总等必要的处理。</p>
+<h2 id="数据预处理针对的问题"><a href="#数据预处理针对的问题" class="headerlink" title="数据预处理针对的问题"></a>数据预处理针对的问题</h2><p>通过数据获取，我们能够得到未经处理的数据，这时的数据可能存在一些问题。在解决这些问题后，我们才能选择和提取合适的特征进行模型的训练。</p>
+<p>这里简述了一部分问题及其解决方法，还有一些问题的解决方案会在下节展开讨论：</p>
+<ul>
+<li><p>不属于同一量纲：特征的规格不同，不能放在一起比较。后文提到的无量纲化可以解决这一问题。</p>
+</li>
+<li><p>信息不规整：由于数据收集或存储时的错误、技术问题或漏洞，以及软硬件故障等因素，可能存在一些不规整数据。这些不规整的数据需要被过滤掉。</p>
+</li>
+<li><p>数据点缺失：缺失或不规整的数据需要根据其他数据进行填充，方法包括用零值、全局期望或中值，或是根据相邻或类似的数据点来做插值等。需要根据数据、应用场景和个人经验来选择正确的方式。</p>
+</li>
+<li><p>异常值问题：异常值的主要问题在于即使它们是极值也不一定就是错的，对错非常难以分辨。异常值可被移除或是填充，但鲁棒回归等统计技术可用于处理异常值或是极值。另外，利用如对数或高斯核对异常值进行转换也有利于降低值跳跃的影响。</p>
+</li>
+<li><p>数据类型不合要求：对于某些类型的特征，我们可能希望将其转换为另一类型进行使用。比如，我们可以将考试分数这个数值特征转换为是否及格这个二元特征，这个可以通过二值化（设定一个阀值）实现。其他的转换也可以通过自己定义的函数实现。</p>
+</li>
+<li><p>数据不能直接使用：对于例如文本特征、类别特征等特定类别的特征，机器学习算法和模型不能直接使用，那么需要对其做一些转化。对于文本特征，可以使用词袋（bag-of-word）表示法；而对于类别特征，可以使用 One-hot 编码进行处理。这些方法的核心都是编码，会在下一节再出现。</p>
+</li>
+</ul>
+<h2 id="数据预处理的常用方法"><a href="#数据预处理的常用方法" class="headerlink" title="数据预处理的常用方法"></a>数据预处理的常用方法</h2><p>除开过滤、填充等方法之外，下列方法在实际问题的数据预处理中也比较常用。</p>
+<h3 id="无量纲化"><a href="#无量纲化" class="headerlink" title="无量纲化"></a>无量纲化</h3><p><strong>无量纲化</strong>使不同规格的数据转换到同一规格。常见的无量纲化方法有<strong>标准化</strong>和<strong>归一化</strong>。</p>
+<p>标准化的前提是特征值服从正态分布，标准化后，其转换成标准正态分布。</p>
+<p>归一化利用了边界值信息，将特征的取值区间缩放到某个特点的范围，例如[0, 1]等。</p>
+<h4 id="标准化"><a href="#标准化" class="headerlink" title="标准化"></a>标准化</h4><p>标准化也叫 <strong>z-score</strong> 规范化（零均值规范化）。公式如下：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-a1b64f8328595283.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="标准化.png"></p>
+<p>其中 μ 是样本数据的<strong>均值（mean）</strong>， σ 是样本数据的<strong>标准差（std）</strong>。</p>
+<p>通过标准化，样本数据被变为一个均值为 0，方差为 1 的分布。对于梯度下降，标准化可以达到<strong>加速收敛</strong>的效果，且不改变原始数据的几何分布。</p>
+<h4 id="归一化"><a href="#归一化" class="headerlink" title="归一化"></a>归一化</h4><p><strong>归一化</strong>一般是将数据按比例缩放到指定的范围，用于<strong>去除不同维度数据的量纲以及量纲单位</strong>。</p>
+<p>最常见的归一化方法就是 <strong>Min-Max</strong> 归一化：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/2702529-8a1730b90c9336f4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="归一化.png"></p>
+<p>经过归一化处理过后的数据，各个特征维度对目标函数的影响权重是一致的，不会发生某一特征因维度过高而起主导作用，从而遮盖住其他特征的问题。</p>
+<p>有一点值得注意的是，在归一化测试数据时，<strong>测试集和训练集应该使用相同的归一化方法</strong>。即保存从训练集上取得的归一化参数，使用同样的公式和保存的参数来归一化测试集。这是因为我们需要保持测试集和训练集的分布一致。</p>
+<p>另外，归一化和标准化的英文都为 Normalization，需要<strong>根据其用途（或公式）的不同去理解或翻译</strong>。</p>
+<h3 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h3><p><strong>编码</strong>将无法作为输入的原始类别特征或文本特征表示为数字形式。其思想为用一个变量的字典来实现变量到索引序号的映射。</p>
+<p>编码的方式也有很多，下面介绍两个常用的编码方式－One-hot 编码和哑编码。</p>
+<h4 id="One-hot-编码"><a href="#One-hot-编码" class="headerlink" title="One-hot 编码"></a>One-hot 编码</h4><p>假设变量可取的值有 k 个，如果对这些值用 1 到 k 编序，则可以用长度为 k 的二元向量来表示一个变量的取值。在这个向量里，该取值对应的序号所在的元素为 1，其他元素都为 0。</p>
+<h4 id="哑编码"><a href="#哑编码" class="headerlink" title="哑编码"></a>哑编码</h4><p><strong>哑编码</strong>是一种状态编码，前文提到的词袋表示法用的是这种编码方式。将这些文本特征转化为数字时，数字与数字之间是没有大小关系的，纯粹只是分类标记，这时候就需要用哑编码对其进行编码。比如 0 用 0001，1 用 0010，2 用 0100 以此类推。有点类似文本矩阵，最终会构成一个<strong>稀疏矩阵</strong>。一份文本数据中各种词可能达数百万，因此使用稀疏矩阵表示能够节省内存和磁盘空间，以及计算时间。</p>
+<h5 id="补充：稀疏矩阵"><a href="#补充：稀疏矩阵" class="headerlink" title="补充：稀疏矩阵"></a>补充：稀疏矩阵</h5><p>在矩阵中，若数值为 0 的元素数目远远多于非 0 元素的数目，并且非 0 元素分布没有规律时，则称该矩阵为<strong>稀疏矩阵</strong>；与之相反，若非 0 元素数目占大多数时，则称该矩阵为<strong>稠密矩阵</strong>。定义非零元素的总数比上矩阵所有元素的总数为<strong>矩阵的稠密度</strong>。</p>
+<p>稀疏矩阵算法的最大特点是通过只存储和处理非零元素从而大幅度降低存储空间需求以及计算复杂度，代价则是必须使用专门的稀疏矩阵压缩存储数据结构。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>以上介绍的只是一些数据预处理中的常用方法。实际上，还有许多根据不同场合选用的效果更好的处理方法。对于这些暂时没有机会使用的处理方法，限于个人水平和文章篇幅，就不一一详谈了。</p>
+<p>在进行完数据预处理后，我们还需要选择和提取有意义的特征，将其作为输入来训练机器学习的算法和模型。之后还有选择模型、调整参数、评估、交叉验证等步骤，之后会继续整理这些方面的学习成果。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://zhuanlan.zhihu.com/p/30603579?group_id=908678758198726656">Kaggle发布首份数据科学&amp;机器学习从业者现状调查</a></li>
+<li><a href="https://www.zhihu.com/question/29316149/answer/110159647">特征工程到底是什么？ - 知乎</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/29957294">ML 入门：归一化、标准化和正则化</a></li>
+<li>《Spark 机器学习》第三章：Spark 上数据的获取、处理与准备</li>
+<li><a href="http://blog.csdn.net/big_talent/article/details/53887238">关于特征工程入门中的一些基本知识（整理） - CSDN博客</a></li>
+<li><a href="http://blog.csdn.net/pipisorry/article/details/52247379">数据标准化/归一化normalization - 皮皮blog - CSDN博客</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据科学笔记</category>
+      </categories>
+      <tags>
+        <tag>机器学习</tag>
+        <tag>数据科学</tag>
+        <tag>数据预处理</tag>
+        <tag>特征工程</tag>
+        <tag>数据分析</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>数据清理 5 天挑战</title>
     <url>/blog/5-days-data-cleaning/</url>
     <content><![CDATA[<p>偶然看到了 Kaggle 的数据清理 5 天挑战，大致看了一下，还是比较实用的。因此全部做完后记录一下。不是很想在无谓的整理上花太多时间，因此各类标题直接使用原文中的英文标题，用于串联内容的文字较少，且代码不一定完整（主要是缺少导入包和数据的语句）。如果你希望能够全面地了解这 5 次挑战的内容，以下是 Kaggle 上原 kernel 的地址：</p>
@@ -2688,75 +2825,6 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
-    <title>如何给终端安上炫酷的皮神黄皮肤？</title>
-    <url>/blog/pikachu-iterm/</url>
-    <content><![CDATA[<p>昨天看 Trending repositories on GitHub today 时，发现了一个不得了的东西：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-17d0934182abb9bc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Pokemon-Terminal，已经有 1200+ star"></p>
-<p>给终端安上超炫酷的皮神黄皮肤！<br>作为一个铁杆口袋迷+程序员，还有什么能比这更打动我的心吗？</p>
-<p>一天后，在一番说麻烦也不麻烦，说不麻烦又学了很多新东西的折腾后，我成功入手了这款至尊皮神黄皮肤！</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-bc1f7d006fb2f0e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="感觉又能元气满满地查 bug 了呢"></p>
-<p>如果你也是口袋迷，也想给终端安上这款皮肤（或者在 493 只不同的口袋妖怪皮肤中任选一款），那么你可以看看我对这趟折腾之旅的全过程介绍，或许可以少跳几个坑。</p>
-<span id="more"></span>
-
-<h3 id="从零开始的项目安装"><a href="#从零开始的项目安装" class="headerlink" title="从零开始的项目安装"></a>从零开始的项目安装</h3><p>打开 <a href="https://github.com/LazoCoder/Pokemon-Terminal">Pokemon-Terminal 项目的 github 主页</a>，我发现安装前有两个要求：</p>
-<ol>
-<li>3.5及以上版本的 python；</li>
-<li>已安装 iTerm2。</li>
-</ol>
-<p>巧了，这两个要求我都不符合！</p>
-<p>iTerm2 我从来没有接触过，根本不知道是什么。而比较久远的时候，我在试图将 OS X 系统自带的 python 2.+ 升级为 3.+ 时，跟着网上不知道靠不靠谱的教程误操作，以致 2.+ 删掉了 3.+ 却没安好，依赖于 python 的以 Xcode 为首的一系列软件全部罢工（而且过了一周左右才查出来是这个原因），最后灰溜溜地又下了一遍 2.+，从此留下了对 python 的心理阴影（但是我们这篇教程还是很靠谱的）。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-cbaa6148775a471f.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="吃瘪了"></p>
-<p>没关系，作为（准）程序员，要勇于折腾！我们一步一步的搞起。</p>
-<h3 id="iTerm2"><a href="#iTerm2" class="headerlink" title="iTerm2"></a>iTerm2</h3><p>我是先下载的 iTerm2，<a href="http://www.iterm2.com/">官网</a>在此，下载即可。</p>
-<p>iTerm2 是 OS X 系统下很好用的一款命令行工具，至于具体怎么好用，敬请百度了解。因为我现在只是为了皮神黄皮肤。当然之后我也会进一步学习使用。</p>
-<h3 id="python-3-5"><a href="#python-3-5" class="headerlink" title="python 3.5+"></a>python 3.5+</h3><p>昨晚吃瘪后的我心有不甘，发了一条说说。然后幸得初中同学救驾：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-6bbe74dae5518c8f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="向蔡老师低头"></p>
-<p>这个允许用户方便地安装不同版本的 python 并可以快速切换的 anaconda 帮助我解决了问题。<a href="https://www.continuum.io/downloads/">官网</a>提供了图形化安装和命令行安装两种方式，根据自己的专业程度选择下载即可。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-7a10e852f127c605.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="选择 3.6 版本，安装后会自动帮你把 python 版本切换为3.6"></p>
-<p>这个 anaconda 据说也是 python 开发的利器之一，不过我也不会 python。也许之后机缘巧合会深入学习（想了解可以参照这篇文章<a href="http://www.jianshu.com/p/2f3be7781451#">Anaconda使用总结</a>）。说实话为了给终端换个皮肤，让我本不宽裕的存储空间又少了 1G 左右，有些心疼。但是折腾还是给了我很多乐趣，也许之后有用呢。</p>
-<p>那么要求都满足了。按照项目 README 要求，在 iTerm 2 中输入以下三条语句：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Pokemon Installation</span><br><span class="line">git clone https://github.com/LazoCoder/Pokemon-Terminal $HOME/.Pokemon-Terminal</span><br><span class="line">echo PATH=&quot;$HOME/.Pokemon-Terminal:$&#123;PATH&#125;&quot; &gt;&gt; ~/.bash_profile</span><br><span class="line">source ~/.bash_profile</span><br></pre></td></tr></table></figure>
-
-<p>安装完毕，皮神我来了！</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ pokemon pikachu</span><br></pre></td></tr></table></figure>
-
-<p>然后…出现以下报错提示：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.Pokemon-Terminal/./Scripts/background.scpt:39:46: script error: Expected end of line but found identifier. (-2741)</span><br></pre></td></tr></table></figure>
-
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-31f620e842cc120a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="报错了，就很难受"></p>
-<h3 id="翻越最后一座-bug-高山"><a href="#翻越最后一座-bug-高山" class="headerlink" title="翻越最后一座 bug 高山"></a>翻越最后一座 bug 高山</h3><p>想去给作者提一个 issue，就发现作者对于这个 bug 已经给出了<a href="https://github.com/LazoCoder/Pokemon-Terminal/issues/15">解决方法</a>。</p>
-<p>按照解决方法，我们需要对 .Pokemon-Terminal/scripter.py 文件进行一些修改（当然，不一定每个人都碰上了这个 bug）。其实我也不太会用 vim，所以以下操作参照了这篇文章<a href="http://blog.csdn.net/bruce0532/article/details/7842384">修改文件内容 vi命令</a>。</p>
-<p>用以下命令在终端打开：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi .Pokemon-Terminal/scripter.py</span><br></pre></td></tr></table></figure>
-
-<p>然后按一下 i，从命令行模式进入插入模式。找到函数<code>__terminal_script</code>（在比较靠上的位置），将：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">content = &quot;tell application \&quot;iTerm\&quot;\n&quot;</span><br></pre></td></tr></table></figure>
-<p>修改为：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">content = &quot;tell application \&quot;iTerm2\&quot;\n&quot;</span><br></pre></td></tr></table></figure>
-
-<p>按 Esc 键进入命令行模式，再按<code>:wq</code>保存退出。大功告成！</p>
-<p>再在 iTerm2 中输入<code>pokemon pikachu</code>，就会发现黑漆漆（或者白晃晃）的背景变成了皮神黄！</p>
-<h3 id="深度使用"><a href="#深度使用" class="headerlink" title="深度使用"></a>深度使用</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">    pokemon [parameter]</span><br><span class="line"></span><br><span class="line">Parameters:</span><br><span class="line">    [name]        -   Change the terminal background to the specified Pokemon.</span><br><span class="line">    [index]       -   Change the terminal background to a Pokemon by its index.</span><br><span class="line">    [region]      -   List all the Pokemon of the specified region.</span><br><span class="line">    [one letter]  -   List all Pokemon who&#x27;s names begin with a particular letter.</span><br><span class="line">    [two letters] -   List all Pokemon who&#x27;s names begin with those two letters.</span><br><span class="line"></span><br><span class="line">Other Parameters:</span><br><span class="line">    pokemon all             -   List all the Pokemon supported.</span><br><span class="line">    pokemon regions         -   List all the available regions.</span><br><span class="line">    pokemon extra           -   List all the Pokemon from the &#x27;Extra&#x27; folder.</span><br><span class="line">    pokemon random          -   Change the terminal background to a random Pokemon.</span><br><span class="line">    pokemon random-kanto    -   Change the terminal background to a random Pokemon from the specified region.</span><br><span class="line">    pokemon ?               -   Identify the current Pokemon in the terminal.</span><br><span class="line">    pokemon _pikachu        -   Change the wallpaper to the specified Pokemon.</span><br><span class="line">    pokemon _random         -   Change the wallpaper to a random Pokemon.</span><br><span class="line">    pokemon _random-kanto   -   Change the wallpaper to a random Pokemon from the specified region.</span><br><span class="line">    pokemon _?              -   Identify the current Pokemon in the wallpaper.</span><br><span class="line">    pokemon slideshow       -   Iterate through each Pokemon.</span><br><span class="line">    pokemon slideshow-kanto -   Iterate through each Pokemon in the specified region.</span><br><span class="line">    pokemon help            -   Display this menu.</span><br></pre></td></tr></table></figure>
-
-<p>以上是作者提供的用法。可以通过口袋妖怪的英文名或者编号切换皮肤，或者用<code>pokemon random</code>来切换成随机的皮肤。</p>
-<p>我们现在还得每次打开 iTerm 后输入命令来切换皮肤。作者同样提供了点开就换的方法，只用在 iTerm 的 Preferences 里做一点配置：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-e7b439a27bbb15e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="可以去掉; clear以使终端界面不自己下滑来隐藏这条命令"></p>
-<p>想一想，通过配置为<code>pokemon random</code>，每次打开都是不同皮肤说不定更爽到。</p>
-<p>最后作者建议你改变一下透明度之类的，使皮神看起来更酷炫有范：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-f45392ab4550af00.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="作者的配置"></p>
-<p>我的配置是这样的：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-1d60fdcb28354450.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="我的配置"></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-16299e1b9b28d546.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="再看一次"></p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>其实一个皮肤也没有那么重要（还是有那么一点爽的啦），重要的是通过这一番折腾，接触到了很多常规学习中可能不会接触的东西，包括 iTerm 和 anaconda。这也是我第一次有目的性地去看项目的 issue。希望自己以后能多一点这样地非常规学习。</p>
-]]></content>
-      <categories>
-        <category>程序猿喜欢折腾</category>
-      </categories>
-      <tags>
-        <tag>终端</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>分布式系统演进简述</title>
     <url>/blog/evolution-of-distributed-systems/</url>
     <content><![CDATA[<p>“网络与分布式计算”课程布置了一个作业，要求写一篇题目为“构建分布式系统技术发展历史”的小论文。我个人以为“历史”二字应该是要我们去了解每项技术诞生的时间点，然而踏破铁鞋无处可觅。最后写成的文章主题，我个人认为比起“历史”来说，“演进过程”可能更为恰当。</p>
@@ -2820,74 +2888,6 @@ filename@function    //定位至具体函数
       <tags>
         <tag>分布式系统</tag>
         <tag>分布式架构</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>数据预处理及常用处理方法</title>
-    <url>/blog/intro-to-data-preprocessing/</url>
-    <content><![CDATA[<p>作为互联网上最著名的数据科学竞赛平台之一，Kaggle 无疑是数据从业者和爱好者最喜欢的社区之一。最近，Kaggle 发布了 <a href="https://www.kaggle.com/amberthomas/kaggle-2017-survey-results">2017 用户调查报告</a>，共有 16000 余名用户参与的这份调查可以让我们对数据工作者的各类信息有一个了解。</p>
-<p>其中，对于“工作中遇到的障碍主要是什么？”这个问题，有 49.4% 的被调查者选择了“脏数据（dirty data）”这一项，占该问题所有选项的第一位。也就是说，数据科学家一般最常见的困扰就是要对手头的数据进行大量的预处理工程。</p>
-<p>在业界有一句广泛流传的话：数据和特征决定了机器学习的上限，而模型和算法只是逼近这个上限而已。从这句话可以看出，数据的好坏对于机器学习模型的最终效果有着极大的影响。</p>
-<p>然而，现实世界中数据大体上都是不完整、不一致、含噪声的脏数据，无法直接使用，或结果差强人意。为了提高数据的质量，数据预处理技术应运而生。实际上，在一个基于机器学习模型的实际应用中，对于数据的预处理工作所需的时间和精力可能远大于模型和算法的选择和应用。</p>
-<span id="more"></span>
-
-<h2 id="数据预处理的概念"><a href="#数据预处理的概念" class="headerlink" title="数据预处理的概念"></a>数据预处理的概念</h2><p><strong>数据预处理</strong>是指对所收集数据进行分类或分组前所做的审核、筛选、排序、变换、规约、汇总等必要的处理。</p>
-<h2 id="数据预处理针对的问题"><a href="#数据预处理针对的问题" class="headerlink" title="数据预处理针对的问题"></a>数据预处理针对的问题</h2><p>通过数据获取，我们能够得到未经处理的数据，这时的数据可能存在一些问题。在解决这些问题后，我们才能选择和提取合适的特征进行模型的训练。</p>
-<p>这里简述了一部分问题及其解决方法，还有一些问题的解决方案会在下节展开讨论：</p>
-<ul>
-<li><p>不属于同一量纲：特征的规格不同，不能放在一起比较。后文提到的无量纲化可以解决这一问题。</p>
-</li>
-<li><p>信息不规整：由于数据收集或存储时的错误、技术问题或漏洞，以及软硬件故障等因素，可能存在一些不规整数据。这些不规整的数据需要被过滤掉。</p>
-</li>
-<li><p>数据点缺失：缺失或不规整的数据需要根据其他数据进行填充，方法包括用零值、全局期望或中值，或是根据相邻或类似的数据点来做插值等。需要根据数据、应用场景和个人经验来选择正确的方式。</p>
-</li>
-<li><p>异常值问题：异常值的主要问题在于即使它们是极值也不一定就是错的，对错非常难以分辨。异常值可被移除或是填充，但鲁棒回归等统计技术可用于处理异常值或是极值。另外，利用如对数或高斯核对异常值进行转换也有利于降低值跳跃的影响。</p>
-</li>
-<li><p>数据类型不合要求：对于某些类型的特征，我们可能希望将其转换为另一类型进行使用。比如，我们可以将考试分数这个数值特征转换为是否及格这个二元特征，这个可以通过二值化（设定一个阀值）实现。其他的转换也可以通过自己定义的函数实现。</p>
-</li>
-<li><p>数据不能直接使用：对于例如文本特征、类别特征等特定类别的特征，机器学习算法和模型不能直接使用，那么需要对其做一些转化。对于文本特征，可以使用词袋（bag-of-word）表示法；而对于类别特征，可以使用 One-hot 编码进行处理。这些方法的核心都是编码，会在下一节再出现。</p>
-</li>
-</ul>
-<h2 id="数据预处理的常用方法"><a href="#数据预处理的常用方法" class="headerlink" title="数据预处理的常用方法"></a>数据预处理的常用方法</h2><p>除开过滤、填充等方法之外，下列方法在实际问题的数据预处理中也比较常用。</p>
-<h3 id="无量纲化"><a href="#无量纲化" class="headerlink" title="无量纲化"></a>无量纲化</h3><p><strong>无量纲化</strong>使不同规格的数据转换到同一规格。常见的无量纲化方法有<strong>标准化</strong>和<strong>归一化</strong>。</p>
-<p>标准化的前提是特征值服从正态分布，标准化后，其转换成标准正态分布。</p>
-<p>归一化利用了边界值信息，将特征的取值区间缩放到某个特点的范围，例如[0, 1]等。</p>
-<h4 id="标准化"><a href="#标准化" class="headerlink" title="标准化"></a>标准化</h4><p>标准化也叫 <strong>z-score</strong> 规范化（零均值规范化）。公式如下：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-a1b64f8328595283.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="标准化.png"></p>
-<p>其中 μ 是样本数据的<strong>均值（mean）</strong>， σ 是样本数据的<strong>标准差（std）</strong>。</p>
-<p>通过标准化，样本数据被变为一个均值为 0，方差为 1 的分布。对于梯度下降，标准化可以达到<strong>加速收敛</strong>的效果，且不改变原始数据的几何分布。</p>
-<h4 id="归一化"><a href="#归一化" class="headerlink" title="归一化"></a>归一化</h4><p><strong>归一化</strong>一般是将数据按比例缩放到指定的范围，用于<strong>去除不同维度数据的量纲以及量纲单位</strong>。</p>
-<p>最常见的归一化方法就是 <strong>Min-Max</strong> 归一化：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/2702529-8a1730b90c9336f4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="归一化.png"></p>
-<p>经过归一化处理过后的数据，各个特征维度对目标函数的影响权重是一致的，不会发生某一特征因维度过高而起主导作用，从而遮盖住其他特征的问题。</p>
-<p>有一点值得注意的是，在归一化测试数据时，<strong>测试集和训练集应该使用相同的归一化方法</strong>。即保存从训练集上取得的归一化参数，使用同样的公式和保存的参数来归一化测试集。这是因为我们需要保持测试集和训练集的分布一致。</p>
-<p>另外，归一化和标准化的英文都为 Normalization，需要<strong>根据其用途（或公式）的不同去理解或翻译</strong>。</p>
-<h3 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h3><p><strong>编码</strong>将无法作为输入的原始类别特征或文本特征表示为数字形式。其思想为用一个变量的字典来实现变量到索引序号的映射。</p>
-<p>编码的方式也有很多，下面介绍两个常用的编码方式－One-hot 编码和哑编码。</p>
-<h4 id="One-hot-编码"><a href="#One-hot-编码" class="headerlink" title="One-hot 编码"></a>One-hot 编码</h4><p>假设变量可取的值有 k 个，如果对这些值用 1 到 k 编序，则可以用长度为 k 的二元向量来表示一个变量的取值。在这个向量里，该取值对应的序号所在的元素为 1，其他元素都为 0。</p>
-<h4 id="哑编码"><a href="#哑编码" class="headerlink" title="哑编码"></a>哑编码</h4><p><strong>哑编码</strong>是一种状态编码，前文提到的词袋表示法用的是这种编码方式。将这些文本特征转化为数字时，数字与数字之间是没有大小关系的，纯粹只是分类标记，这时候就需要用哑编码对其进行编码。比如 0 用 0001，1 用 0010，2 用 0100 以此类推。有点类似文本矩阵，最终会构成一个<strong>稀疏矩阵</strong>。一份文本数据中各种词可能达数百万，因此使用稀疏矩阵表示能够节省内存和磁盘空间，以及计算时间。</p>
-<h5 id="补充：稀疏矩阵"><a href="#补充：稀疏矩阵" class="headerlink" title="补充：稀疏矩阵"></a>补充：稀疏矩阵</h5><p>在矩阵中，若数值为 0 的元素数目远远多于非 0 元素的数目，并且非 0 元素分布没有规律时，则称该矩阵为<strong>稀疏矩阵</strong>；与之相反，若非 0 元素数目占大多数时，则称该矩阵为<strong>稠密矩阵</strong>。定义非零元素的总数比上矩阵所有元素的总数为<strong>矩阵的稠密度</strong>。</p>
-<p>稀疏矩阵算法的最大特点是通过只存储和处理非零元素从而大幅度降低存储空间需求以及计算复杂度，代价则是必须使用专门的稀疏矩阵压缩存储数据结构。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>以上介绍的只是一些数据预处理中的常用方法。实际上，还有许多根据不同场合选用的效果更好的处理方法。对于这些暂时没有机会使用的处理方法，限于个人水平和文章篇幅，就不一一详谈了。</p>
-<p>在进行完数据预处理后，我们还需要选择和提取有意义的特征，将其作为输入来训练机器学习的算法和模型。之后还有选择模型、调整参数、评估、交叉验证等步骤，之后会继续整理这些方面的学习成果。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://zhuanlan.zhihu.com/p/30603579?group_id=908678758198726656">Kaggle发布首份数据科学&amp;机器学习从业者现状调查</a></li>
-<li><a href="https://www.zhihu.com/question/29316149/answer/110159647">特征工程到底是什么？ - 知乎</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/29957294">ML 入门：归一化、标准化和正则化</a></li>
-<li>《Spark 机器学习》第三章：Spark 上数据的获取、处理与准备</li>
-<li><a href="http://blog.csdn.net/big_talent/article/details/53887238">关于特征工程入门中的一些基本知识（整理） - CSDN博客</a></li>
-<li><a href="http://blog.csdn.net/pipisorry/article/details/52247379">数据标准化/归一化normalization - 皮皮blog - CSDN博客</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>数据科学笔记</category>
-      </categories>
-      <tags>
-        <tag>机器学习</tag>
-        <tag>数据科学</tag>
-        <tag>数据预处理</tag>
-        <tag>特征工程</tag>
-        <tag>数据分析</tag>
       </tags>
   </entry>
   <entry>
@@ -3005,6 +3005,83 @@ filename@function    //定位至具体函数
         <tag>Capsule</tag>
         <tag>CapsNet</tag>
         <tag>Dynamic Routing</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>自动编码器一览（二）</title>
+    <url>/blog/autoencoder-intro-2/</url>
+    <content><![CDATA[<p>这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。</p>
+<p>本文中包含以下内容：</p>
+<ul>
+<li>递归自动编码器（Recursive Autoencoder）</li>
+<li>Additional Stacked Denoising Autoencoder（aSDAE）</li>
+</ul>
+<p>“自动编码器一览”系列：</p>
+<ul>
+<li><a href="http://kyonhuang.top/autoencoder-intro-1/">自动编码器一览（一）</a></li>
+<li><a href="http://kyonhuang.top/autoencoder-intro-2/">自动编码器一览（二）</a></li>
+<li><a href="http://kyonhuang.top/autoencoder-intro-3/">自动编码器一览（三）</a></li>
+</ul>
+<span id="more"></span>
+
+<h2 id="递归自动编码器"><a href="#递归自动编码器" class="headerlink" title="递归自动编码器"></a>递归自动编码器</h2><p>我们首先介绍论文 “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”[1] 提出的<strong>递归自动编码器（Recursive Autoencoder）</strong>。在这篇论文中，递归自动编码器被用于通过无监督或半监督的训练方式，学习不定长句子的表征向量。这样学习到的表征可以被用于下游任务。在情感预测任务上，递归自动编码器达到了当时的 state-of-the-art。递归自动编码器最大的创新之处是加入了独特的层次结构，并使用语义的组合来理解情感。递归自动编码器既可以在没有标签的领域数据上，也可以在有标签的情感数据上进行训练。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png"></p>
+<h3 id="传统递归自动编码器"><a href="#传统递归自动编码器" class="headerlink" title="传统递归自动编码器"></a>传统递归自动编码器</h3><p>传统递归自动编码器要求在以一组词向量的形式给出要输入的句子 $(x_1, x_2, \dots, x_m)$ 的同时，给出句子的二叉树形结构，这个树形结构通过一组父节点和两个子节点的三元组表示：$(p \rightarrow c_{1} c_{2})$。例如在图中，我们有 $((y_{1} \rightarrow x_{1} x_{2}), (y_{2} \rightarrow y_{1} x_{3}), \dots)$ 等三元组。因为对于每组子节点，我们使用同一个神经网络来处理，因此 $y_i$ 的维度和 $x_i$ 相同。</p>
+<p>对于每个三元组 $(p \rightarrow c_{1} c_{2})$，我们通过公示：</p>
+<p>$$p=f\left(W^{(1)}\left[c_{1} ; c_{2}\right]+b^{(1)}\right),$$</p>
+<p>来得到父节点 $p$ 的表征。注意 $f(\cdot)$ 表示非线性的激活函数。为了评估父节点 $p$ 的表征有多好，我们从父节点的表征重建其两个子节点的表征（图中橙色的节点）：</p>
+<p>$$\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]=W^{(2)} p+b^{(2)}$$</p>
+<p>在训练过程中，我们的目标就是最小化这个重建的误差。对于每个子节点对，我们使用欧式距离来计算误差：</p>
+<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right]\right)=\frac{1}{2}\left|\left[c_{1} ; c_{2}\right]-\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]\right|^{2}$$</p>
+<p>我们只需要自底向上来重复以上步骤即可。</p>
+<h3 id="用于预测结构的无监督递归自动编码器"><a href="#用于预测结构的无监督递归自动编码器" class="headerlink" title="用于预测结构的无监督递归自动编码器"></a>用于预测结构的无监督递归自动编码器</h3><p>我们可以从三个方面来优化传统的递归自动编码器。</p>
+<p>第一点是，对于输入的句子 $x$，不再需要给出其树形结构，而是自己构建。方法是使用贪婪算法在每一步去尝试每个可能选择的子节点，最后选择这一步重构损失最低的方式构建整棵树。</p>
+<p>第二点是，之前采用的重构损失是平均的惩罚所有父节点的子节点重构损失。一个改进是，对于更上层的、包含更多单词的子节点对应的重构损失，给一个更高的权重，因为它对这个句子的表征的影响更大。例如，在重构时，设 $n_1$ 和 $n_2$ 是潜在子节点 $c_1$ 和 $c_2$ 包含的单词数量，则重新定义重构损失为</p>
+<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right] ; \theta\right)= \frac{n_{1}}{n_{1}+n_{2}}\left|c_{1}-c_{1}^{\prime}\right|^{2}+\frac{n_{2}}{n_{1}+n_{2}}| | c_{2}-c_{2}^{\prime}| |^{2}$$</p>
+<p>第三点是，由于每次得到的父节点表征会马上被用于重建，因此为了降低重构误差，机器会倾向于学习值非常小的表征。为了避免这个现象出现，在每次计算得到父节点的表征 $p$ 时，可以做一个正则化 $p = \frac{p}{| p |}$。</p>
+<h3 id="半监督递归自动编码器"><a href="#半监督递归自动编码器" class="headerlink" title="半监督递归自动编码器"></a>半监督递归自动编码器</h3><p>到现在为止，递归自动编码器已经可以无监督地生成捕捉了句子的语义结构的表征。我们将这个表征输入到下游任务的模型中，这样，可以通过下游任务的训练来进行微调，从而使模型学习在表征中包含更多对下游任务更为重要的信息。</p>
+<h2 id="Additional-Stacked-Denoising-Autoencoder"><a href="#Additional-Stacked-Denoising-Autoencoder" class="headerlink" title="Additional Stacked Denoising Autoencoder"></a>Additional Stacked Denoising Autoencoder</h2><p>接下来我们来到推荐系统领域，介绍在论文 “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”[2] 被提出的 <strong>Additional Stacked Denoising Autoencoder（aSDAE）</strong>。如果一定要翻译的话，这个模型应该称为“有附加信息的堆叠去噪自动编码器”，因为这个名字有点太长了，因此我们在接下来的叙述中用 aSDAE 来代指这个自动编码器。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/aDAE-aSDAE.png"></p>
+<p>其实 aSDAE 的思想非常简单，就是在堆叠去噪自动编码器的基础上，受到 Seq2Seq 模型的启发，在每一层接受一个相同的、对应输入的附加信息（side information），然后在自动编码器的最后同时重构输入和附加信息。</p>
+<p>用公式表示 aSDAE 模型。对于 aSDAE 的隐藏层 $l \in { 1, \dots, L-1 }$，其隐藏表征 $h_l$ 的计算方法为</p>
+<p>$$h_{l}=g\left(W_{l} h_{l-1}+V_{l} \tilde{x}+b_{l}\right),$$</p>
+<p>其中，$h_0 = \tilde{s}$ 是用噪声处理过的输入，$\tilde{x}$ 是附加信息，$f(\cdot)$ 和 $g(\cdot)$ 都是激活函数。</p>
+<p>对于 aSDAE 的输出层 $L$，输出的计算为</p>
+<p>$$\begin{aligned} \hat &amp;=f\left({W}_{L} {h}_{L}+{b}_{\hat{s}}\right) \\ \hat &amp;=f\left({V}_{L} {h}_{L}+{b}_{\hat{x}}\right) \end{aligned}$$</p>
+<p>因此，aSDAE 的损失函数为</p>
+<p>$$L = \alpha|{s}-\hat|_{F}^{2}+(1-\alpha)|{x}-\hat|_{F}^{2} + \lambda\left(\sum_{l}\left|{W}_{l}\right|_{F}^{2}+\left|{V}_{l}\right|_{F}^{2}\right),$$</p>
+<p>其中，$\alpha$ 是一个用于保持平衡的超参数，$\lambda$ 是正则化参数。</p>
+<p>aSDAE 本身就介绍完了。在论文 [2] 中，aSDAE 学习用户和商品对应的隐向量矩阵，并将用户的基本个人信息、用户画像信息、物品的基本信息等附加信息引入，从而解决协同过滤中的稀疏性与冷启动问题。这些和推荐系统相关的背景知识就不多讨论了，有兴趣的同学可以看参考资料 [3]。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/hybrid-collaborative-filtering-model-with-aSDAE.png"></p>
+<h2 id="More-Autoencoder"><a href="#More-Autoencoder" class="headerlink" title="More Autoencoder"></a>More Autoencoder</h2><p>随着对自动编码器的深入了解，我们有两个问题可以讨论：</p>
+<ol>
+<li>为什么要最小化重构误差？有没有其他做法？</li>
+<li>怎么让自动编码器学习到的表征更具可解释性？</li>
+</ol>
+<p>从这两个问题引入，李宏毅老师在他的机器学习课程上又对自动编码器的一些最新进展进行了介绍和讨论。有兴趣了解的同学可以查看我的《李宏毅机器学习》课程笔记：<a href="http://kyonhuang.top/Hung-yi-Lee-ML-notes/#/More-Autoencoder">More Autoencoder - 《李宏毅机器学习》课程笔记</a>，在此就不再重复写作了。而在“自动编码器一览”系列的下一篇中，我们会来看看可能是近年来的顶会上出现最多的自动编码器的一种形式——变分自动编码器。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>[1] Richard Socher, Jeffrey Pennington, Eric H.Huang, Andrew Y.Ng, Christopher D.Manning. “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”, EMNLP 2011</li>
+<li>[2] Xin Dong, Lei Yu, Zhonghuo Wu, Yuxia Sun, Lingfeng Yuan, Fangxi Zhang. “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”, AAAI 2017 </li>
+<li>[3] 推荐系统中基于深度学习的混合协同过滤模型. <a href="https://zhuanlan.zhihu.com/p/25234865">https://zhuanlan.zhihu.com/p/25234865</a></li>
+</ul>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$', '$$']]}
+});
+</script>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
+      <categories>
+        <category>深度学习笔记</category>
+      </categories>
+      <tags>
+        <tag>深度学习</tag>
+        <tag>自动编码器</tag>
+        <tag>Autoencoder</tag>
+        <tag>表征学习</tag>
+        <tag>Representation Learning</tag>
+        <tag>无监督学习</tag>
       </tags>
   </entry>
   <entry>
@@ -3228,6 +3305,68 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
+    <title>ANTLR v4 学习笔记（三）－特性拾遗</title>
+    <url>/blog/ANTLR-learning-notes-3/</url>
+    <content><![CDATA[<p>继续学习解释器构造和 ANTLR。在系列博文的上一篇 <a href="http://kyonhuang.top/ANTLR-learning-notes-2/">ANTLR v4 学习笔记（二）－实现变种计算器</a>，我们用 ANTLR 实现了一个变种计算器，从而对 ANTLR 语法、访问器（Visitor）机制、集成以及 ANLTR 的错误处理机制有了更深的理解。</p>
+<p>上篇博文对应着《The Definitive ANTLR 4 Reference》中的 Chapter 4 A Quick Tour，但没有覆盖整个 Chapter 4 的所有内容。因此这篇博文将介绍一下 Chapter 4 的剩余内容——监听器（Listener）机制、代码片段嵌入语法，以及词法分析的一些很棒的特性。</p>
+<span id="more"></span>
+
+<h2 id="监听器机制"><a href="#监听器机制" class="headerlink" title="监听器机制"></a>监听器机制</h2><p>监听器机制和访问器机制有着很多共通的特点，我们也需要通过监听语法分析树遍历器触发的“事件”来完成某些工作。它们之间最大的区别在于，监听器的方法会被 ANTLR 提供的遍历器对象自动调用，而在访问器的方法中，必须显式调用<code>visit</code>方法来访问子节点，否则对应的子树将不会被访问。</p>
+<p>ANTLR 会自动生成一个接口 xxListener，它定义了 ANTLR 的运行库中的 ParseTreeWalker 类在遍历语法分析树时能够触发的全部方法。当然，和访问器机制一样，我们无需实现接口中的全部方法。ANTLR 自动生成一个名为 xxBaseListener 的类，我们可以继承这个类并只重写那些我们感兴趣的方法。</p>
+<h2 id="代码片段嵌入语法"><a href="#代码片段嵌入语法" class="headerlink" title="代码片段嵌入语法"></a>代码片段嵌入语法</h2><p>监听器机制和访问器一样，能够使语法分析过程和应用程序本身保持低耦合，也让语法更具有可读性。但有时候，为了满足比较苛刻的需求，我们需要将代码片段（动作）嵌入到语法中，这些动作会被拷贝到 ANTLR 自动生成的递归下降语法分析器的代码中。</p>
+<h3 id="将任意动作嵌入语法"><a href="#将任意动作嵌入语法" class="headerlink" title="将任意动作嵌入语法"></a>将任意动作嵌入语法</h3><p>拿下面这一份用于解析类表格文件的语法为例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Rows;</span><br><span class="line"></span><br><span class="line"><span class="meta">@parser</span>::members &#123;  <span class="comment">// 在生成的 RowsParser 中添加一些成员</span></span><br><span class="line">    <span class="keyword">int</span> col;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RowsParser</span><span class="params">(TokenStream input, <span class="keyword">int</span> col)</span> </span>&#123;  <span class="comment">// 自定义的构造器</span></span><br><span class="line">      <span class="keyword">this</span>(input);</span><br><span class="line">      <span class="keyword">this</span>.col = col;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">file: (row NL)+ ;</span><br><span class="line"></span><br><span class="line">row</span><br><span class="line">locals [<span class="keyword">int</span> i=<span class="number">0</span>]</span><br><span class="line">    : (   STUFF</span><br><span class="line">          &#123;</span><br><span class="line">          $i++;</span><br><span class="line">          <span class="keyword">if</span> ($i == col) System.out.println($STUFF.text);</span><br><span class="line">          &#125;</span><br><span class="line">      )+</span><br><span class="line">    ;</span><br><span class="line"></span><br><span class="line">TAB   : <span class="string">&#x27;\t&#x27;</span> -&gt; skip ;    <span class="comment">// 匹配但是不将其传递给语法分析器</span></span><br><span class="line">NL    : <span class="string">&#x27;\r&#x27;</span>? <span class="string">&#x27;\n&#x27;</span> ;      <span class="comment">// 匹配并将其传递给语法分析器</span></span><br><span class="line">STUFF : ~[\t\r\n]+ ;      <span class="comment">// 匹配除 tab 符和换行符之外的任何字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>@parser::members</code>表示在生成的 RowsParser 中添加一些成员，即大括号里的所有元素（包括）会原封不动的添加到 RowsParser 类中。我们通过加入的构造器来传入希望提取的列号。</p>
+<p>row 规则的<code>(...)+</code>循环放置了一些动作，访问了之前使用 locals 子句定义的局部变量<code>$i</code>。同时 row 规则也使用了<code>$STUFF.text</code>来获得刚刚匹配的 STUFF 词法符号中包含的文本。关于动作的更多内容会在 Chapter 10 深入研究。</p>
+<h3 id="用语义判定改变语法分析过程"><a href="#用语义判定改变语法分析过程" class="headerlink" title="用语义判定改变语法分析过程"></a>用语义判定改变语法分析过程</h3><p>用一个读取一列整数的语法作为例子。首先看一下需求：输入的其中的一部分整数指定了接下来的多少个整数分为一组。例如输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2 8 43 3 1 4 6</span><br></pre></td></tr></table></figure>
+
+<p>第一个数字 2 表示匹配接下来的两个数字 8 和 43，数字 3 表示匹配接下来的三个数字。</p>
+<p>语法文件如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Data;</span><br><span class="line"></span><br><span class="line">file : group+ ;</span><br><span class="line"></span><br><span class="line">group: INT sequence[$INT.<span class="keyword">int</span>] ;</span><br><span class="line"></span><br><span class="line">sequence[<span class="keyword">int</span> n]</span><br><span class="line">locals [<span class="keyword">int</span> i = <span class="number">1</span>;]</span><br><span class="line">     : ( &#123;$i&lt;=$n&#125;? INT &#123;$i++;&#125; )*  <span class="comment">// 匹配 n 个整数</span></span><br><span class="line">     ;</span><br><span class="line"></span><br><span class="line">INT :   [<span class="number">0</span>-<span class="number">9</span>]+ ;     <span class="comment">// 匹配整数</span></span><br><span class="line">WS  :   [ \t\n\r]+ -&gt; skip ;   <span class="comment">// 丢弃所有的空白字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Data 语法的关键在于<code>&#123;$i&lt;=$n&#125;?</code>，这段动作的值是布尔类型的，它被称为一个语义判定。在匹配到 n 个输入整数之前，它的值保持为 true，其中 n 是 sequence 语法中的参数。当语义判定的值为 false 时，对应的备选分支就从语法中“消失”了，因此，它也就从生成的语法分析器中“消失”了。在本例中，语义判定的值为 false 时，<code>(...)*</code>循环终止，从 sequence 规则返回。</p>
+<h2 id="词法分析特性"><a href="#词法分析特性" class="headerlink" title="词法分析特性"></a>词法分析特性</h2><p>ANTLR 有三个与词法符号有关非常棒的特性。</p>
+<h3 id="孤岛语法：处理同一文件中的不同格式"><a href="#孤岛语法：处理同一文件中的不同格式" class="headerlink" title="孤岛语法：处理同一文件中的不同格式"></a>孤岛语法：处理同一文件中的不同格式</h3><p>有很多常见的文件格式包含了多重语言，例如 Java 文件中有注释和 Java 代码，ejs 等模板引擎有模板语言表达式和文本。不同格式的语言需要按照不同的方式进行处理，这样的现象被称为<strong>“孤岛语法”</strong>。</p>
+<p>ANTLR 提供了一个名为<strong>词法分析模式（lexical modes）</strong>的词法分析器特性，帮助我们方便地处理混合了不同格式数据的文件。它的基本思想是，当遇到特殊的“哨兵”字符序列时，执行不同模式的切换。</p>
+<p>我们不妨以 XML 作为例子。一个 XML 解析器会将除标签和实体转义（例如<code>&amp;pound;</code>）之外的内容全部当作普通文本。当看到<code>&lt;</code>时，词法分析器会切换到 “INSIDE” 模式；当看到<code>&gt;</code>或者<code>/&gt;</code>时，它就切换回默认模式。</p>
+<p>下面的语法展示了 XML 解析器的工作方式：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a lexer grammar called XMLLexer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">lexer grammar XMLLexer;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认模式：所有在标签之外的东西</span></span><br><span class="line">OPEN        : <span class="string">&#x27;&lt;&#x27;</span>                 -&gt; pushMode(INSIDE) ;</span><br><span class="line">COMMENT     : <span class="string">&#x27;&lt;!--&#x27;</span> .*? <span class="string">&#x27;--&gt;&#x27;</span>    -&gt; skip ;</span><br><span class="line">EntityRef   : <span class="string">&#x27;&amp;&#x27;</span> [a-z]+ <span class="string">&#x27;;&#x27;</span> ;</span><br><span class="line">TEXT        : ~(<span class="string">&#x27;&lt;&#x27;</span>|<span class="string">&#x27;&amp;&#x27;</span>)+ ;           <span class="comment">// 匹配任意除 &lt; 和 &amp; 之外的 16 位字符</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ----------------------    所有在标签之内的东西    ----------------------</span></span><br><span class="line">mode INSIDE;</span><br><span class="line">CLOSE       : <span class="string">&#x27;&gt;&#x27;</span>                 -&gt; popMode ;  <span class="comment">// 回到默认模式</span></span><br><span class="line">SLASH_CLOSE : <span class="string">&#x27;/&gt;&#x27;</span>                -&gt; popMode ;</span><br><span class="line">EQUALS      : <span class="string">&#x27;=&#x27;</span> ;</span><br><span class="line">STRING      : <span class="string">&#x27;&quot;&#x27;</span> .*? <span class="string">&#x27;&quot;&#x27;</span> ;</span><br><span class="line">SlashName   : <span class="string">&#x27;/&#x27;</span> Name ;</span><br><span class="line">Name        : ALPHA (ALPHA|DIGIT)* ;</span><br><span class="line">S           : [ \t\r\n]           -&gt; skip ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">ALPHA       : [a-zA-Z] ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">DIGIT       : [<span class="number">0</span>-<span class="number">9</span>] ;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>提供一份如下所示的样例输入文件：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tools</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tool</span> <span class="attr">name</span>=<span class="string">&quot;ANTLR&quot;</span>&gt;</span>A parser generator<span class="tag">&lt;/<span class="name">tool</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tools</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>测试步骤与结果如下所示：</p>
+<img src="/images/antlr/note3/XMLLexer.jpg" />
+
+<p>值得一提的是，在上述启动测试组件的命令行中，使用的参数是 XML tokens，在正常情况下，这里应该是一个语法名加一个起始规则名。如果需要令测试组件只运行词法分析器而不运行语法分析器，我们可以指定参数为语法名加上一个特殊的规则名<code>tokens</code>。</p>
+<h3 id="重写输入流"><a href="#重写输入流" class="headerlink" title="重写输入流"></a>重写输入流</h3><p>我们可以通过 TokenStreamRewriter 对象对输入流进行修改，然后再加以输出，从而实现对源代码插桩或重构。例如，我们可以通过以下代码实现一个监听器，来给每个类定义中加上一行序列化版本标示符（serialVersionUID）：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStream;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStreamRewriter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertSerialIDListener</span> <span class="keyword">extends</span> <span class="title">JavaBaseListener</span> </span>&#123;</span><br><span class="line">    TokenStreamRewriter rewriter;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InsertSerialIDListener</span><span class="params">(TokenStream tokens)</span> </span>&#123;</span><br><span class="line">        rewriter = <span class="keyword">new</span> TokenStreamRewriter(tokens);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enterClassBody</span><span class="params">(JavaParser.ClassBodyContext ctx)</span> </span>&#123;</span><br><span class="line">        String field = <span class="string">&quot;\n\tpublic static final long serialVersionUID = 1L;&quot;</span>;</span><br><span class="line">        rewriter.insertAfter(ctx.start, field);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后，我们在 main 程序中初始化一个 InsertSerialIDListener，并当遍历结束时打印词法符号流：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ParseTreeWalker walker = <span class="keyword">new</span> ParseTreeWalker();  <span class="comment">// 新建一个标准的遍历器</span></span><br><span class="line">InsertSerialIDListener extractor = <span class="keyword">new</span> InsertSerialIDListener(tokens);</span><br><span class="line">walker.walk(extractor, tree);  <span class="comment">// 使用监听器初始化对语法分析树的遍历</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印出修改后的词法符号流</span></span><br><span class="line">System.out.println(extractor.rewriter.getText());</span><br></pre></td></tr></table></figure>
+
+<p>注意，TokenStreamRewriter 实际上修改的是词法符号流的“视图”而非词法符号流本身。它认为所有对修改方法的调用都只是一个“指令”，然后将这些修改放入一个队列；在未来词法符号流被重新渲染为文本时，这些修改才会被执行。因此每次我们调用<code>getText()</code>的时候，rewriter 对象都会执行上述队列中的指令。</p>
+<h3 id="将-Tokens-送入不同通道"><a href="#将-Tokens-送入不同通道" class="headerlink" title="将 Tokens 送入不同通道"></a>将 Tokens 送入不同通道</h3><p>语法分析器只处理一个通道，因此当我们想要忽略但保留某些 tokens 时（例如注释和空白字符），我们可以通过在语法文件书写特殊的指令，来将其送入其他通道。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">COMMENT</span><br><span class="line">    :    <span class="string">&#x27;/*&#x27;</span> .*? <span class="string">&#x27;*/&#x27;</span>    -&gt; channel(HIDDEN)  <span class="comment">// 匹配 /* 和 */ 之间的任何东西</span></span><br><span class="line">    ;</span><br><span class="line">WS  :    [ \r\t\u000c\n]+ -&gt; channel(HIDDEN)</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
+
+<p><code>-&gt;channel(HIDDEN)</code>和<code>-&gt;skip</code>类似，也是一个词法分析器指令。在这里，它设置了这些 tokens 的通道号。这样，这些 tokens 就会被语法分析器忽略。token 流中仍然保存着这些原始的 tokens 序列，但在向语法分析器提供数据时忽略了那些处于已关闭通道的 tokens。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>ANTLR 学习的第三篇笔记到这里就结束了。尽管这一篇笔记很短，但是涵盖了 ANTLR 实践中一些比较现实的问题的解决方式。在了解这三篇笔记所涉及的学习内容后，如果还有兴趣，就可以正式展开对使用 ANTLR 开发语言类应用程序的学习了。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>《The Definitive ANTLR 4 Reference》</li>
+</ul>
+]]></content>
+      <categories>
+        <category>解释器构造</category>
+      </categories>
+      <tags>
+        <tag>编译技术</tag>
+        <tag>ANTLR</tag>
+        <tag>解释器</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>记知识图谱前沿技术课程（武汉大学站）</title>
     <url>/blog/whu-KG-technology-course/</url>
     <content><![CDATA[<p>这周一（4月28日）参加了<a href="https://mp.weixin.qq.com/s?__biz=MzI0MTI1Nzk1MA==&mid=2651676132&idx=1&sn=3965c4718e97cf4962301229c4fd877f&chksm=f2f7a155c5802843c1ec73a120d6cbe506c819cf87f32b4f5fa68862dd6603a2edb66f10208b&mpshare=1&scene=23&srcid=04209Zn8T1cUyBEYullCcwnB#rd">知识图谱前沿技术课程暨学术研讨会（武汉大学站）</a>。本次研讨会邀请了很多著名学者和企业代表，结合知识图谱学界研究与业界应用的进展，系统地讲解知识图谱前沿技术及智能应用。</p>
@@ -3290,83 +3429,6 @@ filename@function    //定位至具体函数
         <tag>自然语言处理</tag>
         <tag>讲座</tag>
         <tag>知识图谱</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>自动编码器一览（二）</title>
-    <url>/blog/autoencoder-intro-2/</url>
-    <content><![CDATA[<p>这是“自动编码器一览”系列的第二篇博文。在本文中，我会介绍一些最近看过并且比较感兴趣的自动编码器的变形，说是介绍，可能更像是论文笔记合集。比起第一篇提到过那些更为通用的经典变形，这些相对而言比较新颖的自动编码器在结构上进行修改，使得它们更符合所对应的特定任务的需求。如果我之后又看到一些有意思的自动编码器，也可能在这篇博文中继续更新。</p>
-<p>本文中包含以下内容：</p>
-<ul>
-<li>递归自动编码器（Recursive Autoencoder）</li>
-<li>Additional Stacked Denoising Autoencoder（aSDAE）</li>
-</ul>
-<p>“自动编码器一览”系列：</p>
-<ul>
-<li><a href="http://kyonhuang.top/autoencoder-intro-1/">自动编码器一览（一）</a></li>
-<li><a href="http://kyonhuang.top/autoencoder-intro-2/">自动编码器一览（二）</a></li>
-<li><a href="http://kyonhuang.top/autoencoder-intro-3/">自动编码器一览（三）</a></li>
-</ul>
-<span id="more"></span>
-
-<h2 id="递归自动编码器"><a href="#递归自动编码器" class="headerlink" title="递归自动编码器"></a>递归自动编码器</h2><p>我们首先介绍论文 “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”[1] 提出的<strong>递归自动编码器（Recursive Autoencoder）</strong>。在这篇论文中，递归自动编码器被用于通过无监督或半监督的训练方式，学习不定长句子的表征向量。这样学习到的表征可以被用于下游任务。在情感预测任务上，递归自动编码器达到了当时的 state-of-the-art。递归自动编码器最大的创新之处是加入了独特的层次结构，并使用语义的组合来理解情感。递归自动编码器既可以在没有标签的领域数据上，也可以在有标签的情感数据上进行训练。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/Recursive-Autoencoder.png"></p>
-<h3 id="传统递归自动编码器"><a href="#传统递归自动编码器" class="headerlink" title="传统递归自动编码器"></a>传统递归自动编码器</h3><p>传统递归自动编码器要求在以一组词向量的形式给出要输入的句子 $(x_1, x_2, \dots, x_m)$ 的同时，给出句子的二叉树形结构，这个树形结构通过一组父节点和两个子节点的三元组表示：$(p \rightarrow c_{1} c_{2})$。例如在图中，我们有 $((y_{1} \rightarrow x_{1} x_{2}), (y_{2} \rightarrow y_{1} x_{3}), \dots)$ 等三元组。因为对于每组子节点，我们使用同一个神经网络来处理，因此 $y_i$ 的维度和 $x_i$ 相同。</p>
-<p>对于每个三元组 $(p \rightarrow c_{1} c_{2})$，我们通过公示：</p>
-<p>$$p=f\left(W^{(1)}\left[c_{1} ; c_{2}\right]+b^{(1)}\right),$$</p>
-<p>来得到父节点 $p$ 的表征。注意 $f(\cdot)$ 表示非线性的激活函数。为了评估父节点 $p$ 的表征有多好，我们从父节点的表征重建其两个子节点的表征（图中橙色的节点）：</p>
-<p>$$\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]=W^{(2)} p+b^{(2)}$$</p>
-<p>在训练过程中，我们的目标就是最小化这个重建的误差。对于每个子节点对，我们使用欧式距离来计算误差：</p>
-<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right]\right)=\frac{1}{2}\left|\left[c_{1} ; c_{2}\right]-\left[c_{1}^{\prime} ; c_{2}^{\prime}\right]\right|^{2}$$</p>
-<p>我们只需要自底向上来重复以上步骤即可。</p>
-<h3 id="用于预测结构的无监督递归自动编码器"><a href="#用于预测结构的无监督递归自动编码器" class="headerlink" title="用于预测结构的无监督递归自动编码器"></a>用于预测结构的无监督递归自动编码器</h3><p>我们可以从三个方面来优化传统的递归自动编码器。</p>
-<p>第一点是，对于输入的句子 $x$，不再需要给出其树形结构，而是自己构建。方法是使用贪婪算法在每一步去尝试每个可能选择的子节点，最后选择这一步重构损失最低的方式构建整棵树。</p>
-<p>第二点是，之前采用的重构损失是平均的惩罚所有父节点的子节点重构损失。一个改进是，对于更上层的、包含更多单词的子节点对应的重构损失，给一个更高的权重，因为它对这个句子的表征的影响更大。例如，在重构时，设 $n_1$ 和 $n_2$ 是潜在子节点 $c_1$ 和 $c_2$ 包含的单词数量，则重新定义重构损失为</p>
-<p>$$E_{r e c}\left(\left[c_{1} ; c_{2}\right] ; \theta\right)= \frac{n_{1}}{n_{1}+n_{2}}\left|c_{1}-c_{1}^{\prime}\right|^{2}+\frac{n_{2}}{n_{1}+n_{2}}| | c_{2}-c_{2}^{\prime}| |^{2}$$</p>
-<p>第三点是，由于每次得到的父节点表征会马上被用于重建，因此为了降低重构误差，机器会倾向于学习值非常小的表征。为了避免这个现象出现，在每次计算得到父节点的表征 $p$ 时，可以做一个正则化 $p = \frac{p}{| p |}$。</p>
-<h3 id="半监督递归自动编码器"><a href="#半监督递归自动编码器" class="headerlink" title="半监督递归自动编码器"></a>半监督递归自动编码器</h3><p>到现在为止，递归自动编码器已经可以无监督地生成捕捉了句子的语义结构的表征。我们将这个表征输入到下游任务的模型中，这样，可以通过下游任务的训练来进行微调，从而使模型学习在表征中包含更多对下游任务更为重要的信息。</p>
-<h2 id="Additional-Stacked-Denoising-Autoencoder"><a href="#Additional-Stacked-Denoising-Autoencoder" class="headerlink" title="Additional Stacked Denoising Autoencoder"></a>Additional Stacked Denoising Autoencoder</h2><p>接下来我们来到推荐系统领域，介绍在论文 “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”[2] 被提出的 <strong>Additional Stacked Denoising Autoencoder（aSDAE）</strong>。如果一定要翻译的话，这个模型应该称为“有附加信息的堆叠去噪自动编码器”，因为这个名字有点太长了，因此我们在接下来的叙述中用 aSDAE 来代指这个自动编码器。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/aDAE-aSDAE.png"></p>
-<p>其实 aSDAE 的思想非常简单，就是在堆叠去噪自动编码器的基础上，受到 Seq2Seq 模型的启发，在每一层接受一个相同的、对应输入的附加信息（side information），然后在自动编码器的最后同时重构输入和附加信息。</p>
-<p>用公式表示 aSDAE 模型。对于 aSDAE 的隐藏层 $l \in { 1, \dots, L-1 }$，其隐藏表征 $h_l$ 的计算方法为</p>
-<p>$$h_{l}=g\left(W_{l} h_{l-1}+V_{l} \tilde{x}+b_{l}\right),$$</p>
-<p>其中，$h_0 = \tilde{s}$ 是用噪声处理过的输入，$\tilde{x}$ 是附加信息，$f(\cdot)$ 和 $g(\cdot)$ 都是激活函数。</p>
-<p>对于 aSDAE 的输出层 $L$，输出的计算为</p>
-<p>$$\begin{aligned} \hat &amp;=f\left({W}_{L} {h}_{L}+{b}_{\hat{s}}\right) \\ \hat &amp;=f\left({V}_{L} {h}_{L}+{b}_{\hat{x}}\right) \end{aligned}$$</p>
-<p>因此，aSDAE 的损失函数为</p>
-<p>$$L = \alpha|{s}-\hat|_{F}^{2}+(1-\alpha)|{x}-\hat|_{F}^{2} + \lambda\left(\sum_{l}\left|{W}_{l}\right|_{F}^{2}+\left|{V}_{l}\right|_{F}^{2}\right),$$</p>
-<p>其中，$\alpha$ 是一个用于保持平衡的超参数，$\lambda$ 是正则化参数。</p>
-<p>aSDAE 本身就介绍完了。在论文 [2] 中，aSDAE 学习用户和商品对应的隐向量矩阵，并将用户的基本个人信息、用户画像信息、物品的基本信息等附加信息引入，从而解决协同过滤中的稀疏性与冷启动问题。这些和推荐系统相关的背景知识就不多讨论了，有兴趣的同学可以看参考资料 [3]。</p>
-<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/hybrid-collaborative-filtering-model-with-aSDAE.png"></p>
-<h2 id="More-Autoencoder"><a href="#More-Autoencoder" class="headerlink" title="More Autoencoder"></a>More Autoencoder</h2><p>随着对自动编码器的深入了解，我们有两个问题可以讨论：</p>
-<ol>
-<li>为什么要最小化重构误差？有没有其他做法？</li>
-<li>怎么让自动编码器学习到的表征更具可解释性？</li>
-</ol>
-<p>从这两个问题引入，李宏毅老师在他的机器学习课程上又对自动编码器的一些最新进展进行了介绍和讨论。有兴趣了解的同学可以查看我的《李宏毅机器学习》课程笔记：<a href="http://kyonhuang.top/Hung-yi-Lee-ML-notes/#/More-Autoencoder">More Autoencoder - 《李宏毅机器学习》课程笔记</a>，在此就不再重复写作了。而在“自动编码器一览”系列的下一篇中，我们会来看看可能是近年来的顶会上出现最多的自动编码器的一种形式——变分自动编码器。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>[1] Richard Socher, Jeffrey Pennington, Eric H.Huang, Andrew Y.Ng, Christopher D.Manning. “Semi-Supervised Recursive Autoencoders for Predicting Sentiment Distributions”, EMNLP 2011</li>
-<li>[2] Xin Dong, Lei Yu, Zhonghuo Wu, Yuxia Sun, Lingfeng Yuan, Fangxi Zhang. “A Hybrid Collaborative Filtering Model with Deep Structure for Recommender Systems”, AAAI 2017 </li>
-<li>[3] 推荐系统中基于深度学习的混合协同过滤模型. <a href="https://zhuanlan.zhihu.com/p/25234865">https://zhuanlan.zhihu.com/p/25234865</a></li>
-</ul>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  tex2jax: {inlineMath: [ ['$', '$'] ],
-        displayMath: [ ['$$', '$$']]}
-});
-</script>
-
-<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=default"></script>]]></content>
-      <categories>
-        <category>深度学习笔记</category>
-      </categories>
-      <tags>
-        <tag>深度学习</tag>
-        <tag>自动编码器</tag>
-        <tag>Autoencoder</tag>
-        <tag>表征学习</tag>
-        <tag>Representation Learning</tag>
-        <tag>无监督学习</tag>
       </tags>
   </entry>
   <entry>
@@ -3533,68 +3595,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>ANTLR v4 学习笔记（三）－特性拾遗</title>
-    <url>/blog/ANTLR-learning-notes-3/</url>
-    <content><![CDATA[<p>继续学习解释器构造和 ANTLR。在系列博文的上一篇 <a href="http://kyonhuang.top/ANTLR-learning-notes-2/">ANTLR v4 学习笔记（二）－实现变种计算器</a>，我们用 ANTLR 实现了一个变种计算器，从而对 ANTLR 语法、访问器（Visitor）机制、集成以及 ANLTR 的错误处理机制有了更深的理解。</p>
-<p>上篇博文对应着《The Definitive ANTLR 4 Reference》中的 Chapter 4 A Quick Tour，但没有覆盖整个 Chapter 4 的所有内容。因此这篇博文将介绍一下 Chapter 4 的剩余内容——监听器（Listener）机制、代码片段嵌入语法，以及词法分析的一些很棒的特性。</p>
-<span id="more"></span>
-
-<h2 id="监听器机制"><a href="#监听器机制" class="headerlink" title="监听器机制"></a>监听器机制</h2><p>监听器机制和访问器机制有着很多共通的特点，我们也需要通过监听语法分析树遍历器触发的“事件”来完成某些工作。它们之间最大的区别在于，监听器的方法会被 ANTLR 提供的遍历器对象自动调用，而在访问器的方法中，必须显式调用<code>visit</code>方法来访问子节点，否则对应的子树将不会被访问。</p>
-<p>ANTLR 会自动生成一个接口 xxListener，它定义了 ANTLR 的运行库中的 ParseTreeWalker 类在遍历语法分析树时能够触发的全部方法。当然，和访问器机制一样，我们无需实现接口中的全部方法。ANTLR 自动生成一个名为 xxBaseListener 的类，我们可以继承这个类并只重写那些我们感兴趣的方法。</p>
-<h2 id="代码片段嵌入语法"><a href="#代码片段嵌入语法" class="headerlink" title="代码片段嵌入语法"></a>代码片段嵌入语法</h2><p>监听器机制和访问器一样，能够使语法分析过程和应用程序本身保持低耦合，也让语法更具有可读性。但有时候，为了满足比较苛刻的需求，我们需要将代码片段（动作）嵌入到语法中，这些动作会被拷贝到 ANTLR 自动生成的递归下降语法分析器的代码中。</p>
-<h3 id="将任意动作嵌入语法"><a href="#将任意动作嵌入语法" class="headerlink" title="将任意动作嵌入语法"></a>将任意动作嵌入语法</h3><p>拿下面这一份用于解析类表格文件的语法为例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Rows;</span><br><span class="line"></span><br><span class="line"><span class="meta">@parser</span>::members &#123;  <span class="comment">// 在生成的 RowsParser 中添加一些成员</span></span><br><span class="line">    <span class="keyword">int</span> col;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RowsParser</span><span class="params">(TokenStream input, <span class="keyword">int</span> col)</span> </span>&#123;  <span class="comment">// 自定义的构造器</span></span><br><span class="line">      <span class="keyword">this</span>(input);</span><br><span class="line">      <span class="keyword">this</span>.col = col;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">file: (row NL)+ ;</span><br><span class="line"></span><br><span class="line">row</span><br><span class="line">locals [<span class="keyword">int</span> i=<span class="number">0</span>]</span><br><span class="line">    : (   STUFF</span><br><span class="line">          &#123;</span><br><span class="line">          $i++;</span><br><span class="line">          <span class="keyword">if</span> ($i == col) System.out.println($STUFF.text);</span><br><span class="line">          &#125;</span><br><span class="line">      )+</span><br><span class="line">    ;</span><br><span class="line"></span><br><span class="line">TAB   : <span class="string">&#x27;\t&#x27;</span> -&gt; skip ;    <span class="comment">// 匹配但是不将其传递给语法分析器</span></span><br><span class="line">NL    : <span class="string">&#x27;\r&#x27;</span>? <span class="string">&#x27;\n&#x27;</span> ;      <span class="comment">// 匹配并将其传递给语法分析器</span></span><br><span class="line">STUFF : ~[\t\r\n]+ ;      <span class="comment">// 匹配除 tab 符和换行符之外的任何字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p><code>@parser::members</code>表示在生成的 RowsParser 中添加一些成员，即大括号里的所有元素（包括）会原封不动的添加到 RowsParser 类中。我们通过加入的构造器来传入希望提取的列号。</p>
-<p>row 规则的<code>(...)+</code>循环放置了一些动作，访问了之前使用 locals 子句定义的局部变量<code>$i</code>。同时 row 规则也使用了<code>$STUFF.text</code>来获得刚刚匹配的 STUFF 词法符号中包含的文本。关于动作的更多内容会在 Chapter 10 深入研究。</p>
-<h3 id="用语义判定改变语法分析过程"><a href="#用语义判定改变语法分析过程" class="headerlink" title="用语义判定改变语法分析过程"></a>用语义判定改变语法分析过程</h3><p>用一个读取一列整数的语法作为例子。首先看一下需求：输入的其中的一部分整数指定了接下来的多少个整数分为一组。例如输入：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2 8 43 3 1 4 6</span><br></pre></td></tr></table></figure>
-
-<p>第一个数字 2 表示匹配接下来的两个数字 8 和 43，数字 3 表示匹配接下来的三个数字。</p>
-<p>语法文件如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Data;</span><br><span class="line"></span><br><span class="line">file : group+ ;</span><br><span class="line"></span><br><span class="line">group: INT sequence[$INT.<span class="keyword">int</span>] ;</span><br><span class="line"></span><br><span class="line">sequence[<span class="keyword">int</span> n]</span><br><span class="line">locals [<span class="keyword">int</span> i = <span class="number">1</span>;]</span><br><span class="line">     : ( &#123;$i&lt;=$n&#125;? INT &#123;$i++;&#125; )*  <span class="comment">// 匹配 n 个整数</span></span><br><span class="line">     ;</span><br><span class="line"></span><br><span class="line">INT :   [<span class="number">0</span>-<span class="number">9</span>]+ ;     <span class="comment">// 匹配整数</span></span><br><span class="line">WS  :   [ \t\n\r]+ -&gt; skip ;   <span class="comment">// 丢弃所有的空白字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>Data 语法的关键在于<code>&#123;$i&lt;=$n&#125;?</code>，这段动作的值是布尔类型的，它被称为一个语义判定。在匹配到 n 个输入整数之前，它的值保持为 true，其中 n 是 sequence 语法中的参数。当语义判定的值为 false 时，对应的备选分支就从语法中“消失”了，因此，它也就从生成的语法分析器中“消失”了。在本例中，语义判定的值为 false 时，<code>(...)*</code>循环终止，从 sequence 规则返回。</p>
-<h2 id="词法分析特性"><a href="#词法分析特性" class="headerlink" title="词法分析特性"></a>词法分析特性</h2><p>ANTLR 有三个与词法符号有关非常棒的特性。</p>
-<h3 id="孤岛语法：处理同一文件中的不同格式"><a href="#孤岛语法：处理同一文件中的不同格式" class="headerlink" title="孤岛语法：处理同一文件中的不同格式"></a>孤岛语法：处理同一文件中的不同格式</h3><p>有很多常见的文件格式包含了多重语言，例如 Java 文件中有注释和 Java 代码，ejs 等模板引擎有模板语言表达式和文本。不同格式的语言需要按照不同的方式进行处理，这样的现象被称为<strong>“孤岛语法”</strong>。</p>
-<p>ANTLR 提供了一个名为<strong>词法分析模式（lexical modes）</strong>的词法分析器特性，帮助我们方便地处理混合了不同格式数据的文件。它的基本思想是，当遇到特殊的“哨兵”字符序列时，执行不同模式的切换。</p>
-<p>我们不妨以 XML 作为例子。一个 XML 解析器会将除标签和实体转义（例如<code>&amp;pound;</code>）之外的内容全部当作普通文本。当看到<code>&lt;</code>时，词法分析器会切换到 “INSIDE” 模式；当看到<code>&gt;</code>或者<code>/&gt;</code>时，它就切换回默认模式。</p>
-<p>下面的语法展示了 XML 解析器的工作方式：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a lexer grammar called XMLLexer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">lexer grammar XMLLexer;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认模式：所有在标签之外的东西</span></span><br><span class="line">OPEN        : <span class="string">&#x27;&lt;&#x27;</span>                 -&gt; pushMode(INSIDE) ;</span><br><span class="line">COMMENT     : <span class="string">&#x27;&lt;!--&#x27;</span> .*? <span class="string">&#x27;--&gt;&#x27;</span>    -&gt; skip ;</span><br><span class="line">EntityRef   : <span class="string">&#x27;&amp;&#x27;</span> [a-z]+ <span class="string">&#x27;;&#x27;</span> ;</span><br><span class="line">TEXT        : ~(<span class="string">&#x27;&lt;&#x27;</span>|<span class="string">&#x27;&amp;&#x27;</span>)+ ;           <span class="comment">// 匹配任意除 &lt; 和 &amp; 之外的 16 位字符</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ----------------------    所有在标签之内的东西    ----------------------</span></span><br><span class="line">mode INSIDE;</span><br><span class="line">CLOSE       : <span class="string">&#x27;&gt;&#x27;</span>                 -&gt; popMode ;  <span class="comment">// 回到默认模式</span></span><br><span class="line">SLASH_CLOSE : <span class="string">&#x27;/&gt;&#x27;</span>                -&gt; popMode ;</span><br><span class="line">EQUALS      : <span class="string">&#x27;=&#x27;</span> ;</span><br><span class="line">STRING      : <span class="string">&#x27;&quot;&#x27;</span> .*? <span class="string">&#x27;&quot;&#x27;</span> ;</span><br><span class="line">SlashName   : <span class="string">&#x27;/&#x27;</span> Name ;</span><br><span class="line">Name        : ALPHA (ALPHA|DIGIT)* ;</span><br><span class="line">S           : [ \t\r\n]           -&gt; skip ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">ALPHA       : [a-zA-Z] ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">DIGIT       : [<span class="number">0</span>-<span class="number">9</span>] ;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>提供一份如下所示的样例输入文件：</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tools</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tool</span> <span class="attr">name</span>=<span class="string">&quot;ANTLR&quot;</span>&gt;</span>A parser generator<span class="tag">&lt;/<span class="name">tool</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tools</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>测试步骤与结果如下所示：</p>
-<img src="/images/antlr/note3/XMLLexer.jpg" />
-
-<p>值得一提的是，在上述启动测试组件的命令行中，使用的参数是 XML tokens，在正常情况下，这里应该是一个语法名加一个起始规则名。如果需要令测试组件只运行词法分析器而不运行语法分析器，我们可以指定参数为语法名加上一个特殊的规则名<code>tokens</code>。</p>
-<h3 id="重写输入流"><a href="#重写输入流" class="headerlink" title="重写输入流"></a>重写输入流</h3><p>我们可以通过 TokenStreamRewriter 对象对输入流进行修改，然后再加以输出，从而实现对源代码插桩或重构。例如，我们可以通过以下代码实现一个监听器，来给每个类定义中加上一行序列化版本标示符（serialVersionUID）：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStream;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStreamRewriter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertSerialIDListener</span> <span class="keyword">extends</span> <span class="title">JavaBaseListener</span> </span>&#123;</span><br><span class="line">    TokenStreamRewriter rewriter;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InsertSerialIDListener</span><span class="params">(TokenStream tokens)</span> </span>&#123;</span><br><span class="line">        rewriter = <span class="keyword">new</span> TokenStreamRewriter(tokens);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enterClassBody</span><span class="params">(JavaParser.ClassBodyContext ctx)</span> </span>&#123;</span><br><span class="line">        String field = <span class="string">&quot;\n\tpublic static final long serialVersionUID = 1L;&quot;</span>;</span><br><span class="line">        rewriter.insertAfter(ctx.start, field);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>之后，我们在 main 程序中初始化一个 InsertSerialIDListener，并当遍历结束时打印词法符号流：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ParseTreeWalker walker = <span class="keyword">new</span> ParseTreeWalker();  <span class="comment">// 新建一个标准的遍历器</span></span><br><span class="line">InsertSerialIDListener extractor = <span class="keyword">new</span> InsertSerialIDListener(tokens);</span><br><span class="line">walker.walk(extractor, tree);  <span class="comment">// 使用监听器初始化对语法分析树的遍历</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印出修改后的词法符号流</span></span><br><span class="line">System.out.println(extractor.rewriter.getText());</span><br></pre></td></tr></table></figure>
-
-<p>注意，TokenStreamRewriter 实际上修改的是词法符号流的“视图”而非词法符号流本身。它认为所有对修改方法的调用都只是一个“指令”，然后将这些修改放入一个队列；在未来词法符号流被重新渲染为文本时，这些修改才会被执行。因此每次我们调用<code>getText()</code>的时候，rewriter 对象都会执行上述队列中的指令。</p>
-<h3 id="将-Tokens-送入不同通道"><a href="#将-Tokens-送入不同通道" class="headerlink" title="将 Tokens 送入不同通道"></a>将 Tokens 送入不同通道</h3><p>语法分析器只处理一个通道，因此当我们想要忽略但保留某些 tokens 时（例如注释和空白字符），我们可以通过在语法文件书写特殊的指令，来将其送入其他通道。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">COMMENT</span><br><span class="line">    :    <span class="string">&#x27;/*&#x27;</span> .*? <span class="string">&#x27;*/&#x27;</span>    -&gt; channel(HIDDEN)  <span class="comment">// 匹配 /* 和 */ 之间的任何东西</span></span><br><span class="line">    ;</span><br><span class="line">WS  :    [ \r\t\u000c\n]+ -&gt; channel(HIDDEN)</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
-
-<p><code>-&gt;channel(HIDDEN)</code>和<code>-&gt;skip</code>类似，也是一个词法分析器指令。在这里，它设置了这些 tokens 的通道号。这样，这些 tokens 就会被语法分析器忽略。token 流中仍然保存着这些原始的 tokens 序列，但在向语法分析器提供数据时忽略了那些处于已关闭通道的 tokens。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>ANTLR 学习的第三篇笔记到这里就结束了。尽管这一篇笔记很短，但是涵盖了 ANTLR 实践中一些比较现实的问题的解决方式。在了解这三篇笔记所涉及的学习内容后，如果还有兴趣，就可以正式展开对使用 ANTLR 开发语言类应用程序的学习了。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>《The Definitive ANTLR 4 Reference》</li>
-</ul>
-]]></content>
-      <categories>
-        <category>解释器构造</category>
-      </categories>
-      <tags>
-        <tag>编译技术</tag>
-        <tag>ANTLR</tag>
-        <tag>解释器</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>IJCAI2020 教训总结</title>
     <url>/blog/my-summary-of-IJCAI20/</url>
     <content><![CDATA[<p>很久没有写博客了，恰逢 IJCAI2020 前两天公布了录取结果。去年的我还在时间序列分析上捣鼓着我的毕业设计，今年的我在小样本学习上谋求一个落脚点，变的是年纪、是阅历、是心态，不变的是来自 IJCAI 的 reject。相比于去年，也许是因为 IJCAI 的审稿质量有了显著提升（也许也归功于他们在 desk reject 时大手一挥斩掉了将近一半的论文），也许是因为我自己在方法、实验设计和论文写作方面的进步使得评审能够更好地理解论文，总之这次的论文得以收获更加一针见血的点评，对我改进这份工作以及思考未来前进的方向有着不小的帮助。因此，我也想简单地总结一下评审们给出的意见，也是和博客的读者朋友们讨论一下（虽然可能这种讨论是单向的）身为科研菜鸟如何能够完善每一份工作。考虑到这篇论文还要修改后再投，这里把一些论文内容的相关信息模糊，只宏观地分析一下存在的问题。</p>
@@ -3688,63 +3688,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>虎山行</title>
-    <url>/blog/escorts-over-tiger-hill/</url>
-    <content><![CDATA[<p><strong>更新</strong>：10 月 26 日我跟朱老师进行了一次时间较长的近期学习成果展示，并且对于接下来的学习方向聊了一会。结合花旗杯进入决赛的事情，将此文做一次更新。</p>
-<hr>
-<p>这段时间博客更得不勤，因为实在太忙。解释器构造、系统级程序设计、Spark、公选课作业、算法、英语、大创…每天睁开眼睛就想起这么多学习任务，让人不免感觉身在虎山，危机四伏，战战兢兢。</p>
-<p>只有在这种强度的学习压力下，才会发现自己的很多问题，其中最致命的就是自己的学习效率太低了，很难集中注意力去解决手头即时的任务。快速学习和解决问题的能力是程序员必备之一，我在这方面可以说不及格。再就是还有惰性心理，浮躁，不能保持健康的作息，以至于高效学习的时间不足。</p>
-<p>同时，每天忙碌的同时也会胡思乱想：我真的适合读研吗？自己学习前端知识的时候还是比较开心的，和现在学习 Spark 的态度可能还是有一些差别，并且也在要不要向机器学习方向深入学习而犹豫。读研以后，不是说完全不可能，但是基本上以后就不会从事前端领域的工作了。确定喜欢的领域和确定喜欢的人一样，难以割舍的感觉似有若无。但是对我来说，父母和老师都给了很大的期望，自己也没有做好找工作的准备，争取保研是箭在弦上，不得不发。我能做的，只有将弦拉的更满，箭一发便是千钧之力，穿越更高的云霄。</p>
-<p>现在确实有些迷茫，每天过的感觉不到自己有实打实的进步。希望狮子座的天性能够帮助我顺利度过这段大学最忙碌也最缥缈的时期。</p>
-<h2 id="定期任务"><a href="#定期任务" class="headerlink" title="定期任务"></a>定期任务</h2><h3 id="每天"><a href="#每天" class="headerlink" title="每天"></a>每天</h3><ul>
-<li>一道 LeetCode</li>
-<li>六级单词</li>
-</ul>
-<h3 id="每周"><a href="#每周" class="headerlink" title="每周"></a>每周</h3><ul>
-<li>《算法》一节</li>
-<li>Coursera 华盛顿大学《机器学习基础：案例研究》课程一节（尽早刷完这个）[已完成]</li>
-<li>六级练习题若干（有时间可以做一整套题）</li>
-<li>一篇会议论文阅读（abstract 和 introduction）［按照标准认真读，做一些简短的笔记］</li>
-<li>12 月后<a href="http://wdxtub.com/2016/04/16/thin-csapp-0/">读薄 CSAPP 系列</a>每周两篇</li>
-</ul>
-<h2 id="学期计划"><a href="#学期计划" class="headerlink" title="学期计划"></a>学期计划</h2><p>给这个最重要的学期列一个总体的学期计划。</p>
-<h3 id="课业"><a href="#课业" class="headerlink" title="课业"></a>课业</h3><p><strong>三门必修课</strong>，解释器构造实验以及系统级程序设计的理论和实验课，<strong>必须满绩</strong>。</p>
-<h3 id="花旗"><a href="#花旗" class="headerlink" title="花旗"></a>花旗</h3><p>一个月的时间，逼自己尽全力去争取最好的结果。</p>
-<h3 id="实验室"><a href="#实验室" class="headerlink" title="实验室"></a>实验室</h3><p>积极完成朱老师布置的任务，并且和他交流。也要关心组里其他同学的工作。</p>
-<p>朱老师建议我先学习机器学习的应用。根据这个建议，我把对吴恩达的《机器学习》课程的学习计划暂时改为华盛顿大学《机器学习基础：案例研究》课程的学习。这门课更偏重实际应用，也可以避免我绕到数学内容里。</p>
-<h3 id="论文"><a href="#论文" class="headerlink" title="论文"></a>论文</h3><p>阅读朱老师推荐的会议，积累感觉找方向。多和朱老师交流心得。</p>
-<p>每周抽时间细看一篇，也算是练习英语阅读。重点读 abstract 和 introduction。可以参考 <a href="https://zhuanlan.zhihu.com/p/29568504">[Paper Reading] Efficient Estimation of Word Representations in Vector Space</a> 的格式来做笔记。为了督促自己，可以考虑申请一个新的知乎专栏或者在 PaperWeekly 做笔记。</p>
-<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><p>每天一道 LeetCode 加上自己控制页数的《算法》阅读。下学期可以做九度 OJ 和北大 OJ 练手。</p>
-<h3 id="英语"><a href="#英语" class="headerlink" title="英语"></a>英语</h3><p>不要放弃六级，老师们都很看重英语能力。每天还是要抽时间背背单词，有时间练习一下听力、翻译、阅读、作文等。<strong>题目重在整理，而非数量。</strong></p>
-<h3 id="项目"><a href="#项目" class="headerlink" title="项目"></a>项目</h3><p>有时间自己做一些开源小项目。没时间就算了，还是以自己参与度较高的科研项目为重。</p>
-<h3 id="机器学习"><a href="#机器学习" class="headerlink" title="机器学习"></a>机器学习</h3><p>暂时考虑按照以下路径，这个学习肯定搞不定，但是要自己把握进度：</p>
-<ol>
-<li>学完 Coursera 华盛顿大学《机器学习基础：案例研究》课程并完成所有作业</li>
-<li>通过《利用Python进行数据分析》的阅读学习，掌握 sklearn、numpy、pandas、matplotlib 的使用</li>
-<li>吴恩达《机器学习》课程：绕不开的必修课</li>
-<li>建立大局观的书籍：中文：周志华老师的西瓜书《机器学习》和李航老师的《统计学习方法》；英文：《Patten Recognition and Machine Learning》，《Elements of Statistical Learning》</li>
-<li>kaggle、阿里巴巴天池实战</li>
-</ol>
-<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
-<li>组队参加美赛。抽时间了解一下赛事信息和要求。有时间点一些技能点。</li>
-<li>可以考虑申请软件著作权（当然要有比较好的项目）。</li>
-<li>坚持把日记给记好。</li>
-</ul>
-<p>忙乱时方显修为，管理好自己的时间，专心于自己的事业。自己能走多远，很大程度上取决于这个学期。</p>
-<blockquote>
-<p>那就继续人间游 虽说不太平<br>明知山有虎 偏向虎山行</p>
-<p>—  GAI / 艾福杰尼 / Kungfu-Pen 《虎山行》</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>翻滚吧大学生</category>
-      </categories>
-      <tags>
-        <tag>随笔</tag>
-        <tag>目标</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>越过山丘——写在大四开始时</title>
     <url>/blog/over-the-hills/</url>
     <content><![CDATA[<p>在保研尘埃落地、回学校参加院队热身赛结果弄伤膝盖、从十一假期养到现在，终于提笔开始写这一篇博客。现在已经是十月中旬，开学都已经一个半月了，但对我来说，大四似乎才刚刚开始。且简单地和大家分享一下我保研的结果和做出决定的一些想法，也给自己即将面临的新挑战打个气。</p>
@@ -3828,6 +3771,63 @@ MathJax.Hub.Config({
       <tags>
         <tag>随笔</tag>
         <tag>花旗杯</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>虎山行</title>
+    <url>/blog/escorts-over-tiger-hill/</url>
+    <content><![CDATA[<p><strong>更新</strong>：10 月 26 日我跟朱老师进行了一次时间较长的近期学习成果展示，并且对于接下来的学习方向聊了一会。结合花旗杯进入决赛的事情，将此文做一次更新。</p>
+<hr>
+<p>这段时间博客更得不勤，因为实在太忙。解释器构造、系统级程序设计、Spark、公选课作业、算法、英语、大创…每天睁开眼睛就想起这么多学习任务，让人不免感觉身在虎山，危机四伏，战战兢兢。</p>
+<p>只有在这种强度的学习压力下，才会发现自己的很多问题，其中最致命的就是自己的学习效率太低了，很难集中注意力去解决手头即时的任务。快速学习和解决问题的能力是程序员必备之一，我在这方面可以说不及格。再就是还有惰性心理，浮躁，不能保持健康的作息，以至于高效学习的时间不足。</p>
+<p>同时，每天忙碌的同时也会胡思乱想：我真的适合读研吗？自己学习前端知识的时候还是比较开心的，和现在学习 Spark 的态度可能还是有一些差别，并且也在要不要向机器学习方向深入学习而犹豫。读研以后，不是说完全不可能，但是基本上以后就不会从事前端领域的工作了。确定喜欢的领域和确定喜欢的人一样，难以割舍的感觉似有若无。但是对我来说，父母和老师都给了很大的期望，自己也没有做好找工作的准备，争取保研是箭在弦上，不得不发。我能做的，只有将弦拉的更满，箭一发便是千钧之力，穿越更高的云霄。</p>
+<p>现在确实有些迷茫，每天过的感觉不到自己有实打实的进步。希望狮子座的天性能够帮助我顺利度过这段大学最忙碌也最缥缈的时期。</p>
+<h2 id="定期任务"><a href="#定期任务" class="headerlink" title="定期任务"></a>定期任务</h2><h3 id="每天"><a href="#每天" class="headerlink" title="每天"></a>每天</h3><ul>
+<li>一道 LeetCode</li>
+<li>六级单词</li>
+</ul>
+<h3 id="每周"><a href="#每周" class="headerlink" title="每周"></a>每周</h3><ul>
+<li>《算法》一节</li>
+<li>Coursera 华盛顿大学《机器学习基础：案例研究》课程一节（尽早刷完这个）[已完成]</li>
+<li>六级练习题若干（有时间可以做一整套题）</li>
+<li>一篇会议论文阅读（abstract 和 introduction）［按照标准认真读，做一些简短的笔记］</li>
+<li>12 月后<a href="http://wdxtub.com/2016/04/16/thin-csapp-0/">读薄 CSAPP 系列</a>每周两篇</li>
+</ul>
+<h2 id="学期计划"><a href="#学期计划" class="headerlink" title="学期计划"></a>学期计划</h2><p>给这个最重要的学期列一个总体的学期计划。</p>
+<h3 id="课业"><a href="#课业" class="headerlink" title="课业"></a>课业</h3><p><strong>三门必修课</strong>，解释器构造实验以及系统级程序设计的理论和实验课，<strong>必须满绩</strong>。</p>
+<h3 id="花旗"><a href="#花旗" class="headerlink" title="花旗"></a>花旗</h3><p>一个月的时间，逼自己尽全力去争取最好的结果。</p>
+<h3 id="实验室"><a href="#实验室" class="headerlink" title="实验室"></a>实验室</h3><p>积极完成朱老师布置的任务，并且和他交流。也要关心组里其他同学的工作。</p>
+<p>朱老师建议我先学习机器学习的应用。根据这个建议，我把对吴恩达的《机器学习》课程的学习计划暂时改为华盛顿大学《机器学习基础：案例研究》课程的学习。这门课更偏重实际应用，也可以避免我绕到数学内容里。</p>
+<h3 id="论文"><a href="#论文" class="headerlink" title="论文"></a>论文</h3><p>阅读朱老师推荐的会议，积累感觉找方向。多和朱老师交流心得。</p>
+<p>每周抽时间细看一篇，也算是练习英语阅读。重点读 abstract 和 introduction。可以参考 <a href="https://zhuanlan.zhihu.com/p/29568504">[Paper Reading] Efficient Estimation of Word Representations in Vector Space</a> 的格式来做笔记。为了督促自己，可以考虑申请一个新的知乎专栏或者在 PaperWeekly 做笔记。</p>
+<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><p>每天一道 LeetCode 加上自己控制页数的《算法》阅读。下学期可以做九度 OJ 和北大 OJ 练手。</p>
+<h3 id="英语"><a href="#英语" class="headerlink" title="英语"></a>英语</h3><p>不要放弃六级，老师们都很看重英语能力。每天还是要抽时间背背单词，有时间练习一下听力、翻译、阅读、作文等。<strong>题目重在整理，而非数量。</strong></p>
+<h3 id="项目"><a href="#项目" class="headerlink" title="项目"></a>项目</h3><p>有时间自己做一些开源小项目。没时间就算了，还是以自己参与度较高的科研项目为重。</p>
+<h3 id="机器学习"><a href="#机器学习" class="headerlink" title="机器学习"></a>机器学习</h3><p>暂时考虑按照以下路径，这个学习肯定搞不定，但是要自己把握进度：</p>
+<ol>
+<li>学完 Coursera 华盛顿大学《机器学习基础：案例研究》课程并完成所有作业</li>
+<li>通过《利用Python进行数据分析》的阅读学习，掌握 sklearn、numpy、pandas、matplotlib 的使用</li>
+<li>吴恩达《机器学习》课程：绕不开的必修课</li>
+<li>建立大局观的书籍：中文：周志华老师的西瓜书《机器学习》和李航老师的《统计学习方法》；英文：《Patten Recognition and Machine Learning》，《Elements of Statistical Learning》</li>
+<li>kaggle、阿里巴巴天池实战</li>
+</ol>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
+<li>组队参加美赛。抽时间了解一下赛事信息和要求。有时间点一些技能点。</li>
+<li>可以考虑申请软件著作权（当然要有比较好的项目）。</li>
+<li>坚持把日记给记好。</li>
+</ul>
+<p>忙乱时方显修为，管理好自己的时间，专心于自己的事业。自己能走多远，很大程度上取决于这个学期。</p>
+<blockquote>
+<p>那就继续人间游 虽说不太平<br>明知山有虎 偏向虎山行</p>
+<p>—  GAI / 艾福杰尼 / Kungfu-Pen 《虎山行》</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>翻滚吧大学生</category>
+      </categories>
+      <tags>
+        <tag>随笔</tag>
+        <tag>目标</tag>
       </tags>
   </entry>
   <entry>
@@ -4550,7 +4550,7 @@ MathJax.Hub.Config({
 
 <!-- 另外在 5-shot 设置能不能不要单纯求均值？感觉会有信息损失 -->
 
-<p><strong>Feature Enrichment Module (FEM)<strong>：这一块看下图比较好理解，就是用多个 average pooling 来将 query 特征、support prototype 和 prior mask 的拼接产物放缩到不同大小，然后做 multi-scale 的信息交互。注意 query 特征和 support 特征是通过</strong>拼接 middle-level 特征</strong>（实践中是 conv3_x、conv_4x 的最后一层的输出）得到，另外如果 shot 数大于 1，直接取所有处理后的 support 特征的均值作为新的 support 特征。inter-scale interaction 的每个 scale 的产物也会过一个 3x3 + 1x1 的卷积层组成的分类头得到损失 $\mathcal{L}^i_1$，然后所有 scale 产物拼接后经过 1x1 卷积也用分类头得到损失 $\mathcal{L}<em>2$。最终的总损失为 $\mathcal{L} = \frac{\sigma}{n}\sum^n</em>{i=1} \mathcal{L}^i_1 + \mathcal{L}_2$，$\sigma$ 在所有实验中设为 1.0。</p>
+<p><strong>Feature Enrichment Module (FEM)<strong>：这一块看下图比较好理解，就是用多个 average pooling 来将 query 特征、support prototype 和 prior mask 的拼接产物放缩到不同大小，然后做 multi-scale 的信息交互。注意 query 特征和 support 特征是通过</strong>拼接 middle-level 特征</strong>（实践中是 conv3_x、conv_4x 的最后一层的输出）得到，另外如果 shot 数大于 1，直接取所有处理后的 support 特征的均值作为新的 support 特征。inter-scale interaction 的每个 scale 的产物也会过一个 3x3 + 1x1 的卷积层组成的分类头得到损失 $\mathcal{L}^i_1$，然后所有 scale 产物拼接后经过 1x1 卷积也用分类头得到损失 ${\mathcal{L}}<em>{2}$。最终的总损失为 $\mathcal{L} = \frac{\sigma}{n}\sum^n</em>{i=1} \mathcal{L}^i_1 + \mathcal{L}_{2}$，$\sigma$ 在所有实验中设为 1.0。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TPAMI2020-prior-guided-feature-enrichment-network-for-FSS-figure4.png"></p>
 <p>一个稍微需要注意的点是图中带圈的 M 的结构如下图所示，其中 auxiliary 特征指 finer 特征，main 特征指 coarse 特征。对于没有 auxiliary 特征的 main 特征（如上图最上面的一个 scale），省略下图的第一步拼接操作。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TPAMI2020-prior-guided-feature-enrichment-network-for-FSS-figure5.png"></p>
@@ -4585,7 +4585,7 @@ MathJax.Hub.Config({
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-figure1.png"></p>
 <p><strong>分类器的选择</strong>：RePRI 的线性分类器和 <a href="http://arxiv.org/abs/1904.04232">Baseline++, ICLR 2019</a> 相似：$s^{(t)}(j)=\operatorname{sigmoid}\left(\tau\left[\cos \left(z(j), w^{(t)}\right)-b^{(t)}\right]\right)$。其中原型 $w^{(0)}$ 是 support 前景特征的均值：$w^{(0)}=\frac{1}{K|\Psi|} \sum_{k=1}^{K} \sum_{j \in \Psi} \widetilde{y}<em>{k}(j)</em>{1} z_{k}(j)$；$b^{(0)}$ 是对 query 前景的 soft predictions的均值 ：$b^{(0)}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)_{1}$。</p>
 <p><strong>B/F 比例 $\pi$ 的联合估计</strong>：当没有先验知识时，RePRI 使用 $\widehat{p}<em>{\mathcal{Q}}$ 来联合学习 $\pi$ 和分类器的参数，这时 $\mathcal{D}</em>{\mathrm{KL}}$ 可以被视为 self-regularization 来防止模型的 marginal distribution 发生偏移。具体实现中，只在初始化后在之后的某一轮迭代 $t_{\pi}$ 更新一次 $\pi$ 即可，即</p>
-<p>$$<br>\pi^{(t)}= \begin{cases}\widehat{p}<em>{\mathcal{Q}}^{(0)} &amp; 0 \leq t \leq t</em>{\pi} \ \hat{p}<em>{\mathcal{Q}}^{\left(t</em>{\pi}\right)} &amp; t&gt;t_{\pi}\end{cases}<br>$$</p>
+<p>$$\pi^{(t)}= \begin{cases}\widehat{p}<em>{\mathcal{Q}}^{(0)} &amp; 0 \leq t \leq t</em>{\pi} \ \hat{p}<em>{\mathcal{Q}}^{\left(t</em>{\pi}\right)} &amp; t&gt;t_{\pi}\end{cases}$$</p>
 <p>实验结果：</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table1.png"></p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table2.png"></p>
@@ -4595,18 +4595,18 @@ MathJax.Hub.Config({
 <p>为了解决这两个问题，本文提出 **Self-Guided and Cross-Guided Learning (SCL)**，首先用初始原型来对 support 图像做初始预测，预测覆盖和没有覆盖到的前景区域被用 masked GAP 编码成 primary 和 auxiliary support 向量来在 query 图像的分割上取得更好表现。同时，针对 shot 数量不为 1 的场景，本文提出 <strong>Cross-Guided Module (CGM)</strong> 来使用其他有标注 support 图像评估每张 support 图像的预测质量，使高质量的 support 图像能够对最终的融合做出更大的贡献。相比 attention 等复杂的方法，CGM 无需重新训练模型，可以直接在 inference 时被应用来提升最终的表现。SCL 遵循 episodic training 的方式，总损失为 $\mathcal{L}=\mathcal{L}<em>{c e}^{s 1}+\mathcal{L}</em>{c e}^{s 2}+\mathcal{L}_{c e}^{q}$，前两项来自 support set 的 Self-Guided Learning，后一项来自 query set。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-self-guided-and-cross-guided-learning-for-FSS-figure3.png"></p>
 <p><strong>Self-Guided Learning on Support Set</strong>：这里首先以 1-shot 为例。用 masked GAP 获得的初始 support 向量 $\mathcal{v}<em>s$ 被扩展成和 support 特征图 $F_s$ 同样大小的 $V_s$，然后拼接得到新的特征图 $F</em>{sv} = Concat([F_s, V_s, V_s])$。通过将 $F_{sv}$ 输入到 <strong>support FPM</strong> 和 decoder，可以得到support 图像的概率图 $P_{s1} = softmax(\mathcal{D}(FPM_s(F_{sv})))$，其中 $\mathcal{D}(\cdot)$ 指 decoder。由于 SCL 是一个即插即用的模块，因此 support FPM 和 decoder 的设计遵循所选择的小样本分割 baseline。本文的实验部分选择插入到两种 baseline 中：(1) <a href="http://arxiv.org/abs/1903.02351">CANet (CVPR 2019)</a>，其 decoder 是 single-scale 结构的，因此 SCL 也采用 single-scale support FPM；(2) <a href="http://arxiv.org/abs/2008.01449">PFENet (TPAMI 2020)</a>，其 decoder 是 multi-scale 结构的，因此 SCL 也采用 multi-scale support FPM。single-scale 和 multi-scale 的 support FPM 结构如上图右边所示。</p>
-<p>使用预测的 mask $\hat{M_s} = \argmax(P_{s1})$ 和 ground-truth mask $M_s$，可以得到 primary support 向量 $\mathcal{v}<em>{pri}$ 和 auxiliary support 向量 $\mathcal{v}</em>{aux}$，前者代表预测正确的实际前景信息，后者代表预测错误的实际前景信息。换句话说，$\mathcal{v}<em>{pri}$ 保持着主要的 support 信息，而 $\mathcal{v}</em>{aux}$ 包含用 $\mathcal{v}<em>s$ 无法预测的、损失的重要信息。为了保证 $\mathcal{v}</em>{pri}$ 能够从 support 的特征图收集到大多数的信息，对 $P_{s1}$ 施加交叉熵得到 $\mathcal{L}_{c e}^{s 1}$：</p>
-<p>$$<br>\mathcal{L}<em>{c e}^{s 1}=-\frac{1}{h w} \sum</em>{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{s}(i)=c_{j}\right] \log \left(P_{s 1}^{c_{j}}(i)\right)<br>$$</p>
+<p>使用预测的 mask $\hat{M_s} = \text{argmax}(P_{s1})$ 和 ground-truth mask $M_s$，可以得到 primary support 向量 $\mathcal{v}<em>{pri}$ 和 auxiliary support 向量 $\mathcal{v}</em>{aux}$，前者代表预测正确的实际前景信息，后者代表预测错误的实际前景信息。换句话说，$\mathcal{v}<em>{pri}$ 保持着主要的 support 信息，而 $\mathcal{v}</em>{aux}$ 包含用 $\mathcal{v}<em>s$ 无法预测的、损失的重要信息。为了保证 $\mathcal{v}</em>{pri}$ 能够从 support 的特征图收集到大多数的信息，对 $P_{s1}$ 施加交叉熵得到 $\mathcal{L}_{c e}^{s 1}$：</p>
+<p>$$\mathcal{L}<em>{c e}^{s 1}=-\frac{1}{h w} \sum</em>{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{s}(i)=c_{j}\right] \log \left(P_{s 1}^{c_{j}}(i)\right)$$</p>
 <p>接下来，$\mathcal{v}<em>{pri}$ 和 $\mathcal{v}</em>{aux}$ 也被扩展并与 $F_s$ 拼接得到 $F^A_{s} = Concat([F_s, V^{pri}<em>s, V^{aux}<em>s])$，然后得到 $P</em>{s2} = softmax(\mathcal{D}(FPM_s(F^A</em>{s})))$。为了确保集成 $\mathcal{v}<em>{pri}$ 和 $\mathcal{v}</em>{aux}$ 能够得到精准的分割 mask，同样施加交叉熵得到 $\mathcal{L}_{c e}^{s 2}$：</p>
-<p>$$<br>\mathcal{L}<em>{c e}^{s 2}=-\frac{1}{h w} \sum</em>{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{s}(i)=c_{j}\right] \log \left(P_{s 2}^{c_{j}}(i)\right)<br>$$</p>
+<p>$$\mathcal{L}<em>{c e}^{s 2}=-\frac{1}{h w} \sum</em>{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{s}(i)=c_{j}\right] \log \left(P_{s 2}^{c_{j}}(i)\right)$$</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-self-guided-and-cross-guided-learning-for-FSS-figure2.png"></p>
 <p><strong>Training on Query Set</strong>：对于 query 的特征图 $F_q$，流程为 $F^A_{q} = Concat([F_q, V^{pri}<em>q, V^{aux}<em>q])$，其中 $V^{pri}<em>q$ 和 $V^{aux}<em>q$ 是 $\mathcal{v}</em>{pri}$ 和 $\mathcal{v}</em>{aux}$ 扩展大小得到；$P</em>{q} = softmax(\mathcal{D}(FPM_q(F^A</em>{q})))$，注意这里有一个单独的 <strong>query FPM</strong> $FPM_q$ 而非 $FPM_s$。同样计算交叉熵得到 $\mathcal{L}_{c e}^{q}$：</p>
-<p>$$<br>\mathcal{L}<em>{c e}^{q}=-\frac{1}{h w} \sum</em>{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{q}(i)=c_{j}\right] \log \left(P_{q}^{c_{j}}(i)\right)<br>$$</p>
+<p>$$\mathcal{L}<em>{c e}^{q}=-\frac{1}{h w} \sum</em>{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{q}(i)=c_{j}\right] \log \left(P_{q}^{c_{j}}(i)\right)$$</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-self-guided-and-cross-guided-learning-for-FSS-figure5.png"></p>
 <p><strong>Cross-Guided Multiple Shot Learning</strong>：当 shot 数 &gt; 1 时，对于第 k 张 support 图像，首先将其作为 support 图像，将所有 K 张 support 图像作为 query 图像来输入到所提出的面向 1-shot 的模型中。对于第 i 张 support 图像，得到在第 k 张图像的支持下的预测 mask $\hat{M^{i|k}_s}$。因为第 i 张 support 图像的 ground-truth mask $M_s^i$ 是可得的，因此可以用预测和 ground-truth 的 masks 的 IOU 来计算一个置信度：</p>
-<p>$$<br>U_{s}^{k}=\frac{1}{K} \sum_{i=1}^{K} \operatorname{IOU}\left(\hat{M}<em>{s}^{i \mid k}, M</em>{s}^{i}\right)<br>$$</p>
+<p>$$U_{s}^{k}=\frac{1}{K} \sum_{i=1}^{K} \operatorname{IOU}\left(\hat{M}<em>{s}^{i \mid k}, M</em>{s}^{i}\right)$$</p>
 <p>则对于给定的 query 图像的最终预测 score map：</p>
-<p>$$<br>\hat{P}<em>{q}=\operatorname{softmax}\left(\frac{1}{K} \sum</em>{k=1}^{K} U_{s}^{k} \mathcal{G}\left(I_{q} \mid I_{s}^{k}\right)\right)<br>$$</p>
+<p>$$\hat{P}<em>{q}=\operatorname{softmax}\left(\frac{1}{K} \sum</em>{k=1}^{K} U_{s}^{k} \mathcal{G}\left(I_{q} \mid I_{s}^{k}\right)\right)$$</p>
 <p>可以看到有更大的 $U_{s}^{k}$ 的 support 图像对于最终的预测有更大的贡献。</p>
 <p>实验结果：</p>
 <!-- 所以说设计即插即用的模块就是好，加在 SOTA 上就是新的 SOTA。 -->
@@ -4618,9 +4618,9 @@ MathJax.Hub.Config({
 <p>因此，本文提出 **Adaptive Superpixel-guided Network (ASGNet)**，包含 <strong>superpixel-guided clustering (SGC)</strong> 和 <strong>guided prototype allocation (GPA)</strong> 两个模块用于提取和分配多个 prototypes。SGC 模块在 support 图像上进行快速的、基于特征的 superpixel 提取，得到的 superpixel centroids 可以被视为 prototypical 特征，同时 superpixel 的数量和形状都是适应于图像内容的，因此得到的 prototypes 是自适应的。GPA 模块用一个 attention-like 机制来讲最相关的 support prototype 特征分配给 query 图像中的每个像素。最后，ASGNet 使用 <a href="http://arxiv.org/abs/2008.01449">PFENet (TPAMI 2020)</a> 中的特征增强结构并建立一个 FPN-like top-down 结构来引入 multi-scale 信息。当 shot 数大于 1 时，每张 support 图像都可以得到一组 prototypes，所有的 prototypes 被一块作为 GPA 的选择范围。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-adaptive-prototype-learning-and-allocation-for-FSS-figure2.png"></p>
 <p><strong>Superpixel-guided Clustering</strong>：受到 <a href="https://arxiv.org/abs/1606.09518">maskSLIC (2016)</a>, <a href="https://arxiv.org/abs/1807.10174">Superpixel sampling networks (ECCV 2018)</a> 等工作的启发，SGC 模块被用于将特征图用聚类的方式集成到多个 superpixel centroids 中。给定 support 特征 $F_s \in \mathbb{R}^{c \times h \times w}$ 和 support mask $M_s \in \mathbb{R}^{h \times w}$，假设已经获得初始 superpixel 种子，SGC 首先将 support 特征图上每个像素的坐标的值进行放缩后和特征图进行拼接，从而引入位置信息。之后用 support mask 来筛除背景信息，这样我们获得 $F_s^{‘} \in \mathbb{R}^{(c+2) \times N_m}$，$N_m$ 是在 support mask 中的像素的数量（注意这里我们对变量及其维度表示和原论文略有差别，我在阅读了源码后觉得这样表述会更清晰）。同样，我们也将初始 superpixel 种子的特征和其值放缩后的坐标拼接，有 $S^{0} \in \mathbb{R}^{(c+2) \times N_{sp}}$（$N_{sp}$ 是 superpixel 的数量。获得初始种子的方法见本节最后一段）。接下来，SGC 通过迭代式的方法更新 superpixel-based prototypes：在第 $t$ 轮迭代，首先计算每个像素 $p$ 和所有 superpixels 的 association map $Q^t$：</p>
-<p>$$<br>Q^t_{pi} = e^{- || F^{‘}_p - S^{t-1}_i ||^2}<br>$$</p>
+<p>$$Q^t_{pi} = e^{- || F^{‘}_p - S^{t-1}_i ||^2}$$</p>
 <p>接下来，新的 superpixel centroids 被更新为 masked 特征的加权和：</p>
-<p>$$<br>S^t_i = \frac{1}{\sum_pQ^t_{pi}} \sum^{N_m}<em>{p=1} Q^t</em>{pi} F^{‘}_p<br>$$</p>
+<p>$$S^t_i = \frac{1}{\sum_pQ^t_{pi}} \sum^{N_m}<em>{p=1} Q^t</em>{pi} F^{‘}_p$$</p>
 <!-- 这和那个基于 E-M 的有什么区别？区别好像是在于 E-M 会更新 base、attention 和 query features，而这个只更新 superpixel centroids -->
 
 
@@ -4628,7 +4628,7 @@ MathJax.Hub.Config({
 <p>通常 superpixel 算法通过将图像划分为均匀大小的 grid cell 来选取初始种子（i.e., superpixel），但由于只需要从前景区域来初始化种子，本文参考 <a href="https://arxiv.org/abs/1606.09518">maskSLIC (2016)</a> 来迭代式地安置每个初始种子，流程如下图所示。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-adaptive-prototype-learning-and-allocation-for-FSS-figure5.png"></p>
 <p><strong>Guided Prototype Allocation</strong>：首先计算每个 prototype 和 query 特征每个位置的 cosine 相似度 $C^{x,y}_i$，这个相似度信息被输入到一个双分支结构。<strong>第一个分支</strong>计算每个位置的像素和哪个 prototype 最相似：</p>
-<p>$$<br>G^{x,y} = \argmax_{i \in {0, \dots, N_{sp}}} C^{x,y}_i<br>$$</p>
+<p>$$G^{x,y} = \text{argmax}<em>{i \in {0, \dots, N</em>{sp}}} C^{x,y}_i$$</p>
 <p>根据得到的 guide map $G \in \mathbb{R}^{h \times w}$，可以通过将对应 prototype 放到 guide map 的每个位置得到 guide feature $F_G \in \mathbb{R}^{c \times h \times w}$。<strong>第二个分支</strong>将相似度信息 $C$ 在所有的 superpixels 相加来得到概率图 $P$。最终将 $P$、$F_G$ 和原本的 query 特征 $F_Q$ 拼接并过 $1 \times 1$ 卷积得到 refined query 特征 $F^{‘}_Q$。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-adaptive-prototype-learning-and-allocation-for-FSS-figure4.png"></p>
 <p>实验结果：</p>
