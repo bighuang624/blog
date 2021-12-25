@@ -34,6 +34,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/TPAMI2020-prior-guided-feature-enrichment-network-for-FSS-table3.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure1.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table5.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table1.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table2.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-figure1.png">
@@ -54,7 +55,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-FS-3D-point-cloud-semantic-segmentation-figure2.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-FS-3D-point-cloud-semantic-segmentation-table.png">
 <meta property="article:published_time" content="2021-12-14T08:39:35.000Z">
-<meta property="article:modified_time" content="2021-12-17T17:54:05.421Z">
+<meta property="article:modified_time" content="2021-12-25T07:21:05.603Z">
 <meta property="article:author" content="Kyon Huang">
 <meta property="article:tag" content="few-shot segmentation">
 <meta name="twitter:card" content="summary">
@@ -299,7 +300,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-12-18 01:54:05" itemprop="dateModified" datetime="2021-12-18T01:54:05+08:00">2021-12-18</time>
+        <time title="修改时间：2021-12-25 15:21:05" itemprop="dateModified" datetime="2021-12-25T15:21:05+08:00">2021-12-25</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -353,14 +354,24 @@
 <h3 id="Few-Shot-Segmentation-Via-Cycle-Consistent-Transformer"><a href="#Few-Shot-Segmentation-Via-Cycle-Consistent-Transformer" class="headerlink" title="Few-Shot Segmentation Via Cycle-Consistent Transformer"></a>Few-Shot Segmentation Via Cycle-Consistent Transformer</h3><p>NeurIPS 2021 | <a target="_blank" rel="noopener" href="https://papers.nips.cc/paper/2021/hash/b8b12f949378552c21f28deff8ba8eb6-Abstract.html">link</a> | <a target="_blank" rel="noopener" href="https://github.com/GengDavid/CyCTR">github（尚未包含代码）</a></p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure1.png"></p>
 <p>已有的小样本分割工作通常从 support 的图像特征提取 semantic-level prototypes，其中根据可以分为两类：(1) 如上图 (a) 所示的 class-wise mean pooling (<a target="_blank" rel="noopener" href="http://arxiv.org/abs/1908.06391">PANet, ICCV 2019</a>; <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1810.09091">SG-One, IEEE Trans. Cybern., 2020</a>; <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1903.02351">CANet, CVPR 2019</a>)，将属于不同类别的区域的特征算均值得到 prototypes；(2) 如上图 (b) 所示的 clustering，使用 EM 算法 (<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2008.03898">RPMM, ECCV 2020</a>) 或者 K-means (<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2007.06309">PPNet, ECCV 2020</a>) 来生成多个 prototypes 。然而，基于 prototypes 的方法会导致不同程度的 support information 的损失。因此，一些工作 (<a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_ICCV_2019/html/Zhang_Pyramid_Graph_Networks_With_Connection_Attentions_for_Region-Based_One-Shot_Semantic_ICCV_2019_paper.html">PGNet, ICCV 2019</a>; <a target="_blank" rel="noopener" href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123580715.pdf">DAN, ECCV 2020</a>) 用 attention 机制来从 support 前景像素提取信息。然而，<strong>这些方法忽略了存在对分割有帮助的信息的 support 背景像素</strong>；同时，support 和 query 图像间的包含尺度、颜色、场景等差别使得只有一小部分 support 像素是对 query 图像的分割有帮助，而<strong>另一些 support 像素会和 query 的前景像素有很大差别，导致 attention 无法准确表示语义上的对齐</strong>。</p>
-<p>本文提出了 <strong>Cycle-Consistent Transformer (CyCTR)</strong> 模块，包含两种 Transformer 部件：(1) <strong>self-alignment block</strong>：通过聚合相关的上下文信息来编码 query 的图像特征，Query、Key 和 Value 都来自同个 embedding；(2) <strong>cross-alignment block</strong>：将 support 图像的 pixel-wise 特征聚合到 query 图像的 pixel-wise 特征中，query 图像的特征是 Query，support 图像的特征作为 Key 和 Value。另外，一种新的 <strong>cycle-consistent attention</strong> 被部署在 cross-alignment block 上。从一个 support 像素的特征出发，我们找到它在 query 特征上的最近邻，然后在找到与这个最近邻最相似的 support 特征。如果起点和终点的 support 特征属于同一类别，就称作建立起了 <strong>cycle-consistency relationship</strong>。这个操作被集成到 attention 中来让 query 特征只去注意 cycle-consistent support 特征。因此，我们可以使用 support 的背景像素，而避免将 bias 引入到 query 特征。</p>
+<p>本文提出了 <strong>Cycle-Consistent Transformer (CyCTR)</strong> 模块，包含两种 Transformer 部件：(1) <strong>self-alignment block</strong>：通过聚合相关的上下文信息来编码 query 的图像特征，Query、Key 和 Value 都来自同个 embedding；(2) <strong>cross-alignment block</strong>：将 support 图像的 pixel-wise 特征聚合到 query 图像的 pixel-wise 特征中，query 图像的特征是 Query，support 图像的特征作为 Key 和 Value。另外，一种新的 <strong>cycle-consistent attention</strong> 被部署在 cross-alignment block 上。从一个 support 像素的特征出发，我们找到它在 query 特征上的最近邻，然后在找到与这个最近邻最相似的 support 特征。如果起点和终点的 support 特征属于同一类别，就称作建立起了 <strong>cycle-consistency relationship</strong>。这个操作被集成到 attention 中来让 query 特征只去注意 cycle-consistent support 特征。因此，我们可以在避免将 bias 引入到 query 特征的前提下，利用 support 的背景像素。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-figure3.png"></p>
-<!-- 具体地 -->
+<!-- 从 Figure 3 可以看出，CyCTR 还是在增强 query 特征 -->
 
+<p>具体实现上，support 和 query 特征都被拉伸成 1D 序列输入到 transformer 中，序列的长度分别为 $H_qW_q$ 和 $N_s$。如上图所示，$L$ 个编码器堆叠起来，每个编码器输出的 query 特征被输入到下一个编码器中的 self-alignment block，直到最终输出的 query 特征进行 pixel-wise 的分类。在 <strong>cross-alignment block</strong> 中，首先计算一个 affinity map $A = \frac{QK^T}{\sqrt{d}}, A \in \mathbb{R}^{H_qW_q \times N_s}$ 来度量所有 query 和 support 像素的关联度。然后，对于第 $j$ 个 support 像素，可以找到与其最相似的 query 像素 $i^{\star}=\text{argmax}_i A_(i,j)$。然后再返回找到与 query 像素 $i^{\star}$ 最相似的 support 像素 $j^{\star}=\text{argmax}_j A_(i^{\star},j)$。给定 support 像素标签 $M_s \in \mathbb{R}^{N_s}$，获得一个 additive bias $B \in \mathbb{R}^{N_s}$：</p>
+<p>$$B_{j}=\left{\begin{aligned}<br>0, &amp; \text { if } M_{s(j)}=M_{s\left(j^{\star}\right)} \<br>-\infty, &amp; \text { if } M_{s(j)} \neq M_{s\left(j^{\star}\right)}<br>\end{aligned}\right.$$</p>
+<p>则对于位置为 $i$ 的单个 query token（即像素）$Z_{q(i)} \in \mathbb{R}^d$，通过下式来聚合 support 信息：</p>
+<p>$$\text{CyCAtten}(Q_i, K_i, V_i) = \text{softmax}(A_{i} + B)V$$</p>
+<p>当在 self-alignment block 中执行 self-attention 时，也可能存在 query token 聚合到无关甚至是有害的特征（尤其当背景较为复杂时）。然而，由于没有 query 像素的标签，无法在 query 的像素上执行 cycle-consistent attention。受到 <a target="_blank" rel="noopener" href="https://openreview.net/forum?id=gZ9hCDWe6ke">DeformableAttention (ICLR 2021)</a>，可以通过学习的方式获得 consistent 像素 $\triangle = f(Q + \text{Coord}), \triangle \in \mathbb{R}^{H_pW_p \times P}$ 以及对应的 attention weights $A^{‘} = g(Q + \text{Coord}), A^{‘} \in \mathbb{R}^{H_qW_q \times P}$，$P$ 代表被聚合的像素的数量。$\text{Coord} \in \mathbb{R}^{H_qW_q \times N_s}$ 是位置编码，$f(\cdot)$ 和 $g(\cdot)$ 是用于预测 offsets 和 attention weights 的全连接层。因此，self-alignment block 中的 self-attention 可以被表示为：</p>
+<p>$$\text{PredAtten}(Q_r, V_r) = \sum^P_g\text{softmax}(A^{‘})_{(r,g)}V_{r+\triangle_{r,g}}$$</p>
+<p>其中，$r \in {0,1, \dots, H_qW_q}$ 是拉伸的 query 特征的 index，$Q$ 和 $V$ 通过对拉伸的 query 特征用可学习的参数进行线性变换得到。</p>
+<p>以上讨论的是 1-shot 的情况。当 shot 数大于 1 时，可以将所有 support 特征拉伸并拼接作为输入。然而这样会导致计算量过大，因此可以采取一个非常简单的 mask-guided sampling 策略来减小计算复杂度。给定 $k$-shot support 特征 $Z_s \in \mathbb{R}^{kH_sW_s \times d}$，support tokens（即像素）通过从所有 support 图像的前景区域均匀随机采样 $N_{fg}$ 个（$N_{fg} \leq \frac{N_s}{2}$，其中 $N_s \leq kH_sW_s$）和从背景区域采样 $N_s - N_{fg}$ 个得到。通过选择一个合适的 $N_s$，这个策略既能有效减少计算量，也能够帮助平衡前景和后景的比例。</p>
+<p>方法的整体框架如下图所示。值得注意的是，该方法还是先用 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/2008.01449">PFENet (TPAMI 2020)</a> 对 support 和 query 的特征进行了处理再输入到 cycle-consistent transformer 中。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table5.png"></p>
 <p>实验结果：</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table1.png"></p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-cycle-consistent-TRansformer-table2.png"></p>
-<!-- 思考：
+<!-- 对于 OSAD 的参考/思考：
 
 1. 在 FSAD 中，support 和 query 中与 affordance 不相关的像素更多，如何解决？能否参考 weak-shot segmentation 先把边界弄出来？ 
 2. 用一个 CyCTR 模块来代替 FSAD 的中间处理部分呢？
@@ -376,7 +387,7 @@
 <li>$\mathcal{D}_{\mathrm{KL}}=\widehat{p}_{\mathcal{Q}}^{\top} \log \left(\frac{\widehat{p}_{\mathcal{Q}}}{\pi}\right), \widehat{p}_{\mathcal{Q}}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)$：KL 散度，鼓励模型预测的背景/前景 (B/F) 比例接近于一个参数 $\pi \in [0, 1]^2$。论文指出这一项在损失中占关键位置，首先当参数 $\pi$ 与 query 图像的精确 B/F 比例不匹配时，该项有助于避免因 $\mathrm{CE}$ 和 $\mathcal{H}$ 最小化而导致的退化解；而如果能够准确估计 query 图像中的 B/F 比例（即有这个先验知识可供使用时），该项可以大幅提高方法整体的性能。</li>
 </ol>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-figure1.png"></p>
-<p><strong>分类器的选择</strong>：RePRI 的线性分类器和 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1904.04232">Baseline++, ICLR 2019</a> 相似：$s^{(t)}(j)=\operatorname{sigmoid}\left(\tau\left[\cos \left(z(j), w^{(t)}\right)-b^{(t)}\right]\right)$。其中原型 $w^{(0)}$ 是 support 前景特征的均值：$w^{(0)}=\frac{1}{K|\Psi|} \sum_{k=1}^{K} \sum_{j \in \Psi} \widetilde{y}_{k}(j)_{1} z_{k}(j)$；$b^{(0)}$ 是对 query 前景的 soft predictions的均值 ：$b^{(0)}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)_{1}$。</p>
+<p><strong>分类器的选择</strong>：RePRI 的线性分类器和 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1904.04232">Baseline++, ICLR 2019</a> 相似：$s^{(t)}(j)=\text{sigmoid}\left(\tau\left[\cos \left(z(j), w^{(t)}\right)-b^{(t)}\right]\right)$。其中原型 $w^{(0)}$ 是 support 前景特征的均值：$w^{(0)}=\frac{1}{K|\Psi|} \sum_{k=1}^{K} \sum_{j \in \Psi} \widetilde{y}_{k}(j)_{1} z_{k}(j)$；$b^{(0)}$ 是对 query 前景的 soft predictions的均值 ：$b^{(0)}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)_{1}$。</p>
 <p><strong>B/F 比例 $\pi$ 的联合估计</strong>：当没有先验知识时，RePRI 使用 $\widehat{p}_{\mathcal{Q}}$ 来联合学习 $\pi$ 和分类器的参数，这时 $\mathcal{D}_{\mathrm{KL}}$ 可以被视为 self-regularization 来防止模型的 marginal distribution 发生偏移。具体实现中，只在初始化后在之后的某一轮迭代 $t_{\pi}$ 更新一次 $\pi$ 即可，即</p>
 <p>$$\pi^{(t)}= \begin{cases}\widehat{p}_{\mathcal{Q}}^{(0)} &amp; 0 \leq t \leq t_{\pi} \ \hat{p}_{\mathcal{Q}}^{\left(t_{\pi}\right)} &amp; t&gt;t_{\pi}\end{cases}$$</p>
 <p>实验结果：</p>
@@ -387,19 +398,19 @@
 <p>本文同样提出常用的 masked Global Average Pooling (GAP) 来将 support 图像转换为特征向量的方式会导致有区分性的信息因为求均值操作而损失。另外，当 shot 数量不为 1 时，常用的对所有 support 向量求均值会强制使得所有的 support 图像贡献相同，而不同的 support 图像的对于表示类别的贡献实际上是不同的。</p>
 <p>为了解决这两个问题，本文提出 **Self-Guided and Cross-Guided Learning (SCL)**，首先用初始原型来对 support 图像做初始预测，预测覆盖和没有覆盖到的前景区域被用 masked GAP 编码成 primary 和 auxiliary support 向量来在 query 图像的分割上取得更好表现。同时，针对 shot 数量不为 1 的场景，本文提出 <strong>Cross-Guided Module (CGM)</strong> 来使用其他有标注 support 图像评估每张 support 图像的预测质量，使高质量的 support 图像能够对最终的融合做出更大的贡献。相比 attention 等复杂的方法，CGM 无需重新训练模型，可以直接在 inference 时被应用来提升最终的表现。SCL 遵循 episodic training 的方式，总损失为 $\mathcal{L}=\mathcal{L}_{c e}^{s 1}+\mathcal{L}_{c e}^{s 2}+\mathcal{L}_{c e}^{q}$，前两项来自 support set 的 Self-Guided Learning，后一项来自 query set。</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-self-guided-and-cross-guided-learning-for-FSS-figure3.png"></p>
-<p><strong>Self-Guided Learning on Support Set</strong>：这里首先以 1-shot 为例。用 masked GAP 获得的初始 support 向量 $\mathcal{v}_s$ 被扩展成和 support 特征图 $F_s$ 同样大小的 $V_s$，然后拼接得到新的特征图 $F_{sv} = Concat([F_s, V_s, V_s])$。通过将 $F_{sv}$ 输入到 <strong>support FPM</strong> 和 decoder，可以得到support 图像的概率图 $P_{s1} = softmax(\mathcal{D}(FPM_s(F_{sv})))$，其中 $\mathcal{D}(\cdot)$ 指 decoder。由于 SCL 是一个即插即用的模块，因此 support FPM 和 decoder 的设计遵循所选择的小样本分割 baseline。本文的实验部分选择插入到两种 baseline 中：(1) <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1903.02351">CANet (CVPR 2019)</a>，其 decoder 是 single-scale 结构的，因此 SCL 也采用 single-scale support FPM；(2) <a target="_blank" rel="noopener" href="http://arxiv.org/abs/2008.01449">PFENet (TPAMI 2020)</a>，其 decoder 是 multi-scale 结构的，因此 SCL 也采用 multi-scale support FPM。single-scale 和 multi-scale 的 support FPM 结构如上图右边所示。</p>
+<p><strong>Self-Guided Learning on Support Set</strong>：这里首先以 1-shot 为例。用 masked GAP 获得的初始 support 向量 $\mathcal{v}_s$ 被扩展成和 support 特征图 $F_s$ 同样大小的 $V_s$，然后拼接得到新的特征图 $F_{sv} = \text{Concat}([F_s, V_s, V_s])$。通过将 $F_{sv}$ 输入到 <strong>support FPM</strong> 和 decoder，可以得到support 图像的概率图 $P_{s1} = \text{softmax}(\mathcal{D}(FPM_s(F_{sv})))$，其中 $\mathcal{D}(\cdot)$ 指 decoder。由于 SCL 是一个即插即用的模块，因此 support FPM 和 decoder 的设计遵循所选择的小样本分割 baseline。本文的实验部分选择插入到两种 baseline 中：(1) <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1903.02351">CANet (CVPR 2019)</a>，其 decoder 是 single-scale 结构的，因此 SCL 也采用 single-scale support FPM；(2) <a target="_blank" rel="noopener" href="http://arxiv.org/abs/2008.01449">PFENet (TPAMI 2020)</a>，其 decoder 是 multi-scale 结构的，因此 SCL 也采用 multi-scale support FPM。single-scale 和 multi-scale 的 support FPM 结构如上图右边所示。</p>
 <p>使用预测的 mask $\hat{M_s} = \text{argmax}(P_{s1})$ 和 ground-truth mask $M_s$，可以得到 primary support 向量 $\mathcal{v}_{pri}$ 和 auxiliary support 向量 $\mathcal{v}_{aux}$，前者代表预测正确的实际前景信息，后者代表预测错误的实际前景信息。换句话说，$\mathcal{v}_{pri}$ 保持着主要的 support 信息，而 $\mathcal{v}_{aux}$ 包含用 $\mathcal{v}_s$ 无法预测的、损失的重要信息。为了保证 $\mathcal{v}_{pri}$ 能够从 support 的特征图收集到大多数的信息，对 $P_{s1}$ 施加交叉熵得到 $\mathcal{L}_{c e}^{s 1}$：</p>
 <p>$$\mathcal{L}_{c e}^{s 1}=-\frac{1}{h w} \sum_{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{s}(i)=c_{j}\right] \log \left(P_{s 1}^{c_{j}}(i)\right)$$</p>
-<p>接下来，$\mathcal{v}_{pri}$ 和 $\mathcal{v}_{aux}$ 也被扩展并与 $F_s$ 拼接得到 $F^A_{s} = Concat([F_s, V^{pri}_s, V^{aux}_s])$，然后得到 $P_{s2} = softmax(\mathcal{D}(FPM_s(F^A_{s})))$。为了确保集成 $\mathcal{v}_{pri}$ 和 $\mathcal{v}_{aux}$ 能够得到精准的分割 mask，同样施加交叉熵得到 $\mathcal{L}_{c e}^{s 2}$：</p>
+<p>接下来，$\mathcal{v}_{pri}$ 和 $\mathcal{v}_{aux}$ 也被扩展并与 $F_s$ 拼接得到 $F^A_{s} = \text{Concat}([F_s, V^{pri}_s, V^{aux}_s])$，然后得到 $P_{s2} = \text{softmax}(\mathcal{D}(FPM_s(F^A_{s})))$。为了确保集成 $\mathcal{v}_{pri}$ 和 $\mathcal{v}_{aux}$ 能够得到精准的分割 mask，同样施加交叉熵得到 $\mathcal{L}_{c e}^{s 2}$：</p>
 <p>$$\mathcal{L}_{c e}^{s 2}=-\frac{1}{h w} \sum_{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{s}(i)=c_{j}\right] \log \left(P_{s 2}^{c_{j}}(i)\right)$$</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-self-guided-and-cross-guided-learning-for-FSS-figure2.png"></p>
-<p><strong>Training on Query Set</strong>：对于 query 的特征图 $F_q$，流程为 $F^A_{q} = Concat([F_q, V^{pri}_q, V^{aux}_q])$，其中 $V^{pri}_q$ 和 $V^{aux}_q$ 是 $\mathcal{v}_{pri}$ 和 $\mathcal{v}_{aux}$ 扩展大小得到；$P_{q} = softmax(\mathcal{D}(FPM_q(F^A_{q})))$，注意这里有一个单独的 <strong>query FPM</strong> $FPM_q$ 而非 $FPM_s$。同样计算交叉熵得到 $\mathcal{L}_{c e}^{q}$：</p>
+<p><strong>Training on Query Set</strong>：对于 query 的特征图 $F_q$，流程为 $F^A_{q} = \text{Concat}([F_q, V^{pri}_q, V^{aux}_q])$，其中 $V^{pri}_q$ 和 $V^{aux}_q$ 是 $\mathcal{v}_{pri}$ 和 $\mathcal{v}_{aux}$ 扩展大小得到；$P_{q} = \text{softmax}(\mathcal{D}(FPM_q(F^A_{q})))$，注意这里有一个单独的 <strong>query FPM</strong> $FPM_q$ 而非 $FPM_s$。同样计算交叉熵得到 $\mathcal{L}_{c e}^{q}$：</p>
 <p>$$\mathcal{L}_{c e}^{q}=-\frac{1}{h w} \sum_{i=1}^{h w} \sum_{c_{j} \in{0,1}}\left[M_{q}(i)=c_{j}\right] \log \left(P_{q}^{c_{j}}(i)\right)$$</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-self-guided-and-cross-guided-learning-for-FSS-figure5.png"></p>
 <p><strong>Cross-Guided Multiple Shot Learning</strong>：当 shot 数 &gt; 1 时，对于第 k 张 support 图像，首先将其作为 support 图像，将所有 K 张 support 图像作为 query 图像来输入到所提出的面向 1-shot 的模型中。对于第 i 张 support 图像，得到在第 k 张图像的支持下的预测 mask $\hat{M^{i|k}_s}$。因为第 i 张 support 图像的 ground-truth mask $M_s^i$ 是可得的，因此可以用预测和 ground-truth 的 masks 的 IOU 来计算一个置信度：</p>
-<p>$$U_{s}^{k}=\frac{1}{K} \sum_{i=1}^{K} \operatorname{IOU}\left(\hat{M}_{s}^{i \mid k}, M_{s}^{i}\right)$$</p>
+<p>$$U_{s}^{k}=\frac{1}{K} \sum_{i=1}^{K} \text{IOU}\left(\hat{M}_{s}^{i \mid k}, M_{s}^{i}\right)$$</p>
 <p>则对于给定的 query 图像的最终预测 score map：</p>
-<p>$$\hat{P}_{q}=\operatorname{softmax}\left(\frac{1}{K} \sum_{k=1}^{K} U_{s}^{k} \mathcal{G}\left(I_{q} \mid I_{s}^{k}\right)\right)$$</p>
+<p>$$\hat{P}_{q}=\text{softmax}\left(\frac{1}{K} \sum_{k=1}^{K} U_{s}^{k} \mathcal{G}\left(I_{q} \mid I_{s}^{k}\right)\right)$$</p>
 <p>可以看到有更大的 $U_{s}^{k}$ 的 support 图像对于最终的预测有更大的贡献。</p>
 <p>实验结果：</p>
 <!-- 所以说设计即插即用的模块就是好，加在 SOTA 上就是新的 SOTA。 -->
@@ -432,7 +443,7 @@
 <p>第一篇做小样本 3D 点云语义分割的论文。相比 2D 图像，点云更加无结构和无序，因此做语义分割的难度会更大。任务定义如上图所示，基本就是把 2D 数据换成 3D 点云。方法上，本文提出了 <strong>attention-aware multi-prototype transductive inference</strong> 框架。其包含以下三点：</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-FS-3D-point-cloud-semantic-segmentation-figure2.png"></p>
 <p><strong>embedding network</strong>：对标 2D 视觉中的 CNN 等 backbone 网络。论文提出这个网络需要满足 (1) 能够<strong>根据局部上下文编码几何结构</strong>；(2) 能够<strong>根据全局上下文编码点云的语义信息和它们间的语义关系</strong>；(3) 能够快速适应不同的小样本任务。因此，本文提出一种 attention-aware multi-level feature learning network 来结合局部几何特征、全局语义特征和 metric-adaptive 特征。具体来说，该网络由三部分组成：(1) feature extractor，选用动态图 CNN 架构的 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1801.07829">DGCNN (ACM Trans. Graph. 2019)</a> 来得到局部几何特征（第一个 EdgeConv 层的输出）和语义特征（整个 feature extractor 的输出）；(2) attention learner，选用了 self-attention network (SAN)；(3) metric learner，选用了 MLP 的堆叠并以一个相对更大的学习率更新。</p>
-<!-- embedding 具体怎么运算论文（至少是正文）也没提，需要看代码理解 -->
+<!-- embedding 具体怎么运算论文（至少在正文）也没提，需要看代码理解 -->
 
 <p><strong>multi-prototype generation</strong>：对于 support set 中 $N+1$ 类的每一个，都通过聚类生成 $n$ 个 prototypes。具体地，$n$ 个种子点通过 farthest point sampling 被从 support 点中采样得到。直觉上来说，如果 embedding space 学得够好，这个空间中最远的那些点能够可以内在地表示一个类别的不同视角。之后，我们计算其他点和这些种子点的距离并根据最近邻原则分配，最后计算每个簇的均值作为 prototypes。</p>
 <p><strong>transductive inference</strong>：该方法首先构建了一张包含 $n \times (N+1)$ 个 prototypes 和 $T \times M$ 个 query 点、总计 $V = n \times (N+1) + T \times M$ 个节点的 k-NN graph。稀疏邻接矩阵 $\mathbf{A} \in \mathbb{R}^{V \times V}$ 通过计算每个点和其 $k$ 个最近邻的高斯相似度得到。为了让邻接矩阵是非负且对称的，有 $\mathbf{W} = \mathbf{A} + \mathbf{A}^{T}$，并进一步进行正则化有 $\mathbf{S} = \mathbf{D}^{-1/2}\mathbf{W}\mathbf{D}^{-1/2}$。同时定义标签矩阵 $\mathbf{Y} \in \mathbb{R}^{V \times (N+1)}$，其中对应有标签 prototypes 的行是 one-hot ground-truth 标签，其余为零向量。给定 $\mathbf{S}$ 和 $\mathbf{Y}$，标签传播有解析解 $\mathbf{Z}^{*} = (\mathbf{I} - \alpha \mathbf{S})^{-1}\mathbf{Y}$。最后每个点云对应的预测通过 softmax 后用交叉熵计算损失。</p>
