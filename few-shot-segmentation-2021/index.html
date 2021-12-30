@@ -55,7 +55,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-FS-3D-point-cloud-semantic-segmentation-figure2.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-FS-3D-point-cloud-semantic-segmentation-table.png">
 <meta property="article:published_time" content="2021-12-14T08:39:35.000Z">
-<meta property="article:modified_time" content="2021-12-30T12:38:36.871Z">
+<meta property="article:modified_time" content="2021-12-30T12:46:49.002Z">
 <meta property="article:author" content="Kyon Huang">
 <meta property="article:tag" content="few-shot segmentation">
 <meta name="twitter:card" content="summary">
@@ -300,7 +300,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-12-30 20:38:36" itemprop="dateModified" datetime="2021-12-30T20:38:36+08:00">2021-12-30</time>
+        <time title="修改时间：2021-12-30 20:46:49" itemprop="dateModified" datetime="2021-12-30T20:46:49+08:00">2021-12-30</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -359,8 +359,7 @@
 <!-- 从 Figure 3 可以看出，CyCTR 还是在增强 query 特征 -->
 
 <p>具体实现上，support 和 query 特征都被拉伸成 1D 序列输入到 transformer 中，序列的长度分别为 $H_qW_q$ 和 $N_s$。如上图所示，$L$ 个编码器堆叠起来，每个编码器输出的 query 特征被输入到下一个编码器中的 self-alignment block，直到最终输出的 query 特征进行 pixel-wise 的分类。在 <strong>cross-alignment block</strong> 中，首先计算一个 affinity map $A = \frac{QK^T}{\sqrt{d}}, A \in \mathbb{R}^{H_qW_q \times N_s}$ 来度量所有 query 和 support 像素的关联度。然后，对于第 $j$ 个 support 像素，可以找到与其最相似的 query 像素 $i^{\star}=\text{argmax}_i A_(i,j)$。然后再返回找到与 query 像素 $i^{\star}$ 最相似的 support 像素 $j^{\star}=\text{argmax}_j A_(i^{\star},j)$。给定 support 像素标签 $M_s \in \mathbb{R}^{N_s}$，获得一个 additive bias $B \in \mathbb{R}^{N_s}$：</p>
-<p>$$B_{j}=\left {\begin{aligned}<br>0, &amp; \text { if } M_{s(j)}=M_{s\left(j^{\star}\right)} \<br>-\infty, &amp; \text { if } M_{s(j)} \neq M_{s\left(j^{\star}\right)}<br>\end{aligned}\right.$$</p>
-<p>$$B_{j}=$$</p>
+<p>$$B_{j}= \begin{cases}0, &amp; \text { if } M_{s(j)}=M_{s\left(j^{\star}\right)} \\<br>-\infty, &amp; \text { if } M_{s(j)} \neq M_{s\left(j^{\star}\right)} \end{cases}$$</p>
 <p>则对于位置为 $i$ 的单个 query token（即像素）$Z_{q(i)} \in \mathbb{R}^d$，通过下式来聚合 support 信息：</p>
 <p>$$\text{CyCAtten}(Q_i, K_i, V_i) = \text{softmax}(A_{i} + B)V$$</p>
 <p>当在 self-alignment block 中执行 self-attention 时，也可能存在 query token 聚合到无关甚至是有害的特征（尤其当背景较为复杂时）。然而，由于没有 query 像素的标签，无法在 query 的像素上执行 cycle-consistent attention。受到 <a target="_blank" rel="noopener" href="https://openreview.net/forum?id=gZ9hCDWe6ke">DeformableAttention (ICLR 2021)</a>，可以通过学习的方式获得 consistent 像素 $\triangle = f(Q + \text{Coord}), \triangle \in \mathbb{R}^{H_pW_p \times P}$ 以及对应的 attention weights $A^{‘} = g(Q + \text{Coord}), A^{‘} \in \mathbb{R}^{H_qW_q \times P}$，$P$ 代表被聚合的像素的数量。$\text{Coord} \in \mathbb{R}^{H_qW_q \times N_s}$ 是位置编码，$f(\cdot)$ 和 $g(\cdot)$ 是用于预测 offsets 和 attention weights 的全连接层。因此，self-alignment block 中的 self-attention 可以被表示为：</p>
@@ -391,8 +390,6 @@
 <p><strong>分类器的选择</strong>：RePRI 的线性分类器和 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/1904.04232">Baseline++, ICLR 2019</a> 相似：$s^{(t)}(j)=\text{sigmoid}\left(\tau\left[\cos \left(z(j), w^{(t)}\right)-b^{(t)}\right]\right)$。其中原型 $w^{(0)}$ 是 support 前景特征的均值：$w^{(0)}=\frac{1}{K|\Psi|} \sum_{k=1}^{K} \sum_{j \in \Psi} \widetilde{y}_{k}(j)_{1} z_{k}(j)$；$b^{(0)}$ 是对 query 前景的 soft predictions的均值 ：$b^{(0)}=\frac{1}{|\Psi|} \sum_{j \in \Psi} p_{\mathcal{Q}}(j)_{1}$。</p>
 <p><strong>B/F 比例 $\pi$ 的联合估计</strong>：当没有先验知识时，RePRI 使用 $\widehat{p}_{\mathcal{Q}}$ 来联合学习 $\pi$ 和分类器的参数，这时 $\mathcal{D}_{\mathrm{KL}}$ 可以被视为 self-regularization 来防止模型的 marginal distribution 发生偏移。具体实现中，只在初始化后在之后的某一轮迭代 $t_{\pi}$ 更新一次 $\pi$ 即可，即</p>
 <p>$$\pi^{(t)}= \begin{cases}\widehat{p}_{\mathcal{Q}}^{(0)} &amp; 0 \leq t \leq t_{\pi} \\<br>\hat{p}_{\mathcal{Q}}^{\left(t_{\pi}\right)} &amp; t&gt;t_{\pi}\end{cases}$$</p>
-<!-- $$\pi^{(t)} = \widehat{p}\_{\mathcal{Q}}^{(0)}, 0 \leq t \leq t\_{\pi}; \hat{p}\_{\mathcal{Q}}^{\left(t\_{\pi}\right)}, t>t\_{\pi}$$ -->
-
 <p>实验结果：</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table1.png"></p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/NeurIPS2021-a-good-transductive-inference-is-all-you-need-table2.png"></p>
