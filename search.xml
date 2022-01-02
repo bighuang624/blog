@@ -2825,31 +2825,6 @@ filename@function    //定位至具体函数
       </tags>
   </entry>
   <entry>
-    <title>吴恩达《深度学习》系列课程个人笔记</title>
-    <url>/blog/Andrew-Ng-Deep-Learning-notes/</url>
-    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Andrew-Ng-Deep-Learning-notes.png" alt="Andrew-Ng-Deep-Learning-notes"></p>
-<p>早在吴恩达（deeplearning.ai）的《深度学习》系列课程在网易云课堂刚刚发布时，它就已经躺在我的计划列表中了。当时还没有特别坚定说要深入学习这方面的知识，因此搁置了一段时间。这几个月终于下定决心，排除万难，开始对这个系列的课程进行学习。</p>
-<p>这个系列的课程给我的感觉是，对 DL 新人，以及像我这样数学不是非常好的学习者非常友好。吴恩达老师真正做到了深入浅出，但又没有抛弃那些重要的细节。在我一边看视频，一边想看看花书对应章节时，发现晦涩到根本看不动。而这个系列的课程作为入门启蒙，是再合适不过的。</p>
-<p>另外，这个系列课程的作业全都是精心设计过的，虽然难度不大，但对巩固视频所学知识、帮助理解细节非常有帮助。如果只是听课而不独立完成作业，我认为和没有学过没有什么区别。我也打算过一段时间再重新将这些作业再写一遍。</p>
-<p>在学习的同时，像网上很多同学一样，我也记录了自己的笔记，并将其发布在 Github 上。因为在 Github 上，在 md 文件中用 LaTex 写的公式不能正常显示，之前都是用 MacDown 由 md 文件生成 html，虽然公式可以看了，但是不太美观。之后，我恰好发现了 docsify ，一个可以由 md 文件动态生成文档网站的库。于是折腾了一会，将自己的笔记全部用它生成，最终效果如题图所示，非常美观（虽然折腾的途中也踩了几个小坑）。</p>
-<p>因为在学习的过程中，我也看了很多网上的笔记。它们对我起到了很大的帮助，因此我也想将我的笔记分享出来，也许能够帮助到其他的同学。两周前在学完前两门课时，我在知乎的专栏发了一篇<a href="https://zhuanlan.zhihu.com/p/32527718">文章</a>（即这篇博文的前身）。到目前为止，知乎的文章收获了 147 个赞，而 Github 上的 repo 得到了 42 个 star。这对我简直是受宠若惊。因此，即使这两周是考试周，我还是抽出时间学完了第三门课，并更新了笔记。一方面，这个系列课程的内容确实非常吸引我，另一方面，也是很多同道中人的认可对我有着很大的鼓励。</p>
-<p>第四门课是有关计算机视觉和卷积神经网络的。我们知道近年来深度学习的爆红很大程度上是缘于 2012 年 ImageNet 图像识别比赛中 Hinton 课题组构建的 CNN 网络 AlexNet 有着碾压级的表现，因此我对这门课也是非常期待，希望能够在寒假结束前完成对这门课的学习。</p>
-<p>最后，再次将笔记的 Github 的 repo 地址公布如下：</p>
-<ul>
-<li>笔记：<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/">吴恩达《深度学习》系列课程笔记</a></li>
-<li>Github 仓库（包含写完的作业）：<a href="https://github.com/bighuang624/Andrew-Ng-Deep-Learning-notes">bighuang624/Andrew-Ng-Deep-Learning-notes</a></li>
-</ul>
-<p>欢迎查阅，欢迎在 Issues 中交流或提出意见，更欢迎 star 一下以兹鼓励！</p>
-]]></content>
-      <categories>
-        <category>深度学习笔记</category>
-      </categories>
-      <tags>
-        <tag>深度学习</tag>
-        <tag>吴恩达</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>分布式系统演进简述</title>
     <url>/blog/evolution-of-distributed-systems/</url>
     <content><![CDATA[<p>“网络与分布式计算”课程布置了一个作业，要求写一篇题目为“构建分布式系统技术发展历史”的小论文。我个人以为“历史”二字应该是要我们去了解每项技术诞生的时间点，然而踏破铁鞋无处可觅。最后写成的文章主题，我个人认为比起“历史”来说，“演进过程”可能更为恰当。</p>
@@ -2913,6 +2888,31 @@ filename@function    //定位至具体函数
       <tags>
         <tag>分布式系统</tag>
         <tag>分布式架构</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>吴恩达《深度学习》系列课程个人笔记</title>
+    <url>/blog/Andrew-Ng-Deep-Learning-notes/</url>
+    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/bighuang624/bighuang624.github.io/master/images/Andrew-Ng-Deep-Learning-notes.png" alt="Andrew-Ng-Deep-Learning-notes"></p>
+<p>早在吴恩达（deeplearning.ai）的《深度学习》系列课程在网易云课堂刚刚发布时，它就已经躺在我的计划列表中了。当时还没有特别坚定说要深入学习这方面的知识，因此搁置了一段时间。这几个月终于下定决心，排除万难，开始对这个系列的课程进行学习。</p>
+<p>这个系列的课程给我的感觉是，对 DL 新人，以及像我这样数学不是非常好的学习者非常友好。吴恩达老师真正做到了深入浅出，但又没有抛弃那些重要的细节。在我一边看视频，一边想看看花书对应章节时，发现晦涩到根本看不动。而这个系列的课程作为入门启蒙，是再合适不过的。</p>
+<p>另外，这个系列课程的作业全都是精心设计过的，虽然难度不大，但对巩固视频所学知识、帮助理解细节非常有帮助。如果只是听课而不独立完成作业，我认为和没有学过没有什么区别。我也打算过一段时间再重新将这些作业再写一遍。</p>
+<p>在学习的同时，像网上很多同学一样，我也记录了自己的笔记，并将其发布在 Github 上。因为在 Github 上，在 md 文件中用 LaTex 写的公式不能正常显示，之前都是用 MacDown 由 md 文件生成 html，虽然公式可以看了，但是不太美观。之后，我恰好发现了 docsify ，一个可以由 md 文件动态生成文档网站的库。于是折腾了一会，将自己的笔记全部用它生成，最终效果如题图所示，非常美观（虽然折腾的途中也踩了几个小坑）。</p>
+<p>因为在学习的过程中，我也看了很多网上的笔记。它们对我起到了很大的帮助，因此我也想将我的笔记分享出来，也许能够帮助到其他的同学。两周前在学完前两门课时，我在知乎的专栏发了一篇<a href="https://zhuanlan.zhihu.com/p/32527718">文章</a>（即这篇博文的前身）。到目前为止，知乎的文章收获了 147 个赞，而 Github 上的 repo 得到了 42 个 star。这对我简直是受宠若惊。因此，即使这两周是考试周，我还是抽出时间学完了第三门课，并更新了笔记。一方面，这个系列课程的内容确实非常吸引我，另一方面，也是很多同道中人的认可对我有着很大的鼓励。</p>
+<p>第四门课是有关计算机视觉和卷积神经网络的。我们知道近年来深度学习的爆红很大程度上是缘于 2012 年 ImageNet 图像识别比赛中 Hinton 课题组构建的 CNN 网络 AlexNet 有着碾压级的表现，因此我对这门课也是非常期待，希望能够在寒假结束前完成对这门课的学习。</p>
+<p>最后，再次将笔记的 Github 的 repo 地址公布如下：</p>
+<ul>
+<li>笔记：<a href="http://kyonhuang.top/Andrew-Ng-Deep-Learning-notes/">吴恩达《深度学习》系列课程笔记</a></li>
+<li>Github 仓库（包含写完的作业）：<a href="https://github.com/bighuang624/Andrew-Ng-Deep-Learning-notes">bighuang624/Andrew-Ng-Deep-Learning-notes</a></li>
+</ul>
+<p>欢迎查阅，欢迎在 Issues 中交流或提出意见，更欢迎 star 一下以兹鼓励！</p>
+]]></content>
+      <categories>
+        <category>深度学习笔记</category>
+      </categories>
+      <tags>
+        <tag>深度学习</tag>
+        <tag>吴恩达</tag>
       </tags>
   </entry>
   <entry>
@@ -5755,6 +5755,14 @@ MathJax.Hub.Config({
     <title>【paper reading】2021 小样本分割论文选读</title>
     <url>/blog/few-shot-segmentation-2021/</url>
     <content><![CDATA[<p>根据手头想法的需要，读一读 2021 年顶会顶刊的小样本分割相关论文并做笔记于此。有开源代码的论文优先，持续更新。</p>
+<ul>
+<li>Prior Guided Feature Enrichment Network for Few-Shot Segmentation (TPAMI 2020)</li>
+<li>Few-Shot Segmentation Via Cycle-Consistent Transformer (NeurIPS 2021)</li>
+<li>Few-Shot Segmentation Without Meta-Learning: A Good Transductive Inference Is All You Need? (CVPR 2021)</li>
+<li>Self-Guided and Cross-Guided Learning for Few-Shot Segmentation (CVPR 2021)</li>
+<li>Adaptive Prototype Learning and Allocation for Few-Shot Segmentation (CVPR 2021)</li>
+<li>Few-Shot 3D Point Cloud Semantic Segmentation (CVPR 2021)</li>
+</ul>
 <!-- [参考](https://github.com/xiaomengyc/Few-Shot-Semantic-Segmentation-Papers) -->
 
 <span id="more"></span>
