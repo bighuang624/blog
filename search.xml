@@ -3305,68 +3305,6 @@ MathJax.Hub.Config({
       </tags>
   </entry>
   <entry>
-    <title>ANTLR v4 学习笔记（三）－特性拾遗</title>
-    <url>/blog/ANTLR-learning-notes-3/</url>
-    <content><![CDATA[<p>继续学习解释器构造和 ANTLR。在系列博文的上一篇 <a href="http://kyonhuang.top/ANTLR-learning-notes-2/">ANTLR v4 学习笔记（二）－实现变种计算器</a>，我们用 ANTLR 实现了一个变种计算器，从而对 ANTLR 语法、访问器（Visitor）机制、集成以及 ANLTR 的错误处理机制有了更深的理解。</p>
-<p>上篇博文对应着《The Definitive ANTLR 4 Reference》中的 Chapter 4 A Quick Tour，但没有覆盖整个 Chapter 4 的所有内容。因此这篇博文将介绍一下 Chapter 4 的剩余内容——监听器（Listener）机制、代码片段嵌入语法，以及词法分析的一些很棒的特性。</p>
-<span id="more"></span>
-
-<h2 id="监听器机制"><a href="#监听器机制" class="headerlink" title="监听器机制"></a>监听器机制</h2><p>监听器机制和访问器机制有着很多共通的特点，我们也需要通过监听语法分析树遍历器触发的“事件”来完成某些工作。它们之间最大的区别在于，监听器的方法会被 ANTLR 提供的遍历器对象自动调用，而在访问器的方法中，必须显式调用<code>visit</code>方法来访问子节点，否则对应的子树将不会被访问。</p>
-<p>ANTLR 会自动生成一个接口 xxListener，它定义了 ANTLR 的运行库中的 ParseTreeWalker 类在遍历语法分析树时能够触发的全部方法。当然，和访问器机制一样，我们无需实现接口中的全部方法。ANTLR 自动生成一个名为 xxBaseListener 的类，我们可以继承这个类并只重写那些我们感兴趣的方法。</p>
-<h2 id="代码片段嵌入语法"><a href="#代码片段嵌入语法" class="headerlink" title="代码片段嵌入语法"></a>代码片段嵌入语法</h2><p>监听器机制和访问器一样，能够使语法分析过程和应用程序本身保持低耦合，也让语法更具有可读性。但有时候，为了满足比较苛刻的需求，我们需要将代码片段（动作）嵌入到语法中，这些动作会被拷贝到 ANTLR 自动生成的递归下降语法分析器的代码中。</p>
-<h3 id="将任意动作嵌入语法"><a href="#将任意动作嵌入语法" class="headerlink" title="将任意动作嵌入语法"></a>将任意动作嵌入语法</h3><p>拿下面这一份用于解析类表格文件的语法为例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Rows;</span><br><span class="line"></span><br><span class="line"><span class="meta">@parser</span>::members &#123;  <span class="comment">// 在生成的 RowsParser 中添加一些成员</span></span><br><span class="line">    <span class="keyword">int</span> col;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RowsParser</span><span class="params">(TokenStream input, <span class="keyword">int</span> col)</span> </span>&#123;  <span class="comment">// 自定义的构造器</span></span><br><span class="line">      <span class="keyword">this</span>(input);</span><br><span class="line">      <span class="keyword">this</span>.col = col;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">file: (row NL)+ ;</span><br><span class="line"></span><br><span class="line">row</span><br><span class="line">locals [<span class="keyword">int</span> i=<span class="number">0</span>]</span><br><span class="line">    : (   STUFF</span><br><span class="line">          &#123;</span><br><span class="line">          $i++;</span><br><span class="line">          <span class="keyword">if</span> ($i == col) System.out.println($STUFF.text);</span><br><span class="line">          &#125;</span><br><span class="line">      )+</span><br><span class="line">    ;</span><br><span class="line"></span><br><span class="line">TAB   : <span class="string">&#x27;\t&#x27;</span> -&gt; skip ;    <span class="comment">// 匹配但是不将其传递给语法分析器</span></span><br><span class="line">NL    : <span class="string">&#x27;\r&#x27;</span>? <span class="string">&#x27;\n&#x27;</span> ;      <span class="comment">// 匹配并将其传递给语法分析器</span></span><br><span class="line">STUFF : ~[\t\r\n]+ ;      <span class="comment">// 匹配除 tab 符和换行符之外的任何字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p><code>@parser::members</code>表示在生成的 RowsParser 中添加一些成员，即大括号里的所有元素（包括）会原封不动的添加到 RowsParser 类中。我们通过加入的构造器来传入希望提取的列号。</p>
-<p>row 规则的<code>(...)+</code>循环放置了一些动作，访问了之前使用 locals 子句定义的局部变量<code>$i</code>。同时 row 规则也使用了<code>$STUFF.text</code>来获得刚刚匹配的 STUFF 词法符号中包含的文本。关于动作的更多内容会在 Chapter 10 深入研究。</p>
-<h3 id="用语义判定改变语法分析过程"><a href="#用语义判定改变语法分析过程" class="headerlink" title="用语义判定改变语法分析过程"></a>用语义判定改变语法分析过程</h3><p>用一个读取一列整数的语法作为例子。首先看一下需求：输入的其中的一部分整数指定了接下来的多少个整数分为一组。例如输入：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2 8 43 3 1 4 6</span><br></pre></td></tr></table></figure>
-
-<p>第一个数字 2 表示匹配接下来的两个数字 8 和 43，数字 3 表示匹配接下来的三个数字。</p>
-<p>语法文件如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Data;</span><br><span class="line"></span><br><span class="line">file : group+ ;</span><br><span class="line"></span><br><span class="line">group: INT sequence[$INT.<span class="keyword">int</span>] ;</span><br><span class="line"></span><br><span class="line">sequence[<span class="keyword">int</span> n]</span><br><span class="line">locals [<span class="keyword">int</span> i = <span class="number">1</span>;]</span><br><span class="line">     : ( &#123;$i&lt;=$n&#125;? INT &#123;$i++;&#125; )*  <span class="comment">// 匹配 n 个整数</span></span><br><span class="line">     ;</span><br><span class="line"></span><br><span class="line">INT :   [<span class="number">0</span>-<span class="number">9</span>]+ ;     <span class="comment">// 匹配整数</span></span><br><span class="line">WS  :   [ \t\n\r]+ -&gt; skip ;   <span class="comment">// 丢弃所有的空白字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>Data 语法的关键在于<code>&#123;$i&lt;=$n&#125;?</code>，这段动作的值是布尔类型的，它被称为一个语义判定。在匹配到 n 个输入整数之前，它的值保持为 true，其中 n 是 sequence 语法中的参数。当语义判定的值为 false 时，对应的备选分支就从语法中“消失”了，因此，它也就从生成的语法分析器中“消失”了。在本例中，语义判定的值为 false 时，<code>(...)*</code>循环终止，从 sequence 规则返回。</p>
-<h2 id="词法分析特性"><a href="#词法分析特性" class="headerlink" title="词法分析特性"></a>词法分析特性</h2><p>ANTLR 有三个与词法符号有关非常棒的特性。</p>
-<h3 id="孤岛语法：处理同一文件中的不同格式"><a href="#孤岛语法：处理同一文件中的不同格式" class="headerlink" title="孤岛语法：处理同一文件中的不同格式"></a>孤岛语法：处理同一文件中的不同格式</h3><p>有很多常见的文件格式包含了多重语言，例如 Java 文件中有注释和 Java 代码，ejs 等模板引擎有模板语言表达式和文本。不同格式的语言需要按照不同的方式进行处理，这样的现象被称为<strong>“孤岛语法”</strong>。</p>
-<p>ANTLR 提供了一个名为<strong>词法分析模式（lexical modes）</strong>的词法分析器特性，帮助我们方便地处理混合了不同格式数据的文件。它的基本思想是，当遇到特殊的“哨兵”字符序列时，执行不同模式的切换。</p>
-<p>我们不妨以 XML 作为例子。一个 XML 解析器会将除标签和实体转义（例如<code>&amp;pound;</code>）之外的内容全部当作普通文本。当看到<code>&lt;</code>时，词法分析器会切换到 “INSIDE” 模式；当看到<code>&gt;</code>或者<code>/&gt;</code>时，它就切换回默认模式。</p>
-<p>下面的语法展示了 XML 解析器的工作方式：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a lexer grammar called XMLLexer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">lexer grammar XMLLexer;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认模式：所有在标签之外的东西</span></span><br><span class="line">OPEN        : <span class="string">&#x27;&lt;&#x27;</span>                 -&gt; pushMode(INSIDE) ;</span><br><span class="line">COMMENT     : <span class="string">&#x27;&lt;!--&#x27;</span> .*? <span class="string">&#x27;--&gt;&#x27;</span>    -&gt; skip ;</span><br><span class="line">EntityRef   : <span class="string">&#x27;&amp;&#x27;</span> [a-z]+ <span class="string">&#x27;;&#x27;</span> ;</span><br><span class="line">TEXT        : ~(<span class="string">&#x27;&lt;&#x27;</span>|<span class="string">&#x27;&amp;&#x27;</span>)+ ;           <span class="comment">// 匹配任意除 &lt; 和 &amp; 之外的 16 位字符</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ----------------------    所有在标签之内的东西    ----------------------</span></span><br><span class="line">mode INSIDE;</span><br><span class="line">CLOSE       : <span class="string">&#x27;&gt;&#x27;</span>                 -&gt; popMode ;  <span class="comment">// 回到默认模式</span></span><br><span class="line">SLASH_CLOSE : <span class="string">&#x27;/&gt;&#x27;</span>                -&gt; popMode ;</span><br><span class="line">EQUALS      : <span class="string">&#x27;=&#x27;</span> ;</span><br><span class="line">STRING      : <span class="string">&#x27;&quot;&#x27;</span> .*? <span class="string">&#x27;&quot;&#x27;</span> ;</span><br><span class="line">SlashName   : <span class="string">&#x27;/&#x27;</span> Name ;</span><br><span class="line">Name        : ALPHA (ALPHA|DIGIT)* ;</span><br><span class="line">S           : [ \t\r\n]           -&gt; skip ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">ALPHA       : [a-zA-Z] ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">DIGIT       : [<span class="number">0</span>-<span class="number">9</span>] ;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>提供一份如下所示的样例输入文件：</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tools</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tool</span> <span class="attr">name</span>=<span class="string">&quot;ANTLR&quot;</span>&gt;</span>A parser generator<span class="tag">&lt;/<span class="name">tool</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tools</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>测试步骤与结果如下所示：</p>
-<img src="/images/antlr/note3/XMLLexer.jpg" />
-
-<p>值得一提的是，在上述启动测试组件的命令行中，使用的参数是 XML tokens，在正常情况下，这里应该是一个语法名加一个起始规则名。如果需要令测试组件只运行词法分析器而不运行语法分析器，我们可以指定参数为语法名加上一个特殊的规则名<code>tokens</code>。</p>
-<h3 id="重写输入流"><a href="#重写输入流" class="headerlink" title="重写输入流"></a>重写输入流</h3><p>我们可以通过 TokenStreamRewriter 对象对输入流进行修改，然后再加以输出，从而实现对源代码插桩或重构。例如，我们可以通过以下代码实现一个监听器，来给每个类定义中加上一行序列化版本标示符（serialVersionUID）：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStream;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStreamRewriter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertSerialIDListener</span> <span class="keyword">extends</span> <span class="title">JavaBaseListener</span> </span>&#123;</span><br><span class="line">    TokenStreamRewriter rewriter;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InsertSerialIDListener</span><span class="params">(TokenStream tokens)</span> </span>&#123;</span><br><span class="line">        rewriter = <span class="keyword">new</span> TokenStreamRewriter(tokens);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enterClassBody</span><span class="params">(JavaParser.ClassBodyContext ctx)</span> </span>&#123;</span><br><span class="line">        String field = <span class="string">&quot;\n\tpublic static final long serialVersionUID = 1L;&quot;</span>;</span><br><span class="line">        rewriter.insertAfter(ctx.start, field);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>之后，我们在 main 程序中初始化一个 InsertSerialIDListener，并当遍历结束时打印词法符号流：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ParseTreeWalker walker = <span class="keyword">new</span> ParseTreeWalker();  <span class="comment">// 新建一个标准的遍历器</span></span><br><span class="line">InsertSerialIDListener extractor = <span class="keyword">new</span> InsertSerialIDListener(tokens);</span><br><span class="line">walker.walk(extractor, tree);  <span class="comment">// 使用监听器初始化对语法分析树的遍历</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印出修改后的词法符号流</span></span><br><span class="line">System.out.println(extractor.rewriter.getText());</span><br></pre></td></tr></table></figure>
-
-<p>注意，TokenStreamRewriter 实际上修改的是词法符号流的“视图”而非词法符号流本身。它认为所有对修改方法的调用都只是一个“指令”，然后将这些修改放入一个队列；在未来词法符号流被重新渲染为文本时，这些修改才会被执行。因此每次我们调用<code>getText()</code>的时候，rewriter 对象都会执行上述队列中的指令。</p>
-<h3 id="将-Tokens-送入不同通道"><a href="#将-Tokens-送入不同通道" class="headerlink" title="将 Tokens 送入不同通道"></a>将 Tokens 送入不同通道</h3><p>语法分析器只处理一个通道，因此当我们想要忽略但保留某些 tokens 时（例如注释和空白字符），我们可以通过在语法文件书写特殊的指令，来将其送入其他通道。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">COMMENT</span><br><span class="line">    :    <span class="string">&#x27;/*&#x27;</span> .*? <span class="string">&#x27;*/&#x27;</span>    -&gt; channel(HIDDEN)  <span class="comment">// 匹配 /* 和 */ 之间的任何东西</span></span><br><span class="line">    ;</span><br><span class="line">WS  :    [ \r\t\u000c\n]+ -&gt; channel(HIDDEN)</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
-
-<p><code>-&gt;channel(HIDDEN)</code>和<code>-&gt;skip</code>类似，也是一个词法分析器指令。在这里，它设置了这些 tokens 的通道号。这样，这些 tokens 就会被语法分析器忽略。token 流中仍然保存着这些原始的 tokens 序列，但在向语法分析器提供数据时忽略了那些处于已关闭通道的 tokens。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>ANTLR 学习的第三篇笔记到这里就结束了。尽管这一篇笔记很短，但是涵盖了 ANTLR 实践中一些比较现实的问题的解决方式。在了解这三篇笔记所涉及的学习内容后，如果还有兴趣，就可以正式展开对使用 ANTLR 开发语言类应用程序的学习了。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>《The Definitive ANTLR 4 Reference》</li>
-</ul>
-]]></content>
-      <categories>
-        <category>解释器构造</category>
-      </categories>
-      <tags>
-        <tag>编译技术</tag>
-        <tag>ANTLR</tag>
-        <tag>解释器</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>记知识图谱前沿技术课程（武汉大学站）</title>
     <url>/blog/whu-KG-technology-course/</url>
     <content><![CDATA[<p>这周一（4月28日）参加了<a href="https://mp.weixin.qq.com/s?__biz=MzI0MTI1Nzk1MA==&mid=2651676132&idx=1&sn=3965c4718e97cf4962301229c4fd877f&chksm=f2f7a155c5802843c1ec73a120d6cbe506c819cf87f32b4f5fa68862dd6603a2edb66f10208b&mpshare=1&scene=23&srcid=04209Zn8T1cUyBEYullCcwnB#rd">知识图谱前沿技术课程暨学术研讨会（武汉大学站）</a>。本次研讨会邀请了很多著名学者和企业代表，结合知识图谱学界研究与业界应用的进展，系统地讲解知识图谱前沿技术及智能应用。</p>
@@ -3429,6 +3367,68 @@ MathJax.Hub.Config({
         <tag>自然语言处理</tag>
         <tag>讲座</tag>
         <tag>知识图谱</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ANTLR v4 学习笔记（三）－特性拾遗</title>
+    <url>/blog/ANTLR-learning-notes-3/</url>
+    <content><![CDATA[<p>继续学习解释器构造和 ANTLR。在系列博文的上一篇 <a href="http://kyonhuang.top/ANTLR-learning-notes-2/">ANTLR v4 学习笔记（二）－实现变种计算器</a>，我们用 ANTLR 实现了一个变种计算器，从而对 ANTLR 语法、访问器（Visitor）机制、集成以及 ANLTR 的错误处理机制有了更深的理解。</p>
+<p>上篇博文对应着《The Definitive ANTLR 4 Reference》中的 Chapter 4 A Quick Tour，但没有覆盖整个 Chapter 4 的所有内容。因此这篇博文将介绍一下 Chapter 4 的剩余内容——监听器（Listener）机制、代码片段嵌入语法，以及词法分析的一些很棒的特性。</p>
+<span id="more"></span>
+
+<h2 id="监听器机制"><a href="#监听器机制" class="headerlink" title="监听器机制"></a>监听器机制</h2><p>监听器机制和访问器机制有着很多共通的特点，我们也需要通过监听语法分析树遍历器触发的“事件”来完成某些工作。它们之间最大的区别在于，监听器的方法会被 ANTLR 提供的遍历器对象自动调用，而在访问器的方法中，必须显式调用<code>visit</code>方法来访问子节点，否则对应的子树将不会被访问。</p>
+<p>ANTLR 会自动生成一个接口 xxListener，它定义了 ANTLR 的运行库中的 ParseTreeWalker 类在遍历语法分析树时能够触发的全部方法。当然，和访问器机制一样，我们无需实现接口中的全部方法。ANTLR 自动生成一个名为 xxBaseListener 的类，我们可以继承这个类并只重写那些我们感兴趣的方法。</p>
+<h2 id="代码片段嵌入语法"><a href="#代码片段嵌入语法" class="headerlink" title="代码片段嵌入语法"></a>代码片段嵌入语法</h2><p>监听器机制和访问器一样，能够使语法分析过程和应用程序本身保持低耦合，也让语法更具有可读性。但有时候，为了满足比较苛刻的需求，我们需要将代码片段（动作）嵌入到语法中，这些动作会被拷贝到 ANTLR 自动生成的递归下降语法分析器的代码中。</p>
+<h3 id="将任意动作嵌入语法"><a href="#将任意动作嵌入语法" class="headerlink" title="将任意动作嵌入语法"></a>将任意动作嵌入语法</h3><p>拿下面这一份用于解析类表格文件的语法为例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Rows;</span><br><span class="line"></span><br><span class="line"><span class="meta">@parser</span>::members &#123;  <span class="comment">// 在生成的 RowsParser 中添加一些成员</span></span><br><span class="line">    <span class="keyword">int</span> col;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RowsParser</span><span class="params">(TokenStream input, <span class="keyword">int</span> col)</span> </span>&#123;  <span class="comment">// 自定义的构造器</span></span><br><span class="line">      <span class="keyword">this</span>(input);</span><br><span class="line">      <span class="keyword">this</span>.col = col;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">file: (row NL)+ ;</span><br><span class="line"></span><br><span class="line">row</span><br><span class="line">locals [<span class="keyword">int</span> i=<span class="number">0</span>]</span><br><span class="line">    : (   STUFF</span><br><span class="line">          &#123;</span><br><span class="line">          $i++;</span><br><span class="line">          <span class="keyword">if</span> ($i == col) System.out.println($STUFF.text);</span><br><span class="line">          &#125;</span><br><span class="line">      )+</span><br><span class="line">    ;</span><br><span class="line"></span><br><span class="line">TAB   : <span class="string">&#x27;\t&#x27;</span> -&gt; skip ;    <span class="comment">// 匹配但是不将其传递给语法分析器</span></span><br><span class="line">NL    : <span class="string">&#x27;\r&#x27;</span>? <span class="string">&#x27;\n&#x27;</span> ;      <span class="comment">// 匹配并将其传递给语法分析器</span></span><br><span class="line">STUFF : ~[\t\r\n]+ ;      <span class="comment">// 匹配除 tab 符和换行符之外的任何字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>@parser::members</code>表示在生成的 RowsParser 中添加一些成员，即大括号里的所有元素（包括）会原封不动的添加到 RowsParser 类中。我们通过加入的构造器来传入希望提取的列号。</p>
+<p>row 规则的<code>(...)+</code>循环放置了一些动作，访问了之前使用 locals 子句定义的局部变量<code>$i</code>。同时 row 规则也使用了<code>$STUFF.text</code>来获得刚刚匹配的 STUFF 词法符号中包含的文本。关于动作的更多内容会在 Chapter 10 深入研究。</p>
+<h3 id="用语义判定改变语法分析过程"><a href="#用语义判定改变语法分析过程" class="headerlink" title="用语义判定改变语法分析过程"></a>用语义判定改变语法分析过程</h3><p>用一个读取一列整数的语法作为例子。首先看一下需求：输入的其中的一部分整数指定了接下来的多少个整数分为一组。例如输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2 8 43 3 1 4 6</span><br></pre></td></tr></table></figure>
+
+<p>第一个数字 2 表示匹配接下来的两个数字 8 和 43，数字 3 表示匹配接下来的三个数字。</p>
+<p>语法文件如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">grammar Data;</span><br><span class="line"></span><br><span class="line">file : group+ ;</span><br><span class="line"></span><br><span class="line">group: INT sequence[$INT.<span class="keyword">int</span>] ;</span><br><span class="line"></span><br><span class="line">sequence[<span class="keyword">int</span> n]</span><br><span class="line">locals [<span class="keyword">int</span> i = <span class="number">1</span>;]</span><br><span class="line">     : ( &#123;$i&lt;=$n&#125;? INT &#123;$i++;&#125; )*  <span class="comment">// 匹配 n 个整数</span></span><br><span class="line">     ;</span><br><span class="line"></span><br><span class="line">INT :   [<span class="number">0</span>-<span class="number">9</span>]+ ;     <span class="comment">// 匹配整数</span></span><br><span class="line">WS  :   [ \t\n\r]+ -&gt; skip ;   <span class="comment">// 丢弃所有的空白字符</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Data 语法的关键在于<code>&#123;$i&lt;=$n&#125;?</code>，这段动作的值是布尔类型的，它被称为一个语义判定。在匹配到 n 个输入整数之前，它的值保持为 true，其中 n 是 sequence 语法中的参数。当语义判定的值为 false 时，对应的备选分支就从语法中“消失”了，因此，它也就从生成的语法分析器中“消失”了。在本例中，语义判定的值为 false 时，<code>(...)*</code>循环终止，从 sequence 规则返回。</p>
+<h2 id="词法分析特性"><a href="#词法分析特性" class="headerlink" title="词法分析特性"></a>词法分析特性</h2><p>ANTLR 有三个与词法符号有关非常棒的特性。</p>
+<h3 id="孤岛语法：处理同一文件中的不同格式"><a href="#孤岛语法：处理同一文件中的不同格式" class="headerlink" title="孤岛语法：处理同一文件中的不同格式"></a>孤岛语法：处理同一文件中的不同格式</h3><p>有很多常见的文件格式包含了多重语言，例如 Java 文件中有注释和 Java 代码，ejs 等模板引擎有模板语言表达式和文本。不同格式的语言需要按照不同的方式进行处理，这样的现象被称为<strong>“孤岛语法”</strong>。</p>
+<p>ANTLR 提供了一个名为<strong>词法分析模式（lexical modes）</strong>的词法分析器特性，帮助我们方便地处理混合了不同格式数据的文件。它的基本思想是，当遇到特殊的“哨兵”字符序列时，执行不同模式的切换。</p>
+<p>我们不妨以 XML 作为例子。一个 XML 解析器会将除标签和实体转义（例如<code>&amp;pound;</code>）之外的内容全部当作普通文本。当看到<code>&lt;</code>时，词法分析器会切换到 “INSIDE” 模式；当看到<code>&gt;</code>或者<code>/&gt;</code>时，它就切换回默认模式。</p>
+<p>下面的语法展示了 XML 解析器的工作方式：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a lexer grammar called XMLLexer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">lexer grammar XMLLexer;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认模式：所有在标签之外的东西</span></span><br><span class="line">OPEN        : <span class="string">&#x27;&lt;&#x27;</span>                 -&gt; pushMode(INSIDE) ;</span><br><span class="line">COMMENT     : <span class="string">&#x27;&lt;!--&#x27;</span> .*? <span class="string">&#x27;--&gt;&#x27;</span>    -&gt; skip ;</span><br><span class="line">EntityRef   : <span class="string">&#x27;&amp;&#x27;</span> [a-z]+ <span class="string">&#x27;;&#x27;</span> ;</span><br><span class="line">TEXT        : ~(<span class="string">&#x27;&lt;&#x27;</span>|<span class="string">&#x27;&amp;&#x27;</span>)+ ;           <span class="comment">// 匹配任意除 &lt; 和 &amp; 之外的 16 位字符</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ----------------------    所有在标签之内的东西    ----------------------</span></span><br><span class="line">mode INSIDE;</span><br><span class="line">CLOSE       : <span class="string">&#x27;&gt;&#x27;</span>                 -&gt; popMode ;  <span class="comment">// 回到默认模式</span></span><br><span class="line">SLASH_CLOSE : <span class="string">&#x27;/&gt;&#x27;</span>                -&gt; popMode ;</span><br><span class="line">EQUALS      : <span class="string">&#x27;=&#x27;</span> ;</span><br><span class="line">STRING      : <span class="string">&#x27;&quot;&#x27;</span> .*? <span class="string">&#x27;&quot;&#x27;</span> ;</span><br><span class="line">SlashName   : <span class="string">&#x27;/&#x27;</span> Name ;</span><br><span class="line">Name        : ALPHA (ALPHA|DIGIT)* ;</span><br><span class="line">S           : [ \t\r\n]           -&gt; skip ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">ALPHA       : [a-zA-Z] ;</span><br><span class="line"></span><br><span class="line">fragment</span><br><span class="line">DIGIT       : [<span class="number">0</span>-<span class="number">9</span>] ;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>提供一份如下所示的样例输入文件：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tools</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tool</span> <span class="attr">name</span>=<span class="string">&quot;ANTLR&quot;</span>&gt;</span>A parser generator<span class="tag">&lt;/<span class="name">tool</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tools</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>测试步骤与结果如下所示：</p>
+<img src="/images/antlr/note3/XMLLexer.jpg" />
+
+<p>值得一提的是，在上述启动测试组件的命令行中，使用的参数是 XML tokens，在正常情况下，这里应该是一个语法名加一个起始规则名。如果需要令测试组件只运行词法分析器而不运行语法分析器，我们可以指定参数为语法名加上一个特殊的规则名<code>tokens</code>。</p>
+<h3 id="重写输入流"><a href="#重写输入流" class="headerlink" title="重写输入流"></a>重写输入流</h3><p>我们可以通过 TokenStreamRewriter 对象对输入流进行修改，然后再加以输出，从而实现对源代码插桩或重构。例如，我们可以通过以下代码实现一个监听器，来给每个类定义中加上一行序列化版本标示符（serialVersionUID）：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStream;</span><br><span class="line"><span class="keyword">import</span> org.antlr.v4.runtime.TokenStreamRewriter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertSerialIDListener</span> <span class="keyword">extends</span> <span class="title">JavaBaseListener</span> </span>&#123;</span><br><span class="line">    TokenStreamRewriter rewriter;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InsertSerialIDListener</span><span class="params">(TokenStream tokens)</span> </span>&#123;</span><br><span class="line">        rewriter = <span class="keyword">new</span> TokenStreamRewriter(tokens);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enterClassBody</span><span class="params">(JavaParser.ClassBodyContext ctx)</span> </span>&#123;</span><br><span class="line">        String field = <span class="string">&quot;\n\tpublic static final long serialVersionUID = 1L;&quot;</span>;</span><br><span class="line">        rewriter.insertAfter(ctx.start, field);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后，我们在 main 程序中初始化一个 InsertSerialIDListener，并当遍历结束时打印词法符号流：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ParseTreeWalker walker = <span class="keyword">new</span> ParseTreeWalker();  <span class="comment">// 新建一个标准的遍历器</span></span><br><span class="line">InsertSerialIDListener extractor = <span class="keyword">new</span> InsertSerialIDListener(tokens);</span><br><span class="line">walker.walk(extractor, tree);  <span class="comment">// 使用监听器初始化对语法分析树的遍历</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印出修改后的词法符号流</span></span><br><span class="line">System.out.println(extractor.rewriter.getText());</span><br></pre></td></tr></table></figure>
+
+<p>注意，TokenStreamRewriter 实际上修改的是词法符号流的“视图”而非词法符号流本身。它认为所有对修改方法的调用都只是一个“指令”，然后将这些修改放入一个队列；在未来词法符号流被重新渲染为文本时，这些修改才会被执行。因此每次我们调用<code>getText()</code>的时候，rewriter 对象都会执行上述队列中的指令。</p>
+<h3 id="将-Tokens-送入不同通道"><a href="#将-Tokens-送入不同通道" class="headerlink" title="将 Tokens 送入不同通道"></a>将 Tokens 送入不同通道</h3><p>语法分析器只处理一个通道，因此当我们想要忽略但保留某些 tokens 时（例如注释和空白字符），我们可以通过在语法文件书写特殊的指令，来将其送入其他通道。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">COMMENT</span><br><span class="line">    :    <span class="string">&#x27;/*&#x27;</span> .*? <span class="string">&#x27;*/&#x27;</span>    -&gt; channel(HIDDEN)  <span class="comment">// 匹配 /* 和 */ 之间的任何东西</span></span><br><span class="line">    ;</span><br><span class="line">WS  :    [ \r\t\u000c\n]+ -&gt; channel(HIDDEN)</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
+
+<p><code>-&gt;channel(HIDDEN)</code>和<code>-&gt;skip</code>类似，也是一个词法分析器指令。在这里，它设置了这些 tokens 的通道号。这样，这些 tokens 就会被语法分析器忽略。token 流中仍然保存着这些原始的 tokens 序列，但在向语法分析器提供数据时忽略了那些处于已关闭通道的 tokens。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>ANTLR 学习的第三篇笔记到这里就结束了。尽管这一篇笔记很短，但是涵盖了 ANTLR 实践中一些比较现实的问题的解决方式。在了解这三篇笔记所涉及的学习内容后，如果还有兴趣，就可以正式展开对使用 ANTLR 开发语言类应用程序的学习了。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>《The Definitive ANTLR 4 Reference》</li>
+</ul>
+]]></content>
+      <categories>
+        <category>解释器构造</category>
+      </categories>
+      <tags>
+        <tag>编译技术</tag>
+        <tag>ANTLR</tag>
+        <tag>解释器</tag>
       </tags>
   </entry>
   <entry>
@@ -5762,6 +5762,7 @@ MathJax.Hub.Config({
 <li>Few-Shot Segmentation Without Meta-Learning: A Good Transductive Inference Is All You Need? (CVPR 2021)</li>
 <li>Self-Guided and Cross-Guided Learning for Few-Shot Segmentation (CVPR 2021)</li>
 <li>Adaptive Prototype Learning and Allocation for Few-Shot Segmentation (CVPR 2021)</li>
+<li>Mining Latent Classes for Few-shot Segmentation (ICCV 2021)</li>
 <li>Few-Shot 3D Point Cloud Semantic Segmentation (CVPR 2021)</li>
 </ul>
 <!-- [参考](https://github.com/xiaomengyc/Few-Shot-Semantic-Segmentation-Papers) -->
@@ -5887,6 +5888,19 @@ MathJax.Hub.Config({
 <p>实验结果：</p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-adaptive-prototype-learning-and-allocation-for-FSS-table5.png"></p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-adaptive-prototype-learning-and-allocation-for-FSS-table7.png"></p>
+<h3 id="Mining-Latent-Classes-for-Few-shot-Segmentation"><a href="#Mining-Latent-Classes-for-Few-shot-Segmentation" class="headerlink" title="Mining Latent Classes for Few-shot Segmentation"></a>Mining Latent Classes for Few-shot Segmentation</h3><p>ICCV 2021 | <a href="http://arxiv.org/abs/2103.15402">arxiv</a> | <a href="https://github.com/LiheYoung/MiningFSS">github</a>：只给了一个在基础 metric-based 方法上做了些修改的 baseline，没有给论文所提出的方法的代码！</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICCV2021-mining-latent-classes-for-FSS-figure2.png"></p>
+<p>该论文的所谓“代码开源”令人不满，因此只做简单笔记。在 <a href="https://arxiv.org/abs/2007.06309">PPNet (ECCV 2020)</a> 等工作的基础上，本文的方法：</p>
+<ol>
+<li>将元训练分为离线标注（Offline Annotation）和协同训练（Joint Training）两个阶段。<b>离线标注</b>阶段，模型在所有训练图像得到的所有类别的原型集合（数量上限为图像数 $\times$ 类别数，当然不是每张图像都含所有类别的物体）中通过 K-Means 聚类产生 $K$ 个簇心，同时直接对所有代表背景的原型求均值得到全局背景原型，从而得到 $K+1$ 个新原型，用于给所有训练图像的所有像素用 cosine 相似度打 $K+1$ 类的伪标签（pseudo masks）。除开背景类别外，另外 $K$ 个聚类所得到的类不代表具体的物体种类，而是表示类别的一些共同特征（例如，“马”和“牛”都有的“四足动物”特征）；<b>协同训练</b>阶段采用 episodic training，并额外加了一个分支来用交叉熵训练预测 pseudo masks。该分支由三层带 BN 和 ReLU 的卷积构成，另外考虑到 pseudo masks 的噪声会在训练后期影响性能，因此模型参数更新时计算指数移动平均值（exponential moving average），使模型参数的更新更稳定。</li>
+<li>由于学习新类时样本量过少，因此对用于像素二分类的背景和前景原型都分别进行纠偏。<b>背景原型纠偏</b>：在训练阶段采用指数移动平均值来不断用当前的背景原型来更新全局背景原型，在推断时用该全局背景原型和 support 的背景原型线性求和；<b>前景原型纠偏</b>：给定一张 support 图像，根据图像嵌入的 cosine 相似度选择前 N 张相关图像（一个问题就是这里没说相关图像是从哪个集合选），然后根据 support 的前景原型来挑选 K 个最相关的区域原型（这里也没说所谓的“区域”具体是怎么得到的），所有的嵌入通过 ResNet-50/101 的第三层的输出的平均池化得到。之后通过计算前景原型和区域原型的相似度来以加权求和的方式更新前景原型。</li>
+</ol>
+<p>实验结果就放一张在 PASCAL-5$^i$ 上的 SOTA 对比好了。虽然实验做的还比较详细，但是不给方法代码导致结果可信度要打一个问号。</p>
+<p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/ICCV2021-mining-latent-classes-for-FSS-table1.png"></p>
+<!-- ! 到这里了 -->
+
+<!-- ICCV2021-mining-latent-classes-for-FSS- -->
+
 <h3 id="Few-Shot-3D-Point-Cloud-Semantic-Segmentation"><a href="#Few-Shot-3D-Point-Cloud-Semantic-Segmentation" class="headerlink" title="Few-Shot 3D Point Cloud Semantic Segmentation"></a>Few-Shot 3D Point Cloud Semantic Segmentation</h3><p>CVPR 2021 | <a href="https://openaccess.thecvf.com/content/CVPR2021/html/Zhao_Few-Shot_3D_Point_Cloud_Semantic_Segmentation_CVPR_2021_paper.html">link</a> | <a href="https://github.com/Na-Z/attMPTI">github</a></p>
 <p><img src="https://raw.githubusercontent.com/bighuang624/pic-repo/master/CVPR2021-FS-3D-point-cloud-semantic-segmentation-figure1.png"></p>
 <p>第一篇做小样本 3D 点云语义分割的论文。相比 2D 图像，点云更加无结构和无序，因此做语义分割的难度会更大。任务定义如上图所示，基本就是把 2D 数据换成 3D 点云。方法上，本文提出了 <strong>attention-aware multi-prototype transductive inference</strong> 框架。其包含以下三点：</p>
@@ -5937,13 +5951,9 @@ TNNLS 2021 | [link](https://ieeexplore.ieee.org/abstract/document/9463398) | 代
 
 ICCV 2021 | [arxiv](http://arxiv.org/abs/2104.01538) | [github](https://github.com/juhongm999/hsnet) | [知乎解读](https://zhuanlan.zhihu.com/p/452427807)
 
-### Mining Latent Classes for Few-shot Segmentation
-
-ICCV 2021 | [arxiv](http://arxiv.org/abs/2103.15402) | [github](https://github.com/LiheYoung/MiningFSS)
-
 ### Learning Meta-class Memory for Few-Shot Semantic Segmentation
 
-ICCV 2021 | [pdf](https://openaccess.thecvf.com/content/ICCV2021/papers/Wu_Learning_Meta-Class_Memory_for_Few-Shot_Semantic_Segmentation_ICCV_2021_paper.pdf) | [github](https://github.com/wu-zhonghua/MM-Net)
+ICCV 2021 | [pdf](https://openaccess.thecvf.com/content/ICCV2021/papers/Wu_Learning_Meta-Class_Memory_for_Few-Shot_Semantic_Segmentation_ICCV_2021_paper.pdf) | [arxiv](http://arxiv.org/abs/2108.02958) | [github](https://github.com/wu-zhonghua/MM-Net) 
 
 ### Few-Shot Semantic Segmentation with Cyclic Memory Network
 
